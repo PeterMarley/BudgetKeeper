@@ -1,19 +1,19 @@
 package view;
 
 import javafx.application.Application;
-import javafx.scene.Parent;
-import javafx.scene.Scene;
 import javafx.stage.Stage;
+import view.windows.WindowMonth;
+import view.windows.WindowYear;
 
 public class View extends Application {
 
-	private Stage stage;
-	private Scene scene;
-	private Parent root;
+	private WindowYear windowYear;
+	private WindowMonth[] windowMonth;
 	
 	@Override
 	public void start(Stage primaryStage) throws Exception {
-		primaryStage.show();
+		windowYear = new WindowYear();
+		windowYear.show();
 	}
 
 }

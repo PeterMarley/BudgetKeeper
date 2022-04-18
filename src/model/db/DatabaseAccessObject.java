@@ -27,7 +27,7 @@ import java.util.List;
  */
 public class DatabaseAccessObject {
 
-	public static final int SENTINEL_RETURN = -1;
+	public final int SENTINEL_RETURN = -1;
 
 	/**
 	 * <pre>
@@ -50,6 +50,16 @@ public class DatabaseAccessObject {
 	 * </pre>
 	 */
 
+	/**
+	 * Unified source for database connections in DatabaseAccessObject
+	 * 
+	 * @return SQL Connection object
+	 * @throws SQLException if connection establishment fails
+	 */
+	private Connection getConnection() throws SQLException {
+		return DriverManager.getConnection(Files.DATABASE.toString());
+	}
+
 	//------------------------------\
 	//	Months						|
 	//------------------------------/
@@ -65,13 +75,13 @@ public class DatabaseAccessObject {
 	 * @param m
 	 * @return the primary key of the new month in database, or {@value #SENTINEL_RETURN} if the month was not added
 	 */
-	public static int addMonth(Month m) {
+	public int addMonth(Month m) {
 		int generatedPrimaryKey = SENTINEL_RETURN;
 		//TODO add transactions
 		System.out.println("Attempting to add Month " + m.toString() + " to database.");
 
 		// make connection to database, and create 2 prepared statements
-		try (Connection c = DriverManager.getConnection(Files.DATABASE.toString());
+		try (Connection c = getConnection();
 				PreparedStatement stmtSearch = c.prepareStatement(SQLFactory.searchMonth("date"));
 				PreparedStatement stmtAdd = c.prepareStatement(SQLFactory.addMonth(), Statement.RETURN_GENERATED_KEYS)) {
 
@@ -115,14 +125,14 @@ public class DatabaseAccessObject {
 	 * @param m
 	 * @return successfully removed?
 	 */
-	public static boolean removeMonth(Month m) {
+	public boolean removeMonth(Month m) {
 		boolean removed = false;
 		int monthID = SENTINEL_RETURN;
 
 		System.out.println("Attempting to remove Month " + m.toString() + " to database.");
 
 		// create connection and create a statement
-		try (Connection c = DriverManager.getConnection(Files.DATABASE.toString());
+		try (Connection c = getConnection();
 				PreparedStatement stmtSearch = c.prepareStatement(SQLFactory.searchMonth("date"))) {
 			stmtSearch.setString(1, m.getDate().format(Constants.FORMAT_YYYYMM));
 			// search for month
@@ -165,16 +175,41 @@ public class DatabaseAccessObject {
 	 * 
 	 * @return a {@code List} of {@link model.domain.Month Month} objects.
 	 */
-	public static List<Month> pullMonths() {
+	public List<Month> pullMonths() {
 		// create empty results list
 		List<Month> results = new LinkedList<Month>();
 
 		// get connection to database and create read months query
-		try (Connection c = DriverManager.getConnection(Files.DATABASE.toString());
+		try (Connection c = getConnection();
 				Statement stmtGetAllMonths = c.createStatement()) {
 
 			// execute query
 			try (ResultSet rs = stmtGetAllMonths.executeQuery(SQLFactory.pullMonths())) {
+				// iterate through ResultSet constructing months and adding them
+				while (rs.next()) {
+					Month m = new Month(LocalDate.parse(rs.getString("date"), Constants.FORMAT_YYYYMM));
+					m.addTransactions(pullTransactionsForMonth(rs.getInt("monthID")));
+					results.add(m);
+				}
+			}
+
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		// return results
+		return results;
+	}
+
+	public List<Month> pullMonthsForYear(int year) {
+		// create empty results list
+		List<Month> results = new LinkedList<Month>();
+
+		// get connection to database and create read months query
+		try (Connection c = getConnection();
+				Statement stmtGetAllMonths = c.createStatement()) {
+
+			// execute query
+			try (ResultSet rs = stmtGetAllMonths.executeQuery(SQLFactory.pullMonthsForYear(year))) {
 				// iterate through ResultSet constructing months and adding them
 				while (rs.next()) {
 					Month m = new Month(LocalDate.parse(rs.getString("date"), Constants.FORMAT_YYYYMM));
@@ -196,9 +231,9 @@ public class DatabaseAccessObject {
 	 * @param m
 	 * @return the monthID for the month specified in parameter {@code m}.
 	 */
-	public static int pullMonthID(Month m) {
+	public int pullMonthID(Month m) {
 		int monthID = SENTINEL_RETURN;
-		try (Connection c = DriverManager.getConnection(Files.DATABASE.toString());
+		try (Connection c = getConnection();
 				PreparedStatement stmtGetMonthID = c.prepareStatement(SQLFactory.getMonthID())) {
 			stmtGetMonthID.setString(1, m.getDate().format(Constants.FORMAT_YYYYMM));
 			try (ResultSet rs = stmtGetMonthID.executeQuery()) {
@@ -224,9 +259,9 @@ public class DatabaseAccessObject {
 	 * @param monthID the monthID to search for.
 	 * @return a {@code List} of {@link model.domain.Transaction Transaction} objects.
 	 */
-	public static List<Transaction> pullTransactionsForMonth(int monthID) {
+	public List<Transaction> pullTransactionsForMonth(int monthID) {
 		List<Transaction> trans = new LinkedList<Transaction>();
-		try (Connection c = DriverManager.getConnection(Files.DATABASE.toString());
+		try (Connection c = getConnection();
 				PreparedStatement stmtGetTransactionsForMonth = c.prepareStatement(SQLFactory.searchTransactions("monthID"))) {
 			stmtGetTransactionsForMonth.setInt(1, monthID);
 			try (ResultSet rs = stmtGetTransactionsForMonth.executeQuery()) {
@@ -254,8 +289,8 @@ public class DatabaseAccessObject {
 	 * @param transaction
 	 * @param monthID
 	 */
-	public static void addTransactions(Collection<Transaction> transactions, int monthID) {
-		try (Connection c = DriverManager.getConnection(Files.DATABASE.toString())) {
+	public void addTransactions(Collection<Transaction> transactions, int monthID) {
+		try (Connection c = getConnection()) {
 			List<Transaction> transactionsForMonth = pullTransactionsForMonth(monthID);
 			for (Transaction t : transactions) {
 				if (!transactionsForMonth.contains(t)) {
@@ -275,9 +310,9 @@ public class DatabaseAccessObject {
 	 * @param monthID
 	 * @return
 	 */
-	public static int addTransaction(Transaction t, int monthID) {
+	public int addTransaction(Transaction t, int monthID) {
 		int transKey = SENTINEL_RETURN;
-		try (Connection c = DriverManager.getConnection(Files.DATABASE.toString());
+		try (Connection c = getConnection();
 				PreparedStatement stmtGetTransactions = c.prepareStatement(SQLFactory.searchTransactions("monthID"))) {
 			stmtGetTransactions.setInt(1, monthID);
 			List<Transaction> transactions = pullTransactionsForMonth(monthID);
@@ -306,8 +341,8 @@ public class DatabaseAccessObject {
 	 * 
 	 * @param monthID
 	 */
-	public static void removeTransactions(int monthID) {
-		try (Connection c = DriverManager.getConnection(Files.DATABASE.toString());
+	public void removeTransactions(int monthID) {
+		try (Connection c = getConnection();
 				Statement removeTransForMonth = c.createStatement()) {
 			removeTransForMonth.executeUpdate(SQLFactory.removeTransactionsForMonth(monthID));
 		} catch (SQLException e) {
@@ -315,49 +350,58 @@ public class DatabaseAccessObject {
 		}
 	}
 
-	public static void main(String[] args) {
-
-		// CREATE MONTHS
-		Month m1 = new Month(LocalDate.now());
-		Month m2 = new Month(LocalDate.of(2015, 1, 1));
-		Month m3 = new Month(LocalDate.of(2015, 2, 20));
-		Month m4 = new Month(LocalDate.of(2022, 1, 29));
-		Month m4b = new Month(LocalDate.of(2022, 1, 6));
-		// CREATE TRANSACTIONS
-		Transaction m1t1 = new Transaction(m1.getDate(), true, Type.CASH, 15.00);
-		Transaction m1t2 = new Transaction(m1.getDate(), false, Type.DIRECT_DEBIT, 20.20);
-		Transaction m1t3 = new Transaction(m1.getDate(), true, Type.STANDING_ORDER, 30.30);
-		// ADD TRANSACTIONS TO MONTHS
-		m1.addTransaction(m1t1);
-		m1.addTransaction(m1t2);
-		m1.addTransaction(m1t3);
-		//		// ADD MONTHS (AND TRANSACTIONS) TO DATABASE
-		//		System.out.println("Added: " + pushMonth(m1));
-		//		System.out.println("Added: " + pushMonth(m2));
-		//		System.out.println("Added: " + pushMonth(m3));
-		//		System.out.println("Added: " + pushMonth(m4));
-		// // REMOVE MONTHS (AND TRANSACTIONS) FROM DATABASE
-		//System.out.println("Removed: " + removeMonth(m1));
-		//		System.out.println("Removed: " + removeMonth(m2));
-		//		System.out.println("Removed: " + removeMonth(m3));
-		//		System.out.println("Removed: " + removeMonth(m4b));
-		// PULL ALL MONTHS FROM DATABASE
-
-		// PRINT ALL MONTHS PULLED (AND THEIR TRANSACTIONS)
-		print(pullMonths());
-
-		System.out.println("Month ID: " + pullMonthID(m1));
-		System.out.println("Month ID: " + pullMonthID(m2));
-		System.out.println("Month ID: " + pullMonthID(m3));
-		System.out.println("Month ID: " + pullMonthID(m4));
-		System.out.println("Month ID: " + pullMonthID(m4b));
-		System.out.println("Month ID: " + pullMonthID(new Month(LocalDate.of(1999, 12, 29))));
-
-		removeTransactions(pullMonthID(m1));
-		
-		print(pullMonths());
-
+	public void removeTransaction(Transaction t) {
+		//SELECT * FROM transactions WHERE monthID=? AND income=? AND date=? AND type=? AND value=?
 	}
+
+	//	public static void main(String[] args) {
+	//		DatabaseAccessObject dao = new DatabaseAccessObject();
+	//		//		// CREATE MONTHS
+	//		//		Month m1 = new Month(LocalDate.now());
+	//		//		Month m2 = new Month(LocalDate.of(2015, 1, 1));
+	//		//		Month m3 = new Month(LocalDate.of(2015, 2, 20));
+	//		//		Month m4 = new Month(LocalDate.of(2022, 1, 29));
+	//		//		Month m4b = new Month(LocalDate.of(2022, 1, 6));
+	//		//		// CREATE TRANSACTIONS
+	//		//		Transaction m1t1 = new Transaction(m1.getDate(), true, Type.CASH, 15.00);
+	//		//		Transaction m1t2 = new Transaction(m1.getDate(), false, Type.DIRECT_DEBIT, 20.20);
+	//		//		Transaction m1t3 = new Transaction(m1.getDate(), true, Type.STANDING_ORDER, 30.30);
+	//		//		// ADD TRANSACTIONS TO MONTHS
+	//		//		m1.addTransaction(m1t1);
+	//		//		m1.addTransaction(m1t2);
+	//		//		m1.addTransaction(m1t3);
+	//		//		// ADD MONTHS (AND TRANSACTIONS) TO DATABASE
+	//		//		System.out.println("Added: " + dao.addMonth(m1));
+	//		//		System.out.println("Added: " + dao.addMonth(m2));
+	//		//		System.out.println("Added: " + dao.addMonth(m3));
+	//		//		System.out.println("Added: " + dao.addMonth(m4));
+	//		//		//		// REMOVE MONTHS (AND TRANSACTIONS) FROM DATABASE
+	//		//		//		System.out.println("Removed: " + removeMonth(m1));
+	//		//		//		System.out.println("Removed: " + removeMonth(m2));
+	//		//		//		System.out.println("Removed: " + removeMonth(m3));
+	//		//		//		System.out.println("Removed: " + removeMonth(m4b));
+	//		//		// PULL ALL MONTHS FROM DATABASE
+	//		//
+	//		//		// PRINT ALL MONTHS PULLED (AND THEIR TRANSACTIONS)
+	//		//		print(dao.pullMonths());
+	//		//
+	//		//		System.out.println("Month ID: " + dao.pullMonthID(m1));
+	//		//		System.out.println("Month ID: " + dao.pullMonthID(m2));
+	//		//		System.out.println("Month ID: " + dao.pullMonthID(m3));
+	//		//		System.out.println("Month ID: " + dao.pullMonthID(m4));
+	//		//		System.out.println("Month ID: " + dao.pullMonthID(m4b));
+	//		//		System.out.println("Month ID: " + dao.pullMonthID(new Month(LocalDate.of(1999, 12, 29))));
+	//		//
+	//		//		 dao.removeTransactions(dao.pullMonthID(m1));
+	//		//
+	//		//		print(dao.pullMonths());
+	//		//
+	//		//		System.out.println(SQLFactory.removeTransaction(m1t1));
+	//		System.out.println(SQLFactory.pullMonthsForYear(2022));
+	//		List<Month> l = dao.pullMonthsForYear(2022);
+	//		print(l);
+	//
+	//	}
 
 	private static void print(List<Month> months) {
 		System.out.println("Start print");

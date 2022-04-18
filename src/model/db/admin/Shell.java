@@ -2,7 +2,6 @@ package model.db.admin;
 
 import java.util.InputMismatchException;
 import java.util.Scanner;
-import static model.db.admin.DatabaseAdministration.*;
 
 /**
  * This program gives quick administrator access to important database functions without needing to engage with the sqlite3 shell or the main
@@ -36,7 +35,7 @@ public class Shell {
 			public boolean menuAction() {
 				System.out.println(DIV);
 				System.out.println("Creating Tables...");
-				createTables();
+				DatabaseAdministration.createTables();
 				System.out.println(DIV);
 				return true;
 			}
@@ -45,7 +44,7 @@ public class Shell {
 			public boolean menuAction() {
 				System.out.println(DIV);
 				System.out.println("Dropping Tables...");
-				dropTables();
+				DatabaseAdministration.dropTables();
 				System.out.println(DIV);
 				return true;
 			}

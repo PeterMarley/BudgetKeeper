@@ -4,6 +4,7 @@ import static model.domain.Utility.nullCheck;
 
 import model.db.Constants.Tables;
 import model.domain.Month;
+import model.domain.Transaction;
 
 /**
  * This factory class is used to generate SQL code Strings for use in the BudgetKeeper programs {@link model.db.DatabaseAccessObject DAO} Database is
@@ -130,6 +131,19 @@ public class SQLFactory {
 		return PULL_MONTHS;
 	}
 
+	private static final String PULL_MONTHS_FOR_YEAR = "SELECT * FROM months WHERE date LIKE '%d/%%';";
+
+	/**
+	 * Generate SQL code String for searching for and retrieving {@code months} table data for year {@code year}.
+	 * 
+	 * @return an SQL code String (for use in a Statement) that will retrieve all {@code Month}'s for year {@code year} from the database.<br>
+	 *         <br>
+	 *         {@value #PULL_MONTHS_FOR_YEAR} placeholder is replaced by {@code year} value.
+	 */
+	public static String pullMonthsForYear(int year) {
+		return String.format(PULL_MONTHS_FOR_YEAR, year);
+	}
+
 	private static final String SEARCH_TRANSACTIONS = "SELECT * FROM transactions WHERE %s=?;";
 
 	/**
@@ -191,6 +205,15 @@ public class SQLFactory {
 	 */
 	public static String getMonthID() {
 		return GET_MONTH_ID;
+	}
+
+	private static final String REMOVE_TRANSACTION = "DELETE FROM transactions WHERE income=%d AND date='%s' AND type='%s' AND value=%.2f;";
+
+	public static String removeTransaction(Transaction t) {
+		return String.format(REMOVE_TRANSACTION, (t.getIncome()) ? 1 : 0,
+				t.getDate().format(Constants.FORMAT_YYYYMM),
+				t.getType().toString(),
+				t.getValue());
 	}
 
 }

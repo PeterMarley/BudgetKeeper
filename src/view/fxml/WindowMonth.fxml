@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.AnchorPane?>
+
+
+<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="589.0" prefWidth="702.0" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1">
+   <children>
+      <Label layoutX="96.0" layoutY="43.0" text="Income" />
+      <Label layoutX="78.0" layoutY="69.0" text="Outgoings" />
+      <Label layoutX="116.0" layoutY="98.0" text="+/-" />
+      <TextField layoutX="141.0" layoutY="39.0" />
+      <TextField layoutX="141.0" layoutY="65.0" />
+      <TextField layoutX="141.0" layoutY="94.0" />
+      <TableView fx:id="transactionsCash" layoutX="25.0" layoutY="147.0" prefHeight="200.0" prefWidth="200.0">
+        <columns>
+          <TableColumn prefWidth="75.0" text="C1" />
+          <TableColumn prefWidth="75.0" text="C2" />
+        </columns>
+      </TableView>
+   </children>
+</AnchorPane>

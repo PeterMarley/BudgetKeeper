@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.FlowPane?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.RowConstraints?>
+
+<BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="view.controllers.WindowYearController">
+   <top>
+      <FlowPane alignment="TOP_RIGHT" columnHalignment="RIGHT" prefHeight="22.0" prefWidth="600.0" BorderPane.alignment="TOP_RIGHT">
+         <children>
+            <Label text="Year:" />
+            <TextField fx:id="year" alignment="TOP_RIGHT" />
+            <Button fx:id="yearRefresh" mnemonicParsing="false" onAction="#changeYear" text="Refresh Year" />
+         </children>
+      </FlowPane>
+   </top> 
+   <center>
+      <GridPane prefHeight="600.0" prefWidth="800.0" BorderPane.alignment="CENTER">
+        <columnConstraints>
+          <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+          <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+            <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+            <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+        </columnConstraints>
+        <rowConstraints>
+          <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+          <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+          <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+        </rowConstraints>
+         <children>
+            <Button fx:id="monthMar" mnemonicParsing="false" prefHeight="230.0" prefWidth="200.0" styleClass="month" text="March" GridPane.columnIndex="2" />
+            <Button fx:id="monthFeb" mnemonicParsing="false" prefHeight="230.0" prefWidth="200.0" styleClass="month" text="February" GridPane.columnIndex="1" />
+            <Button fx:id="monthApr" mnemonicParsing="false" prefHeight="230.0" prefWidth="200.0" styleClass="month" text="April" GridPane.columnIndex="3" />
+            <Button fx:id="monthMay" mnemonicParsing="false" prefHeight="230.0" prefWidth="200.0" styleClass="month" text="May" GridPane.rowIndex="1" />
+            <Button fx:id="monthJun" mnemonicParsing="false" prefHeight="230.0" prefWidth="200.0" styleClass="month" text="June" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+            <Button fx:id="monthJul" mnemonicParsing="false" prefHeight="230.0" prefWidth="200.0" styleClass="month" text="July" GridPane.columnIndex="2" GridPane.rowIndex="1" />
+            <Button fx:id="monthAug" mnemonicParsing="false" prefHeight="230.0" prefWidth="200.0" styleClass="month" text="August" GridPane.columnIndex="3" GridPane.rowIndex="1" />
+            <Button fx:id="monthSep" mnemonicParsing="false" prefHeight="230.0" prefWidth="200.0" styleClass="month" text="September" GridPane.rowIndex="2" />
+            <Button fx:id="monthOct" mnemonicParsing="false" prefHeight="230.0" prefWidth="200.0" styleClass="month" text="October" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+            <Button fx:id="monthNov" mnemonicParsing="false" prefHeight="230.0" prefWidth="200.0" styleClass="month" text="November" GridPane.columnIndex="2" GridPane.rowIndex="2" />
+            <Button fx:id="monthDec" mnemonicParsing="false" prefHeight="230.0" prefWidth="200.0" styleClass="month" text="December" GridPane.columnIndex="3" GridPane.rowIndex="2" />
+            <Button fx:id="monthJan" mnemonicParsing="false" prefHeight="230.0" prefWidth="200.0" styleClass="month" text="January" />
+         </children>
+      </GridPane>
+   </center>
+  
+</BorderPane>
