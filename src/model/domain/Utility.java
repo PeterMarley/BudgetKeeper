@@ -1,18 +1,28 @@
-package model;
+package model.domain;
+
+import static model.domain.Utility.nullCheck;
+
+import java.time.LocalDate;
 
 /**
- * A class containing only static methods used to standardise parameter validation in the BudgetKeeper program.
+ * A class containing static utility methods.<br>
+ * <br>
+ * {@link Utility#nullCheck(Object) null check}.
+ * <br>
+ * {@link Utility#validate(double, Double, Double) validate double}.
+ * <br>
+ * {@link Utility#validate(int, Integer, Integer) validate int}.
+ * <br>
+ * {@link Utility#validate(String, Integer, Integer) validate String}.
+ * 
+ * 
  * 
  * @author Peter Marley
  *
  */
-public class Validators {
+public class Utility {
 
-	private static int stackFrameMethodIndex = 3;
-
-	public Validators(int stackFrameMethodIndex) {
-		this.stackFrameMethodIndex = validate(stackFrameMethodIndex, 0, null);
-	}
+	private static final int STACK_FRAME_METHOD_INDEX = 3;;
 
 	/**
 	 * Checks any object for null. Intended for use in validating method parameters.
@@ -45,15 +55,15 @@ public class Validators {
 	public static double validate(double toValidate, Double min, Double max) {
 		// reject no bounds or if min > max
 		if (min == null && max == null) {
-			throw new IllegalArgumentException("Cannot validate a numeric value with no bounds.");
+			throw new IllegalArgumentException(traceCall() + " method: Cannot validate a numeric value with no bounds.");
 		} else if (min != null && max != null && min > max) {
-			throw new IllegalArgumentException("Impossible to validate, as minimum acceptable value (" + min + ") is greater than maximum acceptable value (" + max + ").");
+			throw new IllegalArgumentException(traceCall() + " method: Impossible to validate, as minimum acceptable value (" + min + ") is greater than maximum acceptable value (" + max + ").");
 		}
 
 		if (min != null && toValidate < min) {
-			throw new IllegalArgumentException(traceCall() + " method: integer parameter cannot be less than " + min + " but was " + toValidate + ".");
+			throw new IllegalArgumentException(traceCall() + " method: numeric parameter cannot be less than " + min + ", but is " + toValidate + ".");
 		} else if (max != null && toValidate > max) {
-			throw new IllegalArgumentException(traceCall() + " method: integer parameter cannot be greater than " + max + " but was " + toValidate + ".");
+			throw new IllegalArgumentException(traceCall() + " method: numeric parameter cannot be greater than " + max + ", but is " + toValidate + ".");
 		}
 		return toValidate;
 	}
@@ -73,7 +83,8 @@ public class Validators {
 	public static int validate(int toValidate, Integer min, Integer max) {
 		Double minD = (min == null) ? null : Double.valueOf(min);
 		Double maxD = (max == null) ? null : Double.valueOf(max);
-		return (int) validate(Double.valueOf(toValidate), minD, maxD);
+		Double value = Double.valueOf(toValidate);
+		return (int) validate(value, minD, maxD);
 	}
 
 	/**
@@ -86,22 +97,40 @@ public class Validators {
 	 * @return {@code toValidate} trimmed of leading and trailing whitespace.
 	 */
 	public static String validate(String toValidate, Integer min, Integer max) {
+		toValidate = nullCheck(toValidate).trim();
 		if (min != null && toValidate.length() < min) {
-			throw new IllegalArgumentException(traceCall() + " method: integer parameter cannot be less than " + min + " but was " + toValidate + ".");
+			throw new IllegalArgumentException(traceCall() + " method: String parameter cannot be less than " + min + " characters long, but was " + toValidate.length() + " characters long.");
 		} else if (max != null && toValidate.length() > max) {
-			throw new IllegalArgumentException(traceCall() + " method: integer parameter cannot be greater than " + max + " but was " + toValidate + ".");
+			throw new IllegalArgumentException(traceCall() + " method: String parameter cannot be greater than " + max + " characters long, but was " + toValidate.length() + " characters long.");
 		}
 		return toValidate.trim();
 	}
 
 	/**
-	 * gets the calling method at index 3 in the current Threads stack trace. This method is to be use exclusively to validate setter parameters, and may
-	 * give inconsisent results if used otherwise.
+	 * gets the calling method at index 3 in the current Threads stack trace. This method is to be use exclusively in this class, and may
+	 * give inconsistent results if used otherwise.
 	 * 
-	 * @return the StackTraceElement.toString() @ element
+	 * @return the StackTraceElement {@code getMethodName()} at index {@value #STACK_FRAME_METHOD_INDEX} in the current threads stack trace. The method
+	 *         that called the validator.
 	 */
 	private static String traceCall() {
 		StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
-		return (stackTrace.length >= stackFrameMethodIndex + 1) ? stackTrace[stackFrameMethodIndex].getMethodName() : "";
+		return (stackTrace.length >= STACK_FRAME_METHOD_INDEX + 1) ? stackTrace[STACK_FRAME_METHOD_INDEX].getMethodName() : "";
+	}
+
+	/**
+	 * Gets the number of months difference between two {@link LocalDate} objects.
+	 * 
+	 * @param d1
+	 * @param d2
+	 * @return
+	 */
+	public static int monthDifferential(LocalDate d1, LocalDate d2) {
+		nullCheck(d1);
+		nullCheck(d2);
+		int months, years;
+		years = 12 * (d1.getYear() - d2.getYear());
+		months = (d1.getMonthValue() - d2.getMonthValue());
+		return years + months;
 	}
 }
