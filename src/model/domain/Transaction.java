@@ -120,8 +120,7 @@ public class Transaction implements Comparable<Transaction> {
 	}
 
 	/**
-	 * An object is equal to this object if: <br>
-	 * Evaluates the memory position of the objects, the class, the type, and all fields together to determine equality.
+	 * An object is equal to this object if the memory position of the objects is equal or the class, type, and date (month and year only) are equal.
 	 */
 	@Override
 	public boolean equals(Object obj) {

@@ -12,7 +12,14 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 
 import model.domain.Transaction.Type;
-
+/**
+ * Represents a Month of Transactions for the BudgetKeeper program
+ * @author Peter Marley
+ * @StudentNumber 13404067
+ * @Email pmarley03@qub.ac.uk
+ * @GitHub https://github.com/PeterMarley
+ *
+ */
 public class Month implements Comparable<Month> {
 
 	// instance fields
@@ -50,6 +57,12 @@ public class Month implements Comparable<Month> {
 			}
 		} else {
 			throw new IllegalArgumentException("This transaction is for another month.");
+		}
+	}
+	
+	public void addTransactions(List<Transaction> transactions) {
+		for (Transaction t : transactions) {
+			addTransaction(t);
 		}
 	}
 
