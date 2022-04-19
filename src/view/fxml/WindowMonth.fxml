@@ -16,29 +16,34 @@
       <TextField layoutX="141.0" layoutY="94.0" />
       <TableView fx:id="transactionsCash" layoutX="25.0" layoutY="147.0" prefHeight="285.0" prefWidth="825.0">
         <columns>
-          <TableColumn prefWidth="75.0" text="C1" />
-          <TableColumn prefWidth="75.0" text="C2" />
-            <TableColumn prefWidth="75.0" text="C2" />
-            <TableColumn prefWidth="75.0" text="C2" />
-            <TableColumn prefWidth="75.0" text="C2" />
+          <TableColumn fx:id="transactionsCash_date" prefWidth="75.0" text="C1" />
+          <TableColumn fx:id="transactionsCash_name" prefWidth="75.0" text="C2" />
+            <TableColumn fx:id="transactionsCash_value" prefWidth="75.0" text="C2" />
+            <TableColumn fx:id="transactionsCash_paid" prefWidth="75.0" text="C2" />
         </columns>
       </TableView>
       <TableView fx:id="transactionsDirectDebit" layoutX="25.0" layoutY="566.0" prefHeight="113.0" prefWidth="825.0">
          <columns>
-            <TableColumn prefWidth="75.0" text="C1" />
-            <TableColumn prefWidth="75.0" text="C2" />
+            <TableColumn fx:id="transactionsDirectDebit_date" prefWidth="75.0" text="C1" />
+            <TableColumn fx:id="transactionsDirectDebit_name" prefWidth="75.0" text="C2" />
+            <TableColumn fx:id="transactionsDirectDebit_value" prefWidth="75.0" text="C2" />
+            <TableColumn fx:id="transactionsDirectDebit_paid" prefWidth="75.0" text="C2" />
          </columns>
       </TableView>
       <TableView fx:id="transactionsStandingOrder" layoutX="33.0" layoutY="699.0" prefHeight="106.0" prefWidth="825.0">
          <columns>
-            <TableColumn prefWidth="75.0" text="C1" />
-            <TableColumn prefWidth="75.0" text="C2" />
+            <TableColumn fx:id="transactionsStandingOrder_date" prefWidth="75.0" text="C1" />
+            <TableColumn fx:id="transactionsStandingOrder_name" prefWidth="75.0" text="C2" />
+            <TableColumn fx:id="transactionsStandingOrder_value" prefWidth="75.0" text="C2" />
+            <TableColumn fx:id="transactionsStandingOrder_paid" prefWidth="75.0" text="C2" />
          </columns>
       </TableView>
       <TableView fx:id="transactionsBankTransfer" layoutX="25.0" layoutY="445.0" prefHeight="106.0" prefWidth="825.0">
          <columns>
-            <TableColumn prefWidth="75.0" text="C1" />
-            <TableColumn prefWidth="75.0" text="C2" />
+            <TableColumn fx:id="transactionsBankTransfer_date" prefWidth="75.0" text="C1" />
+            <TableColumn fx:id="transactionsBankTransfer_name" prefWidth="75.0" text="C2" />
+            <TableColumn fx:id="transactionsBankTransfer_value" prefWidth="75.0" text="C2" />
+            <TableColumn fx:id="transactionsBankTransfer_paid" prefWidth="75.0" text="C2" />
          </columns>
       </TableView>
    </children>
