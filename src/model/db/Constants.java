@@ -27,6 +27,8 @@ public class Constants {
 		 * CREATE TABLE transactions (
 		 * 	transactionID INTEGER NOT NULL,
 		 * 	monthID INTEGER NOT NULL,
+		 *  name TEXT,
+		 *  paid INTEGER,
 		 * 	income INTEGER,
 		 * 	date TEXT,
 		 * 	type TEXT,
@@ -37,7 +39,8 @@ public class Constants {
 		 * </pre>
 		 * 
 		 */
-		TRANSACTION("transactions", "transactionID", new String[] { "monthID", "months" }, new String[] { "transactionID INTEGER NOT NULL", "monthID INTEGER NOT NULL", "income INTEGER", "date TEXT",
+		TRANSACTION("transactions", "transactionID", new String[] { "monthID", "months" }, new String[] { "transactionID INTEGER NOT NULL", "monthID INTEGER NOT NULL",
+				"name TEXT", "paid INTEGER", "income INTEGER", "date TEXT",
 				"type TEXT",
 				"value REAL" }),
 		/**

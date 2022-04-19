@@ -22,6 +22,8 @@ class MonthTest {
 
 	double valueGood1Low1, valueGood2Low2, valueGood3, valueGood4, valueGood5, valueGood6;
 
+	String nameGood1Low, nameGood2, nameGood3, nameGood4, nameGood5, nameGood6;
+
 	@BeforeEach
 	void setUp() throws Exception {
 
@@ -69,13 +71,20 @@ class MonthTest {
 		valueGood5 = 2000.29;
 		valueGood6 = 59666.1769;
 
-		t1 = new Transaction(d11Mar2012, true, typeCash, valueGood1Low1);
-		t2 = new Transaction(d12Mar2012, true, typeDirectDebit, valueGood3);
-		t3 = new Transaction(d13Mar2012, true, typeStandingOrder, valueGood4);
+		nameGood1Low = "a";
+		nameGood2 = "ab";
+		nameGood3 = "abc";
+		nameGood4 = "abcd";
+		nameGood5 = "abcde";
+		nameGood6 = "x".repeat(150);
 
-		t4 = new Transaction(d4, false, typeCash, valueGood4);
-		t5 = new Transaction(d5Now, false, typeDirectDebit, valueGood5);
-		t6 = new Transaction(d6Compare1, false, typeBankTransfer, valueGood6);
+		t1 = new Transaction(nameGood1Low, true, d11Mar2012, true, typeCash, valueGood1Low1);
+		t2 = new Transaction(nameGood2, false, d12Mar2012, true, typeDirectDebit, valueGood3);
+		t3 = new Transaction(nameGood3, true, d13Mar2012, true, typeStandingOrder, valueGood4);
+
+		t4 = new Transaction(nameGood4, false, d4, false, typeCash, valueGood4);
+		t5 = new Transaction(nameGood5, true, d5Now, false, typeDirectDebit, valueGood5);
+		t6 = new Transaction(nameGood6, false, d6Compare1, false, typeBankTransfer, valueGood6);
 	}
 
 	@Test

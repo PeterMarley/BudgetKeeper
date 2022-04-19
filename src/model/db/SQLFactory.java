@@ -161,7 +161,7 @@ public class SQLFactory {
 		return String.format(SEARCH_TRANSACTIONS, columnName);
 	}
 
-	private static final String ADD_TRANSACTION = "INSERT INTO transactions (monthID, income, date, type, value) VALUES (?,?,?,?,?);";
+	private static final String ADD_TRANSACTION = "INSERT INTO transactions (monthID, name, paid, income, date, type, value) VALUES (?,?,?,?,?,?,?);";
 
 	/**
 	 * Generate SQL code String for adding a {@link model.domain.Transaction Transaction} to {@code transactions} table.
@@ -207,10 +207,13 @@ public class SQLFactory {
 		return GET_MONTH_ID;
 	}
 
-	private static final String REMOVE_TRANSACTION = "DELETE FROM transactions WHERE income=%d AND date='%s' AND type='%s' AND value=%.2f;";
+	private static final String REMOVE_TRANSACTION = "DELETE FROM transactions WHERE monthID=? AND name=%s AND paid=%d AND income=%d AND date='%s' AND type='%s' AND value=%.2f;";
 
 	public static String removeTransaction(Transaction t) {
-		return String.format(REMOVE_TRANSACTION, (t.getIncome()) ? 1 : 0,
+		return String.format(REMOVE_TRANSACTION,
+				t.getName(),
+				(t.isPaid()) ? 1 : 0,
+				(t.isIncome()) ? 1 : 0,
 				t.getDate().format(Constants.FORMAT_YYYYMM),
 				t.getType().toString(),
 				t.getValue());

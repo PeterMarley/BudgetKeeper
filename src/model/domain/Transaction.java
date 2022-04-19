@@ -25,6 +25,9 @@ public class Transaction implements Comparable<Transaction> {
 	private Type type;
 	private double value;
 
+	private String name;
+	private boolean paid;
+
 	//------------------------------\
 	//	Construction				|
 	//------------------------------/
@@ -38,7 +41,9 @@ public class Transaction implements Comparable<Transaction> {
 	 * @param value    the value of this transaction
 	 */
 
-	public Transaction(LocalDate date, boolean isIncome, Type type, double value) {
+	public Transaction(String name, boolean paid, LocalDate date, boolean isIncome, Type type, double value) {
+		this.setName(name);
+		this.paid = paid;
 		this.setDate(date);
 		this.setType(type);
 		this.setValue(value);
@@ -54,6 +59,13 @@ public class Transaction implements Comparable<Transaction> {
 	 */
 	public void setDate(LocalDate date) {
 		this.date = nullCheck(date);
+	}
+
+	/**
+	 * @param name the name to set
+	 */
+	private void setName(String name) {
+		this.name = validate(name, 1, null);
 	}
 
 	/**
@@ -77,7 +89,7 @@ public class Transaction implements Comparable<Transaction> {
 	/**
 	 * @return the income
 	 */
-	public Boolean getIncome() {
+	public Boolean isIncome() {
 		return income;
 	}
 
@@ -86,6 +98,21 @@ public class Transaction implements Comparable<Transaction> {
 	 */
 	public LocalDate getDate() {
 		return date;
+	}
+
+	/**
+	 * @return the name
+	 */
+	public String getName() {
+		return this.name;
+	}
+
+	/**
+	 * 
+	 * @return the paid
+	 */
+	public boolean isPaid() {
+		return this.paid;
 	}
 
 	/**
@@ -155,13 +182,15 @@ public class Transaction implements Comparable<Transaction> {
 		// UNEQUAL if value fields are not equal
 		if (Double.doubleToLongBits(value) != Double.doubleToLongBits(other.value))
 			return false;
-
+		if (!this.getName().equals(other.getName()))
+			return false;
 		// OTHERWISE EQUAL
 		return true;
 	}
 
 	/**
-	 * A {@code Transaction} object's total ordering is chronologically by difference in months.
+	 * A {@code Transaction} object's total ordering is chronologically by difference in months. If months are chronologically equal, then all fields are
+	 * compared, if they are equal the value is compared? (is this working as intended?)
 	 */
 	@Override
 	public int compareTo(Transaction t) {

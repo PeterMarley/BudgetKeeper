@@ -6,8 +6,7 @@
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.AnchorPane?>
 
-
-<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="589.0" prefWidth="702.0" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1">
+<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="889.0" prefWidth="891.0" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="view.controllers.WindowMonthController">
    <children>
       <Label layoutX="96.0" layoutY="43.0" text="Income" />
       <Label layoutX="78.0" layoutY="69.0" text="Outgoings" />
@@ -15,11 +14,32 @@
       <TextField layoutX="141.0" layoutY="39.0" />
       <TextField layoutX="141.0" layoutY="65.0" />
       <TextField layoutX="141.0" layoutY="94.0" />
-      <TableView fx:id="transactionsCash" layoutX="25.0" layoutY="147.0" prefHeight="200.0" prefWidth="200.0">
+      <TableView fx:id="transactionsCash" layoutX="25.0" layoutY="147.0" prefHeight="285.0" prefWidth="825.0">
         <columns>
           <TableColumn prefWidth="75.0" text="C1" />
           <TableColumn prefWidth="75.0" text="C2" />
+            <TableColumn prefWidth="75.0" text="C2" />
+            <TableColumn prefWidth="75.0" text="C2" />
+            <TableColumn prefWidth="75.0" text="C2" />
         </columns>
+      </TableView>
+      <TableView fx:id="transactionsDirectDebit" layoutX="25.0" layoutY="566.0" prefHeight="113.0" prefWidth="825.0">
+         <columns>
+            <TableColumn prefWidth="75.0" text="C1" />
+            <TableColumn prefWidth="75.0" text="C2" />
+         </columns>
+      </TableView>
+      <TableView fx:id="transactionsStandingOrder" layoutX="33.0" layoutY="699.0" prefHeight="106.0" prefWidth="825.0">
+         <columns>
+            <TableColumn prefWidth="75.0" text="C1" />
+            <TableColumn prefWidth="75.0" text="C2" />
+         </columns>
+      </TableView>
+      <TableView fx:id="transactionsBankTransfer" layoutX="25.0" layoutY="445.0" prefHeight="106.0" prefWidth="825.0">
+         <columns>
+            <TableColumn prefWidth="75.0" text="C1" />
+            <TableColumn prefWidth="75.0" text="C2" />
+         </columns>
       </TableView>
    </children>
 </AnchorPane>
