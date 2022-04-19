@@ -7,6 +7,7 @@ import java.time.LocalDate;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleStringProperty;
+import javafx.scene.paint.Color;
 import model.db.Constants;
 
 /**
@@ -19,10 +20,25 @@ import model.db.Constants;
 public class Transaction implements Comparable<Transaction> {
 
 	public enum Type {
-		CASH,
-		BANK_TRANSFER,
-		DIRECT_DEBIT,
-		STANDING_ORDER;
+		CASH(Color.GREEN,"-fx-background-color: green"),
+		BANK_TRANSFER(Color.BLUE,"-fx-background-color: blue"),
+		DIRECT_DEBIT(Color.RED,"-fx-background-color: red"),
+		STANDING_ORDER(Color.BISQUE,"-fx-background-color: purple");
+		
+		private Color color;
+		private String cssStyle;
+		
+		private Type(Color color, String cssStyle) {
+			this.color = color;
+			this.cssStyle = cssStyle;
+		}
+		
+		public Color getColor() {
+			return this.color;
+		}
+		public String getCssStyle() {
+			return this.cssStyle;
+		}
 	}
 
 	//	private boolean income;

@@ -15,6 +15,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.transformation.SortedList;
 import javafx.fxml.FXML;
 import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
 import javafx.scene.control.cell.PropertyValueFactory;
 import model.db.Constants;
@@ -89,6 +90,19 @@ public class WindowMonthController {
 		List<Transaction> trList = new ArrayList<Transaction>(month.getTransactions());
 		SortedList<Transaction> srList = new SortedList<>(FXCollections.observableArrayList(trList));
 		this.transactions.setItems(srList);
+		
+		this.transactions.setRowFactory(row -> new TableRow<Transaction>() {
+			@Override
+			public void updateItem(Transaction t, boolean empty) {
+				if (t == null || empty) {
+					setStyle("");
+				} else {
+					setStyle(t.getType().getCssStyle());
+				}
+				
+			}
+		});
+		
 		//		FXCollections.observableArrayList(Controller.getDAO().pullTransactionsForMonth(Controller.getDAO().pullMonthID(month))));
 		//		SortedList<Transaction> sl = new SortedList<Transaction>();
 	}
