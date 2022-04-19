@@ -1,7 +1,15 @@
 package model.db.admin;
 
+import java.time.LocalDate;
 import java.util.InputMismatchException;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Scanner;
+
+import model.db.DatabaseAccessObject;
+import model.domain.Month;
+import model.domain.Transaction;
+import model.domain.Transaction.Type;
 
 /**
  * This program gives quick administrator access to important database functions without needing to engage with the sqlite3 shell or the main
@@ -14,6 +22,7 @@ import java.util.Scanner;
  *
  */
 public class Shell {
+	private static List<Month> testMonths;
 
 	/**
 	 * Start point
@@ -21,6 +30,26 @@ public class Shell {
 	 * @param args
 	 */
 	public static void main(String[] args) {
+		// CREATE MONTHS
+		Month m1 = new Month(LocalDate.now());
+		Month m2 = new Month(LocalDate.of(2015, 1, 1));
+		Month m3 = new Month(LocalDate.of(2015, 2, 20));
+		Month m4 = new Month(LocalDate.of(2022, 1, 29));
+		Month m4b = new Month(LocalDate.of(2022, 1, 6));
+		// CREATE TRANSACTIONS
+		Transaction m1t1 = new Transaction("T1", true, m1.getDate(), true, Type.CASH, 15.00);
+		Transaction m1t2 = new Transaction("T2", false, m1.getDate(), false, Type.DIRECT_DEBIT, 20.20);
+		Transaction m1t3 = new Transaction("T3", true, m1.getDate(), true, Type.STANDING_ORDER, 30.30);
+		// ADD TRANSACTIONS TO MONTHS
+		m1.addTransaction(m1t1);
+		m1.addTransaction(m1t2);
+		m1.addTransaction(m1t3);
+		testMonths = new LinkedList<Month>();
+		testMonths.add(m1);
+		testMonths.add(m2);
+		testMonths.add(m3);
+		testMonths.add(m4);
+		testMonths.add(m4b);
 		menu();
 	}
 
@@ -30,7 +59,7 @@ public class Shell {
 	 * Menu for Database Shell.
 	 */
 	private enum Menu {
-		
+
 		CREATE_TABLES("Create Tables") {
 			public boolean menuAction() {
 				System.out.println(DIV);
@@ -46,6 +75,14 @@ public class Shell {
 				System.out.println("Dropping Tables...");
 				DatabaseAdministration.dropTables();
 				System.out.println(DIV);
+				return true;
+			}
+		},
+		ADD_TEST_DATA("Add Test Data") {
+			public boolean menuAction() {
+				for (Month m : testMonths) {
+					DatabaseAdministration.dao.addMonth(m);
+				}
 				return true;
 			}
 		},
@@ -81,11 +118,14 @@ public class Shell {
 		Menu[] menu = Menu.values();
 		boolean toContinue = true;
 		while (toContinue) {
+			System.out.println(DIV);
 			for (Menu m : menu) {
 				System.out.println(m.toString());
 			}
+			System.out.println(DIV);
 			int selection = getInt("Please select a menu item by entering a number:", "Sorry you must enter a number between 1 and " + Menu.values().length + ".", 1, Menu.values().length);
 			toContinue = menu[selection - 1].menuAction();
+			System.out.println(DIV);
 		}
 	}
 

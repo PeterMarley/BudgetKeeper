@@ -12,11 +12,14 @@ import java.sql.Statement;
 import model.db.Constants;
 import model.db.Constants.Files;
 import model.db.Constants.Tables;
+import model.db.DatabaseAccessObject;
 
 public class DatabaseAdministration {
 
 	private static final boolean CREATE_TABLES = true;
 	private static final boolean DROP_TABLES = true;
+	
+	static final DatabaseAccessObject dao = new DatabaseAccessObject();
 
 	/**
 	 * Create all tables pointed to by {@link Constants.Tables} enum.

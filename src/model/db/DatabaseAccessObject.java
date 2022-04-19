@@ -360,54 +360,54 @@ public class DatabaseAccessObject {
 		//SELECT * FROM transactions WHERE monthID=? AND income=? AND date=? AND type=? AND value=?
 	}
 
-	public static void main(String[] args) {
-		DatabaseAccessObject dao = new DatabaseAccessObject();
-		// CREATE MONTHS
-		Month m1 = new Month(LocalDate.now());
-		Month m2 = new Month(LocalDate.of(2015, 1, 1));
-		Month m3 = new Month(LocalDate.of(2015, 2, 20));
-		Month m4 = new Month(LocalDate.of(2022, 1, 29));
-		Month m4b = new Month(LocalDate.of(2022, 1, 6));
-		// CREATE TRANSACTIONS
-		Transaction m1t1 = new Transaction("T1", true, m1.getDate(), true, Type.CASH, 15.00);
-		Transaction m1t2 = new Transaction("T2", false, m1.getDate(), false, Type.DIRECT_DEBIT, 20.20);
-		Transaction m1t3 = new Transaction("T3", true, m1.getDate(), true, Type.STANDING_ORDER, 30.30);
-		// ADD TRANSACTIONS TO MONTHS
-		m1.addTransaction(m1t1);
-		m1.addTransaction(m1t2);
-		m1.addTransaction(m1t3);
-		// ADD MONTHS (AND TRANSACTIONS) TO DATABASE
-		System.out.println("Added: " + dao.addMonth(m1));
-		System.out.println("Added: " + dao.addMonth(m2));
-		System.out.println("Added: " + dao.addMonth(m3));
-		System.out.println("Added: " + dao.addMonth(m4));
-		//		// REMOVE MONTHS (AND TRANSACTIONS) FROM DATABASE
-		//		System.out.println("Removed: " + removeMonth(m1));
-		//		System.out.println("Removed: " + removeMonth(m2));
-		//		System.out.println("Removed: " + removeMonth(m3));
-		//		System.out.println("Removed: " + removeMonth(m4b));
-		// PULL ALL MONTHS FROM DATABASE
-
-		// PRINT ALL MONTHS PULLED (AND THEIR TRANSACTIONS)
-		print(dao.pullMonths());
-
-		System.out.println("Month ID: " + dao.pullMonthID(m1));
-		System.out.println("Month ID: " + dao.pullMonthID(m2));
-		System.out.println("Month ID: " + dao.pullMonthID(m3));
-		System.out.println("Month ID: " + dao.pullMonthID(m4));
-		System.out.println("Month ID: " + dao.pullMonthID(m4b));
-		System.out.println("Month ID: " + dao.pullMonthID(new Month(LocalDate.of(1999, 12, 29))));
-
-		dao.removeTransactions(dao.pullMonthID(m1));
-
-		print(dao.pullMonths());
-
-		System.out.println(SQLFactory.removeTransaction(m1t1));
-		System.out.println(SQLFactory.pullMonthsForYear(2022));
-		List<Month> l = dao.pullMonthsForYear(2022);
-		print(l);
-
-	}
+	//	public static void main(String[] args) {
+	//		DatabaseAccessObject dao = new DatabaseAccessObject();
+	//		// CREATE MONTHS
+	//		Month m1 = new Month(LocalDate.now());
+	//		Month m2 = new Month(LocalDate.of(2015, 1, 1));
+	//		Month m3 = new Month(LocalDate.of(2015, 2, 20));
+	//		Month m4 = new Month(LocalDate.of(2022, 1, 29));
+	//		Month m4b = new Month(LocalDate.of(2022, 1, 6));
+	//		// CREATE TRANSACTIONS
+	//		Transaction m1t1 = new Transaction("T1", true, m1.getDate(), true, Type.CASH, 15.00);
+	//		Transaction m1t2 = new Transaction("T2", false, m1.getDate(), false, Type.DIRECT_DEBIT, 20.20);
+	//		Transaction m1t3 = new Transaction("T3", true, m1.getDate(), true, Type.STANDING_ORDER, 30.30);
+	//		// ADD TRANSACTIONS TO MONTHS
+	//		m1.addTransaction(m1t1);
+	//		m1.addTransaction(m1t2);
+	//		m1.addTransaction(m1t3);
+	//		// ADD MONTHS (AND TRANSACTIONS) TO DATABASE
+	//		System.out.println("Added: " + dao.addMonth(m1));
+	//		System.out.println("Added: " + dao.addMonth(m2));
+	//		System.out.println("Added: " + dao.addMonth(m3));
+	//		System.out.println("Added: " + dao.addMonth(m4));
+	//		//		// REMOVE MONTHS (AND TRANSACTIONS) FROM DATABASE
+	//		//		System.out.println("Removed: " + removeMonth(m1));
+	//		//		System.out.println("Removed: " + removeMonth(m2));
+	//		//		System.out.println("Removed: " + removeMonth(m3));
+	//		//		System.out.println("Removed: " + removeMonth(m4b));
+	//		// PULL ALL MONTHS FROM DATABASE
+	//
+	//		// PRINT ALL MONTHS PULLED (AND THEIR TRANSACTIONS)
+	//		print(dao.pullMonths());
+	//
+	//		System.out.println("Month ID: " + dao.pullMonthID(m1));
+	//		System.out.println("Month ID: " + dao.pullMonthID(m2));
+	//		System.out.println("Month ID: " + dao.pullMonthID(m3));
+	//		System.out.println("Month ID: " + dao.pullMonthID(m4));
+	//		System.out.println("Month ID: " + dao.pullMonthID(m4b));
+	//		System.out.println("Month ID: " + dao.pullMonthID(new Month(LocalDate.of(1999, 12, 29))));
+	//
+	//		//dao.removeTransactions(dao.pullMonthID(m1));
+	//
+	//		print(dao.pullMonths());
+	//
+	//		System.out.println(SQLFactory.removeTransaction(m1t1));
+	//		System.out.println(SQLFactory.pullMonthsForYear(2022));
+	//		List<Month> l = dao.pullMonthsForYear(2022);
+	//		print(l);
+	//
+	//	}
 
 	private static void print(List<Month> months) {
 		System.out.println("Start print");

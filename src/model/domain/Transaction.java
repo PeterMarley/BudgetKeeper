@@ -4,6 +4,11 @@ import static model.domain.Utility.*;
 
 import java.time.LocalDate;
 
+import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.SimpleDoubleProperty;
+import javafx.beans.property.SimpleStringProperty;
+import model.db.Constants;
+
 /**
  * An object class representing a monetary transaction. Parameter validations are provided by {@link model.domain.Utility} class.<br>
  * Natural order is {@link #compareTo(Transaction) chronological}.
@@ -15,18 +20,26 @@ public class Transaction implements Comparable<Transaction> {
 
 	public enum Type {
 		CASH,
+		BANK_TRANSFER,
 		DIRECT_DEBIT,
-		STANDING_ORDER,
-		BANK_TRANSFER;
+		STANDING_ORDER;
 	}
 
-	private boolean income;
-	private LocalDate date;
-	private Type type;
-	private double value;
+	//	private boolean income;
+	//	private LocalDate date;
+	//	private Type type;
+	//	private double value;
+	//
+	//	private String name;
+	//	private boolean paid;
 
-	private String name;
-	private boolean paid;
+	private SimpleBooleanProperty income;
+	private SimpleStringProperty date;
+	private SimpleStringProperty type;
+	private SimpleDoubleProperty value;
+
+	private SimpleStringProperty name;
+	private SimpleBooleanProperty isPaid;
 
 	//------------------------------\
 	//	Construction				|
@@ -41,13 +54,13 @@ public class Transaction implements Comparable<Transaction> {
 	 * @param value    the value of this transaction
 	 */
 
-	public Transaction(String name, boolean paid, LocalDate date, boolean isIncome, Type type, double value) {
+	public Transaction(String name, boolean isPaid, LocalDate date, boolean isIncome, Type type, double value) {
 		this.setName(name);
-		this.paid = paid;
+		this.setPaid(isPaid);
 		this.setDate(date);
 		this.setType(type);
 		this.setValue(value);
-		this.income = isIncome;
+		this.setIncome(isIncome);
 	}
 
 	//------------------------------\
@@ -55,31 +68,47 @@ public class Transaction implements Comparable<Transaction> {
 	//------------------------------/
 
 	/**
+	 * @param isIncome the isIncome to set
+	 */
+	private void setIncome(boolean isIncome) {
+		this.income = new SimpleBooleanProperty(isIncome);
+
+	}
+
+	/**
+	 * @param isPaid the isPaid to get
+	 */
+	private void setPaid(boolean isPaid) {
+		this.isPaid = new SimpleBooleanProperty(isPaid);
+
+	}
+
+	/**
 	 * @param date the date to set
 	 */
 	public void setDate(LocalDate date) {
-		this.date = nullCheck(date);
+		this.date = new SimpleStringProperty(nullCheck(date).format(Constants.FORMAT_YYYYMMDD));
 	}
 
 	/**
 	 * @param name the name to set
 	 */
 	private void setName(String name) {
-		this.name = validate(name, 1, null);
+		this.name = new SimpleStringProperty(validate(name, 1, null));
 	}
 
 	/**
 	 * @param type the type to set
 	 */
 	public void setType(Type type) {
-		this.type = nullCheck(type);
+		this.type = new SimpleStringProperty(nullCheck(type).toString());
 	}
 
 	/**
 	 * @param value the value to set
 	 */
 	public void setValue(double value) {
-		this.value = validate(value, 0.0, null);
+		this.value = new SimpleDoubleProperty(validate(value, 0.0, null));
 	}
 
 	//------------------------------\
@@ -90,21 +119,21 @@ public class Transaction implements Comparable<Transaction> {
 	 * @return the income
 	 */
 	public Boolean isIncome() {
-		return income;
+		return income.get();
 	}
 
 	/**
 	 * @return the date
 	 */
 	public LocalDate getDate() {
-		return date;
+		return LocalDate.parse(date.get(), Constants.FORMAT_YYYYMMDD);
 	}
 
 	/**
 	 * @return the name
 	 */
 	public String getName() {
-		return this.name;
+		return name.get();
 	}
 
 	/**
@@ -112,21 +141,21 @@ public class Transaction implements Comparable<Transaction> {
 	 * @return the paid
 	 */
 	public boolean isPaid() {
-		return this.paid;
+		return isPaid.get();
 	}
 
 	/**
 	 * @return the type
 	 */
 	public Type getType() {
-		return type;
+		return Type.valueOf(type.get());
 	}
 
 	/**
 	 * @return the value
 	 */
 	public double getValue() {
-		return value;
+		return value.get();
 	}
 
 	//------------------------------\
@@ -138,10 +167,10 @@ public class Transaction implements Comparable<Transaction> {
 		final int prime = 31;
 		int result = 1;
 		result = prime * result + ((date == null) ? 0 : date.hashCode());
-		result = prime * result + (income ? 1231 : 1237);
+		result = prime * result + (isIncome() ? 1231 : 1237);
 		result = prime * result + ((type == null) ? 0 : type.hashCode());
 		long temp;
-		temp = Double.doubleToLongBits(value);
+		temp = Double.doubleToLongBits(getValue());
 		result = prime * result + (int) (temp ^ (temp >>> 32));
 		return result;
 	}
@@ -171,16 +200,16 @@ public class Transaction implements Comparable<Transaction> {
 
 			// UNEQUAL if date fields are not equal
 			//} else if (!date.equals(other.date))
-		} else if (date.getYear() != other.date.getYear() && date.getMonth() != other.date.getMonth())
+		} else if (getDate().getYear() != other.getDate().getYear() && getDate().getMonth() != other.getDate().getMonth())
 			return false;
 		// UNEQUAL if income fields are not equal
-		if (income != other.income)
+		if (isIncome() != other.isIncome())
 			return false;
 		// UNEQUAL if type fields are not equal
-		if (type != other.type)
+		if (getType() != other.getType())
 			return false;
 		// UNEQUAL if value fields are not equal
-		if (Double.doubleToLongBits(value) != Double.doubleToLongBits(other.value))
+		if (Double.doubleToLongBits(getValue()) != Double.doubleToLongBits(other.getValue()))
 			return false;
 		if (!this.getName().equals(other.getName()))
 			return false;
@@ -194,15 +223,15 @@ public class Transaction implements Comparable<Transaction> {
 	 */
 	@Override
 	public int compareTo(Transaction t) {
-		int diff = monthDifferential(this.date, t.getDate());
+		int diff = monthDifferential(this.getDate(), t.getDate());
 		if (diff == 0) { // if same month chronologically
 
 			if (this.equals(t)) { // if object fields are equal
 				return 0;
 			} else {				// otherwise return value difference
-				if (this.value - t.value < 0) {
+				if (this.getValue() - t.getValue() < 0) {
 					return -1;
-				} else if (this.value - t.value > 0) {
+				} else if (this.getValue() - t.getValue() > 0) {
 					return 1;
 				}
 			}
@@ -213,7 +242,7 @@ public class Transaction implements Comparable<Transaction> {
 
 	@Override
 	public String toString() {
-		return "Transaction [income=" + income + ", date=" + date + ", type=" + type + ", value=" + value + "]";
+		return "Transaction [income=" + isIncome() + ", date=" + getDate() + ", type=" + getType() + ", value=" + getValue() + "]";
 	}
 
 }
