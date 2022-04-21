@@ -6,15 +6,15 @@
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.AnchorPane?>
 
-<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="889.0" prefWidth="891.0" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="view.controllers.WindowMonthController">
+<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="774.0" prefWidth="891.0" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="view.controllers.WindowMonthController">
    <children>
       <Label layoutX="96.0" layoutY="43.0" text="Income" />
       <Label layoutX="78.0" layoutY="69.0" text="Outgoings" />
       <Label layoutX="116.0" layoutY="98.0" text="+/-" />
-      <TextField layoutX="141.0" layoutY="39.0" />
-      <TextField layoutX="141.0" layoutY="65.0" />
-      <TextField layoutX="141.0" layoutY="94.0" />
-      <TableView fx:id="transactions" layoutX="25.0" layoutY="147.0" prefHeight="720.0" prefWidth="825.0">
+      <TextField fx:id="totalIn" layoutX="141.0" layoutY="39.0" />
+      <TextField fx:id="totalOut" layoutX="141.0" layoutY="65.0" />
+      <TextField fx:id="totalBalance" layoutX="141.0" layoutY="94.0" />
+      <TableView fx:id="transactions" layoutX="25.0" layoutY="147.0" prefHeight="606.0" prefWidth="826.0">
         <columns>
             <TableColumn fx:id="transactionsType" prefWidth="75.0" text="Type" />
             <TableColumn fx:id="transactionsDate" prefWidth="75.0" text="Date" />

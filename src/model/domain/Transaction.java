@@ -20,22 +20,23 @@ import model.db.Constants;
 public class Transaction implements Comparable<Transaction> {
 
 	public enum Type {
-		CASH(Color.GREEN,"-fx-background-color: green"),
-		BANK_TRANSFER(Color.BLUE,"-fx-background-color: blue"),
-		DIRECT_DEBIT(Color.RED,"-fx-background-color: red"),
-		STANDING_ORDER(Color.BISQUE,"-fx-background-color: purple");
-		
+		CASH(Color.GREEN, "-fx-background-color: #bbbbbb"),
+		BANK_TRANSFER(Color.BLUE, "-fx-background-color: #aaaaaa"),
+		DIRECT_DEBIT(Color.RED, "-fx-background-color: #999999"),
+		STANDING_ORDER(Color.BISQUE, "-fx-background-color: #888888");
+
 		private Color color;
 		private String cssStyle;
-		
+
 		private Type(Color color, String cssStyle) {
 			this.color = color;
 			this.cssStyle = cssStyle;
 		}
-		
+
 		public Color getColor() {
 			return this.color;
 		}
+
 		public String getCssStyle() {
 			return this.cssStyle;
 		}
@@ -171,7 +172,11 @@ public class Transaction implements Comparable<Transaction> {
 	 * @return the value
 	 */
 	public double getValue() {
-		return value.get();
+		if (isIncome()) {
+			return value.get();
+		} else {
+			return 0 - value.get();
+		}
 	}
 
 	//------------------------------\

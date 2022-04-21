@@ -40,10 +40,14 @@ public class Shell {
 		Transaction m1t1 = new Transaction("T1", true, m1.getDate(), true, Type.CASH, 15.00);
 		Transaction m1t2 = new Transaction("T2", false, m1.getDate(), false, Type.DIRECT_DEBIT, 20.20);
 		Transaction m1t3 = new Transaction("T3", true, m1.getDate(), true, Type.STANDING_ORDER, 30.30);
+		Transaction m1t4 = new Transaction("T3", false, m1.getDate(), true, Type.STANDING_ORDER, 500.1);
+
+		
 		// ADD TRANSACTIONS TO MONTHS
 		m1.addTransaction(m1t1);
 		m1.addTransaction(m1t2);
 		m1.addTransaction(m1t3);
+		m1.addTransaction(m1t4);
 		testMonths = new LinkedList<Month>();
 		testMonths.add(m1);
 		testMonths.add(m2);
