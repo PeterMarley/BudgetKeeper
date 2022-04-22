@@ -20,21 +20,21 @@ import model.db.Constants;
 public class Transaction implements Comparable<Transaction> {
 
 	public enum Type {
-		CASH(Color.GREEN, "-fx-background-color: #bbbbbb"),
-		BANK_TRANSFER(Color.BLUE, "-fx-background-color: #aaaaaa"),
-		DIRECT_DEBIT(Color.RED, "-fx-background-color: #999999"),
-		STANDING_ORDER(Color.BISQUE, "-fx-background-color: #888888");
+		CASH("Cash", "-fx-background-color: #bbbbbb"),
+		BANK_TRANSFER("Bank Transfer", "-fx-background-color: #aaaaaa"),
+		DIRECT_DEBIT("Direct Debit", "-fx-background-color: #999999"),
+		STANDING_ORDER("Standing Order", "-fx-background-color: #888888");
 
-		private Color color;
+		private String text;
 		private String cssStyle;
 
-		private Type(Color color, String cssStyle) {
-			this.color = color;
+		private Type(String text, String cssStyle) {
+			this.text = text;
 			this.cssStyle = cssStyle;
 		}
 
-		public Color getColor() {
-			return this.color;
+		public String toString() {
+			return this.text;
 		}
 
 		public String getCssStyle() {
@@ -118,7 +118,7 @@ public class Transaction implements Comparable<Transaction> {
 	 * @param type the type to set
 	 */
 	public void setType(Type type) {
-		this.type = new SimpleStringProperty(nullCheck(type).toString());
+		this.type = new SimpleStringProperty(nullCheck(type).name());
 	}
 
 	/**

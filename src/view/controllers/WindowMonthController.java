@@ -12,13 +12,17 @@ import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.collections.transformation.SortedList;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
+import javafx.scene.control.SelectionMode;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
+import javafx.scene.control.TablePosition;
 import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
+import javafx.scene.control.TableView.TableViewSelectionModel;
 import javafx.scene.control.TextField;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.Background;
@@ -31,6 +35,7 @@ import model.domain.Month;
 import model.domain.Transaction;
 import model.domain.Transaction.Type;
 import model.domain.comparators.TransactionComparatorDate;
+import model.domain.comparators.TransactionComparatorIncome;
 import model.domain.comparators.TransactionComparatorType;
 
 public class WindowMonthController {
@@ -125,17 +130,28 @@ public class WindowMonthController {
 	}
 
 	private void fillTable(Collection<Transaction> transactions) {
+		// Create an ArrayList of Transactions that we can use from the interface type Collection
 		List<Transaction> sortedTransactions = new ArrayList<Transaction>(transactions);
+
+		// sort with two comparators to get a "nested" sort, first by date, then by type.
 		Collections.sort(sortedTransactions, new TransactionComparatorDate());
 		Collections.sort(sortedTransactions, new TransactionComparatorType());
+		Collections.sort(sortedTransactions, new TransactionComparatorIncome());
+
+		/*
+		 *  set the cell value factories of the model, in this case Transaction. The model has its instance fields as 
+		 *  type SimpleStringProperty instread of String, SimpleBooleanProperty instead of boolean, etc. 
+		 *  The arguments passed into the PropertyValueFactory constructor allows the object to 
+		 *  reflectively collect the instance field data and apply it to the table column
+		 */
+
 		transactionsDate.setCellValueFactory(new PropertyValueFactory<>("Date"));
 		transactionsName.setCellValueFactory(new PropertyValueFactory<>("Name"));
 		transactionsValue.setCellValueFactory(new PropertyValueFactory<>("Value"));
 		transactionsPaid.setCellValueFactory(new PropertyValueFactory<>("Paid"));
 		transactionsType.setCellValueFactory(new PropertyValueFactory<>("Type"));
-		List<Transaction> trList = new ArrayList<Transaction>(month.getTransactions());
-		SortedList<Transaction> srList = new SortedList<>(FXCollections.observableArrayList(trList));
-		this.transactions.setItems(srList);
+
+		this.transactions.setItems(FXCollections.observableArrayList(sortedTransactions));
 		this.transactions.setRowFactory(row -> new TableRow<Transaction>() {
 			@Override
 			public void updateItem(Transaction t, boolean empty) {
@@ -144,40 +160,18 @@ public class WindowMonthController {
 				} else {
 					setStyle(t.getType().getCssStyle());
 				}
-
 			}
 		});
 		/*
-		    TableColumn thirdColumn = new TableColumn("Third Column");  
-		thirdColumn.setCellValueFactory(new PropertyValueFactory<TableData,String>("three"));
-		
-		// ** The TableCell class has the method setTextFill(Paint p) that you 
-		// ** need to override the text color
-		//   To obtain the TableCell we need to replace the Default CellFactory 
-		//   with one that returns a new TableCell instance, 
-		//   and @Override the updateItem(String item, boolean empty) method.
-		//
-		thirdColumn.setCellFactory(new Callback<TableColumn, TableCell>() {
-		public TableCell call(TableColumn param) {
-		    return new TableCell<TableData, String>() {
-		
-		        @Override
-		        public void updateItem(String item, boolean empty) {
-		            super.updateItem(item, empty);
-		            if (!isEmpty()) {
-		                this.setTextFill(Color.RED);
-		                // Get fancy and change color based on data
-		                if(item.contains("@")) 
-		                    this.setTextFill(Color.BLUEVIOLET);
-		                setText(item);
-		            }
-		        }
-		    };
-		}
-		});
+		 * Callback signature:
+		 * Callback c = new Callback<P, R>() {
+		 * };
+		 * Callback is a functional interface, and its single abstract method is .call() that a parameter of type P, and return an object of type R.
+		 * 
+		 * P is the type being passed in, and R is the type to return.
+		 * In this case we pass in a TableColumn, and use it to instantiate a TableRow and return that.
 		 */
 		this.transactionsValue.setCellFactory(new Callback<TableColumn<Transaction, Double>, TableCell<Transaction, Double>>() {
-
 			@Override
 			public TableCell<Transaction, Double> call(TableColumn<Transaction, Double> param) {
 				return new TableCell<Transaction, Double>() {
@@ -196,6 +190,29 @@ public class WindowMonthController {
 				};
 			}
 		});
+		this.transactionsType.setCellFactory(new Callback<TableColumn<Transaction, Type>, TableCell<Transaction, Type>>() {
+
+			@Override
+			public TableCell<Transaction, Type> call(TableColumn<Transaction, Type> param) {
+				// TODO Auto-generated method stub
+				return new TableCell<Transaction, Type>() {
+					@Override
+					public void updateItem(Type t, boolean empty) {
+						super.updateItem(t, empty);
+						if (!empty && t != null) {
+							this.setText(t.toString());
+						}
+					}
+				};
+			}
+
+		});
+		this.transactionsType.setPrefWidth(150.0);
+
+		TableViewSelectionModel<Transaction> selectionModel = this.transactions.getSelectionModel();
+		selectionModel.setSelectionMode(SelectionMode.SINGLE);
+		selectionModel.setCellSelectionEnabled(false);
+		this.transactions.setSelectionModel(selectionModel);
 	}
 
 	//	private class Transaction {
