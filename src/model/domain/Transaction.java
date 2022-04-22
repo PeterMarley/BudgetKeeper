@@ -169,7 +169,9 @@ public class Transaction implements Comparable<Transaction> {
 	}
 
 	/**
-	 * @return the value
+	 * Get the value of this Transaction, appropriate positive or negative, depending on whether this Transaction {@code isIncome()}.
+	 * 
+	 * @return the value, appropriately positive or negative depending on income field
 	 */
 	public double getValue() {
 		if (isIncome()) {
@@ -177,6 +179,15 @@ public class Transaction implements Comparable<Transaction> {
 		} else {
 			return 0 - value.get();
 		}
+	}
+
+	/**
+	 * Get the absolute value of this transaction, always positive.
+	 * 
+	 * @return the value, always positive
+	 */
+	public double getAbsoluteValue() {
+		return this.value.get();
 	}
 
 	//------------------------------\

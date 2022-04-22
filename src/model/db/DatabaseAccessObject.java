@@ -329,8 +329,8 @@ public class DatabaseAccessObject {
 					stmtAddTrans.setInt(3, (t.isPaid()) ? 1 : 0);
 					stmtAddTrans.setInt(4, ((t.isIncome()) ? 1 : 0));
 					stmtAddTrans.setString(5, t.getDate().format(Constants.FORMAT_YYYYMM));
-					stmtAddTrans.setString(6, t.getType().toString());
-					stmtAddTrans.setDouble(7, t.getValue());
+					stmtAddTrans.setString(6, t.getType().name());
+					stmtAddTrans.setDouble(7, t.getAbsoluteValue());
 					transKey = stmtAddTrans.executeUpdate();
 					System.out.println("Transaction Successfully added.");
 				}

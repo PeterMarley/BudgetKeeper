@@ -1,6 +1,7 @@
 package model.db.admin;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.InputMismatchException;
 import java.util.LinkedList;
 import java.util.List;
@@ -31,24 +32,25 @@ public class Shell {
 	 */
 	public static void main(String[] args) {
 		// CREATE MONTHS
-		Month m1 = new Month(LocalDate.now());
+		int currentYear = LocalDate.now().getYear();
+		Month m1 = new Month(LocalDate.of(currentYear, 5, 1));
+		Month m1b = new Month(LocalDate.of(currentYear - 1, 6, 1));
 		Month m2 = new Month(LocalDate.of(2015, 1, 1));
 		Month m3 = new Month(LocalDate.of(2015, 2, 20));
-		Month m4 = new Month(LocalDate.of(2022, 1, 29));
-		Month m4b = new Month(LocalDate.of(2022, 1, 6));
+		Month m4 = new Month(LocalDate.of(2021, 1, 29));
+		Month m4b = new Month(LocalDate.of(2021, 1, 6));
 		// CREATE TRANSACTIONS
 		Transaction m1t1 = new Transaction("T1", true, m1.getDate(), true, Type.CASH, 15.00);
 		Transaction m1t2 = new Transaction("T2", false, m1.getDate(), false, Type.DIRECT_DEBIT, 20.20);
 		Transaction m1t3 = new Transaction("T3", true, m1.getDate(), true, Type.STANDING_ORDER, 30.30);
 		Transaction m1t4 = new Transaction("T3", false, m1.getDate(), true, Type.STANDING_ORDER, 500.1);
 
-		
 		// ADD TRANSACTIONS TO MONTHS
 		m1.addTransaction(m1t1);
 		m1.addTransaction(m1t2);
 		m1.addTransaction(m1t3);
 		m1.addTransaction(m1t4);
-		testMonths = new LinkedList<Month>();
+		testMonths = new ArrayList<Month>();
 		testMonths.add(m1);
 		testMonths.add(m2);
 		testMonths.add(m3);
@@ -127,7 +129,7 @@ public class Shell {
 				System.out.println(m.toString());
 			}
 			System.out.println(DIV);
-			int selection = getInt("Please select a menu item by entering a number:", "Sorry you must enter a number between 1 and " + Menu.values().length + ".", 1, Menu.values().length);
+int selection = getInt("Please select a menu item by entering a number:", "Sorry you must enter a number between 1 and " + Menu.values().length + ".", 1, Menu.values().length);
 			toContinue = menu[selection - 1].menuAction();
 			System.out.println(DIV);
 		}
