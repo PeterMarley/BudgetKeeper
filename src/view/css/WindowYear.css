@@ -1,0 +1,6 @@
+.month :disabled {
+	-fx-background-color: red;
+}
+.month :enabled {
+	-fx-background-color: blue;
+}

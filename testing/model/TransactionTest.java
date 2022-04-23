@@ -41,9 +41,9 @@ class TransactionTest {
 		valueGood6 = 59666.1769;
 
 		typeCash = Type.CASH;
-		typeDirectDebit = Type.DIRECT_DEBIT;
-		typeStandingOrder = Type.STANDING_ORDER;
-		typeBankTransfer = Type.BANK_TRANSFER;
+		typeDirectDebit = Type.DIRECTDEBIT;
+		typeStandingOrder = Type.STANDINGORDER;
+		typeBankTransfer = Type.BANKTRANSFER;
 
 		nameGood1Low = "a";
 		nameGood2 = "ab";

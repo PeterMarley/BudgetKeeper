@@ -2,16 +2,24 @@ package view;
 
 import java.io.IOException;
 import java.time.LocalDate;
+import java.time.format.TextStyle;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map.Entry;
 
 import javafx.collections.FXCollections;
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.SelectionMode;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
@@ -20,11 +28,14 @@ import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TableView.TableViewSelectionModel;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.image.Image;
 import javafx.stage.Stage;
+import javafx.stage.WindowEvent;
 import javafx.util.Callback;
 import model.domain.Month;
 import model.domain.Transaction;
 import model.domain.Transaction.Type;
+import model.domain.Utility;
 import model.domain.comparators.TransactionComparatorDate;
 import model.domain.comparators.TransactionComparatorIncome;
 import model.domain.comparators.TransactionComparatorType;
@@ -48,20 +59,29 @@ public class WindowMonth {
 	@FXML private TextField totalOut;
 	@FXML private TextField totalBalance;
 
+	@FXML private CheckBox filterCash;
+	@FXML private CheckBox filterDirectDebit;
+	@FXML private CheckBox filterStandingOrder;
+	@FXML private CheckBox filterBankTransfer;
+
 	//**********************************\
 	//									|
 	//	Instance Fields					|
 	//									|
 	//**********************************/
 
-	// TODO which one to keep?
-	//private Month m;
-	private Month month;
-
 	private FXMLLoader loader;
 	private Parent root;
 	private Stage stage;
 	private Scene scene;
+
+	private Month selectedMonth;
+	HashMap<String, Boolean> transactionFilters;
+
+	//	private boolean showTransactionsCash;
+	//	private boolean showTransactionsDirectDebit;
+	//	private boolean showTransactionsStandingOrder;
+	//	private boolean showTransactionsBankTransfer;
 
 	//**********************************\
 	//									|
@@ -70,6 +90,8 @@ public class WindowMonth {
 	//**********************************/
 
 	private static final String FXML = "./fxml/WindowMonth.fxml";
+	private static final String CSS = "./css/WindowMonth.css";
+	private static final String ICON = "./img/icons/document.png";
 
 	//**********************************\
 	//									|
@@ -77,22 +99,55 @@ public class WindowMonth {
 	//									|
 	//**********************************/
 
-	public WindowMonth(Month m) {
-		try {
-			this.month = m;
-			this.loader = new FXMLLoader(getClass().getResource(FXML));
-			this.loader.setController(this);
-			this.root = loader.load();
+	/**
+	 * Create a WindowMonth JavaFX scene-graph. This scene-graph is used to render the {@link model.domain.Transaction Transaction}s held in a specific
+	 * {@link model.domain.Month Month} object.<br>
+	 * <br>
+	 * <b>FXML</b><br>
+	 * The FXML file containing mark-up located at {@value #FXML}.<br>
+	 * <br>
+	 * <b>CSS</b><br>
+	 * The CSS file containing the cascading style sheet for this JavaFX scene-graph is located at {@value #CSS}.
+	 * 
+	 * @param month
+	 * @throws IOException              if FXMLLoader fails to load the FXML file.
+	 * @throws IllegalArgumentException if month is null
+	 */
+	public WindowMonth(Month month) throws IOException, IllegalArgumentException {
 
-			this.scene = new Scene(root);
-			this.stage = new Stage();
+		this.selectedMonth = Utility.nullCheck(month);
 
-			this.stage.setScene(scene);
+		// load FXML
+		this.loader = new FXMLLoader(getClass().getResource(FXML));
+		this.loader.setController(this);
+		this.root = loader.load();
 
-		} catch (IOException e) {
-			System.err.println("FXMLLoader.load IOException:");
-			e.printStackTrace();
+		// configure Scene
+		this.scene = new Scene(root);
+		this.scene.getStylesheets().add(getClass().getResource(CSS).toExternalForm());
+
+		// configure Stage
+		this.stage = new Stage();
+		this.stage.getIcons().add(new Image(getClass().getResource(ICON).toExternalForm()));
+		this.stage.setTitle(month.getDate().getMonth().getDisplayName(TextStyle.FULL, Locale.UK) + " " + month.getDate().getYear());
+		this.stage.setScene(scene);
+		this.stage.setResizable(false);
+		this.stage.setOnCloseRequest(new EventHandler<WindowEvent>() {
+			@Override
+			public void handle(WindowEvent event) {
+				stage.close();
+			}
+		});
+
+		// set filters
+		this.transactionFilters = new HashMap<String, Boolean>();
+		for (Type type : Type.values()) {
+			transactionFilters.put(type.name(), true);
 		}
+		this.filterCash.setSelected(true);
+		this.filterDirectDebit.setSelected(true);
+		this.filterStandingOrder.setSelected(true);
+		this.filterBankTransfer.setSelected(true);
 	}
 
 	//**********************************\
@@ -101,29 +156,29 @@ public class WindowMonth {
 	//									|
 	//**********************************/
 
+	/**
+	 * Refresh the data in the scene-graph and show stage.
+	 */
 	public void show() {
-		initialise(); // default to showing the current year
+		refresh(selectedMonth.getTransactions()); // default to showing the current year
 		this.stage.show();
 	}
 
+	/**
+	 * Hide this scene-graph.
+	 */
 	public void hide() {
 		this.stage.hide();
 	}
 
-	/*
-	 * Controller Configuration
+	/**
+	 * Refresh all the nodes in this scene-graph.
+	 * 
+	 * @param transactions
 	 */
-
-	public void initialise() {
-		refresh(month.getTransactions());
-	}
-
 	private void refresh(Collection<Transaction> transactions) {
 		fillTable(transactions);
 		fillTotals(transactions);
-
-		//		FXCollections.observableArrayList(Controller.getDAO().pullTransactionsForMonth(Controller.getDAO().pullMonthID(month))));
-		//		SortedList<Transaction> sl = new SortedList<Transaction>();
 	}
 
 	/**
@@ -149,7 +204,7 @@ public class WindowMonth {
 		this.totalIn.setText(String.format("%.2f", in));
 		this.totalOut.setText(String.format("%.2f", out));
 		this.totalBalance.setText(String.format("%s%.2f", (balance > 0) ? "+" : "", balance));
-		if (balance > 0) {
+		if (balance >= 0) {
 			this.totalBalance.setStyle("-fx-text-fill: green; -fx-font-weight: bold;");
 		} else {
 			this.totalBalance.setStyle("-fx-text-fill: red; -fx-font-weight: bold;");
@@ -171,7 +226,7 @@ public class WindowMonth {
 	 */
 	private void fillTable(Collection<Transaction> transactions) {
 		// Create an ArrayList of Transactions that we can use from the interface type Collection
-		List<Transaction> sortedTransactions = new ArrayList<Transaction>(transactions);
+		List<Transaction> sortedTransactions = filterTransactions(transactions);
 
 		// sort with two comparators to get a "nested" sort, first by date, then by type.
 		Collections.sort(sortedTransactions, new TransactionComparatorDate());
@@ -201,7 +256,7 @@ public class WindowMonth {
 				}
 			}
 		});
-		/*
+		/**
 		 * Callback signature:
 		 * Callback c = new Callback<P, R>() {
 		 * };
@@ -254,6 +309,38 @@ public class WindowMonth {
 		this.transactions.setSelectionModel(selectionModel);
 
 		this.transactions.setItems(FXCollections.observableArrayList(sortedTransactions));
+
+		CheckBox[] filters = new CheckBox[] { filterCash, filterDirectDebit, filterStandingOrder, filterBankTransfer };
+
+		// assign action handlers to each of the filtering CheckBox JavaFX controls
+		for (CheckBox checkBox : filters) {
+			checkBox.setOnAction(new EventHandler<ActionEvent>() {
+				@Override
+				public void handle(ActionEvent event) {
+					// capture checkbox
+					CheckBox c = (CheckBox) event.getSource();
+					String s = c.getId().substring("filter".length()).toUpperCase();
+					transactionFilters.put(s, c.isSelected());
+					refresh(transactions);
+				}
+			});
+		}
+	}
+
+	/**
+	 * Filter transactions
+	 * 
+	 * @param transactions
+	 * @return
+	 */
+	private List<Transaction> filterTransactions(Collection<Transaction> transactions) {
+		List<Transaction> filtered = new LinkedList<Transaction>();
+		for (Transaction t : transactions) {
+			if (transactionFilters.get(t.getType().name())) {
+				filtered.add(t);
+			}
+		}
+		return filtered;
 
 	}
 }

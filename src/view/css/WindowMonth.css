@@ -1,0 +1,6 @@
+#filtersPane {
+	-fx-border-width: 1;
+	-fx-border-color: black;
+	-fx-text-fill: red;
+	-fx-background-color: #DDDDDD;
+}

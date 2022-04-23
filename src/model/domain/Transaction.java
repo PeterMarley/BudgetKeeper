@@ -21,9 +21,9 @@ public class Transaction implements Comparable<Transaction> {
 
 	public enum Type {
 		CASH("Cash", "-fx-background-color: #bbbbbb"),
-		BANK_TRANSFER("Bank Transfer", "-fx-background-color: #aaaaaa"),
-		DIRECT_DEBIT("Direct Debit", "-fx-background-color: #999999"),
-		STANDING_ORDER("Standing Order", "-fx-background-color: #888888");
+		BANKTRANSFER("Bank Transfer", "-fx-background-color: #aaaaaa"),
+		DIRECTDEBIT("Direct Debit", "-fx-background-color: #999999"),
+		STANDINGORDER("Standing Order", "-fx-background-color: #888888");
 
 		private String text;
 		private String cssStyle;

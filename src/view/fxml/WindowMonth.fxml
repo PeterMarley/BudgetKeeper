@@ -1,12 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.CheckBox?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.TableColumn?>
 <?import javafx.scene.control.TableView?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.FlowPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
 
-<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="774.0" prefWidth="891.0" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" >
+<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="774.0" prefWidth="891.0" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1">
    <children>
       <Label layoutX="96.0" layoutY="43.0" text="Income" />
       <Label layoutX="78.0" layoutY="69.0" text="Outgoings" />
@@ -23,5 +28,26 @@
             <TableColumn fx:id="transactionsPaid" prefWidth="75.0" text="Paid?" />
         </columns>
       </TableView>
+      <FlowPane fx:id="filtersPane" layoutX="323.0" layoutY="19.0" prefHeight="109.0" prefWidth="516.0">
+         <children>
+            <HBox minHeight="-Infinity" minWidth="-Infinity" prefHeight="109.0" prefWidth="516.0">
+               <children>
+                  <VBox prefHeight="109.0" prefWidth="243.0" spacing="5.0">
+                     <children>
+                        <Label text="Transaction types to show:" />
+                        <!-- these CheckBox nodes must begin with the word "filter" and end with a case-insensitive Transaction.Type enum name() -->
+                        <CheckBox mnemonicParsing="false" fx:id="filterCash" text="Cash" />
+                        <CheckBox mnemonicParsing="false" fx:id="filterDirectDebit" text="Direct Debit" />
+                        <CheckBox mnemonicParsing="false" fx:id="filterStandingOrder" text="Standing Order" />
+                        <CheckBox mnemonicParsing="false" fx:id="filterBankTransfer" text="Bank Transfer" />
+                     </children>
+                     <padding>
+                        <Insets left="5.0" />
+                     </padding>
+                  </VBox>
+                  <VBox prefHeight="109.0" prefWidth="275.0" />
+               </children>
+            </HBox>
+         </children></FlowPane>
    </children>
 </AnchorPane>

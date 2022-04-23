@@ -7,6 +7,7 @@ import java.util.List;
 
 import controller.Controller;
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.event.Event;
 import javafx.event.EventHandler;
@@ -16,10 +17,23 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
+import javafx.scene.image.Image;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 import javafx.stage.Stage;
+import javafx.stage.WindowEvent;
 import model.db.Constants;
 import model.domain.Month;
-
+/**
+ * Icons:<br>
+ * <a href="https://www.flaticon.com/free-icons/calendar" title="calendar icons">Calendar icons created by Freepik - Flaticon</a><br>
+ * <a href="https://www.flaticon.com/free-icons/accounting" title="accounting icons">Accounting icons created by kerismaker - Flaticon</a>
+ * @author Peter Marley
+ * @StudentNumber 13404067
+ * @Email pmarley03@qub.ac.uk
+ * @GitHub https://github.com/PeterMarley
+ *
+ */
 public class WindowYear extends Application {
 
 	//**********************************\
@@ -49,7 +63,14 @@ public class WindowYear extends Application {
 	//**********************************/
 
 	private static final String FXML = "./fxml/WindowYear.fxml";
+	private static final String CSS = "./css/WindowYear.css";
 	private static final int DEFAULT_YEAR = LocalDate.now().getYear();
+	private static final String ENABLED_MONTH_BUTTON_CSS = "-fx-background-color: #3446eb;" +
+			"-fx-opacity: 1.0;" +
+			"-fx-text-fill:white;" +
+			"-fx-font-weight:bold;";
+	private static final String DISABLED_MONTH_BUTTON_CSS = "";//"-fx-background-color: white;-fx-opacity: 0.5;";
+	private static final String ICON = "./img/icons/calendar.png";
 
 	//**********************************\
 	//									|
@@ -83,20 +104,29 @@ public class WindowYear extends Application {
 	 */
 	@Override
 	public void start(Stage generatedStage) throws Exception {
-		// assign generatedStage to instance field stage
 		this.stage = generatedStage;
 		try {
-
-			// load FXML file
+			// load FXML
 			this.loader = new FXMLLoader(getClass().getResource(FXML));
-
-			// set controller
 			this.loader.setController(this);
-
-			// add scene-graph to stage
 			this.root = loader.load();
+			
+			// configure scene
 			this.scene = new Scene(root);
+			this.scene.getStylesheets().add(getClass().getResource(CSS).toExternalForm());
+			
+			// configure stage
 			this.stage.setScene(scene);
+			this.stage.setResizable(false);
+			this.stage.setTitle("Months for " + lastSelectedYear);
+			this.stage.getIcons().add(new Image(getClass().getResource(ICON).toExternalForm()));
+			this.stage.setOnCloseRequest(new EventHandler<WindowEvent>() {
+				@Override
+				public void handle(WindowEvent event) {
+					stage.close();
+					Platform.exit();
+				}
+			});
 
 		} catch (IOException e) {
 			System.err.println("FXMLLoader.load IOException:");
@@ -125,6 +155,15 @@ public class WindowYear extends Application {
 		if (this.year.getText().isBlank()) {
 			this.year.setText(Integer.toString(DEFAULT_YEAR));
 		}
+		this.year.setOnKeyPressed(new EventHandler<KeyEvent>() {
+			@Override
+			public void handle(KeyEvent event) {
+				if (event.getCode() == KeyCode.ENTER) {
+					yearSelect.fire();
+				}
+
+			}
+		});
 		int selectedYear;
 		try {
 			selectedYear = Integer.valueOf(this.year.getText());
@@ -143,19 +182,36 @@ public class WindowYear extends Application {
 
 		// set properties of Month Button controls
 		for (int i = 0; i < buttons.length; i++) {
+			String styleToApply = "";
 			if (monthMap.containsKey(i)) {
-				buttons[i].setStyle("-fx-background-color: blue;");
+				//buttons[i].setStyle(ENABLED_MONTH_BUTTON_CSS);
+				styleToApply = ENABLED_MONTH_BUTTON_CSS;
 				buttons[i].setDisable(false);
 			} else {
-				buttons[i].setStyle(null);
+				//buttons[i].setStyle(DISABLED_MONTH_BUTTON_CSS);
+				styleToApply = DISABLED_MONTH_BUTTON_CSS;
 				buttons[i].setDisable(true);
 			}
-			final int tmp = i;
+			buttons[i].setStyle(styleToApply);
+			final int index = i;
 			buttons[i].setOnAction(new EventHandler<ActionEvent>() {
 				@Override
 				public void handle(ActionEvent e) {
-					WindowMonth wm = new WindowMonth(monthMap.get(tmp));
-					wm.show();
+					Month monthToShow = monthMap.get(index);
+					Runnable windowMonth = new Runnable() {
+						@Override
+						public void run() {
+							try {
+								WindowMonth wm = new WindowMonth(monthToShow);
+								wm.show();
+							} catch (IOException e1) {
+								System.err.println("Attempt to instantiate and show a WindowMonth object for month failed!");
+								System.err.println(monthToShow.toString());
+								e1.printStackTrace();
+							}
+						}
+					};
+					windowMonth.run();
 				}
 			});
 		}
