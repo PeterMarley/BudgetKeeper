@@ -203,6 +203,11 @@ public class WindowMonth {
 			}
 		});
 
+		// disable user sorting of TableView by column header
+		this.transactionsTable.getColumns().forEach(element -> {
+			element.setSortable(false);
+		});
+		
 		// apply appropriate formatting to the Transaction value cells, depending on if the Transaction isIncome()
 		this.transactionsValue.setCellFactory(new Callback<TableColumn<Transaction, Double>, TableCell<Transaction, Double>>() {
 			@Override
@@ -226,7 +231,8 @@ public class WindowMonth {
 
 		// set TableColumn widths
 		this.transactionsType.setPrefWidth(150.0);
-
+		
+		
 		// configure the TableViewSelectionModel for TableView
 		TableViewSelectionModel<Transaction> selectionModel = this.transactionsTable.getSelectionModel();
 		selectionModel.setSelectionMode(SelectionMode.SINGLE);
@@ -337,6 +343,7 @@ public class WindowMonth {
 
 		// set the TableView items
 		this.transactionsTable.setItems(FXCollections.observableArrayList(sortedTransactions));
+		this.transactionsTable.refresh();
 
 	}
 
@@ -357,21 +364,3 @@ public class WindowMonth {
 
 	}
 }
-
-//this.transactionsType.setCellFactory(new Callback<TableColumn<Transaction, Type>, TableCell<Transaction, Type>>() {
-//
-//	@Override
-//	public TableCell<Transaction, Type> call(TableColumn<Transaction, Type> param) {
-//		// TODO Auto-generated method stub
-//		return new TableCell<Transaction, Type>() {
-//			@Override
-//			public void updateItem(Type t, boolean empty) {
-//				super.updateItem(t, empty);
-//				if (!empty && t != null) {
-//					this.setText(t.toString());
-//				}
-//			}
-//		};
-//	}
-//
-//});
