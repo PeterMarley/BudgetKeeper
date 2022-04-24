@@ -13,6 +13,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.time.LocalDate;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -358,6 +359,23 @@ public class DatabaseAccessObject {
 
 	public void removeTransaction(Transaction t) {
 		//SELECT * FROM transactions WHERE monthID=? AND income=? AND date=? AND type=? AND value=?
+	}
+	
+	public List<Integer> getYears() {
+		List<Integer> years = new LinkedList<Integer>();
+		try (Connection c = getConnection()) {
+			List<Month> months = pullMonths();
+			for (Month month : months) {
+				int year = month.getDate().getYear();
+				if (!years.contains(year)) {
+					years.add(year);
+				}
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		Collections.sort(years);
+		return years;
 	}
 
 	//	public static void main(String[] args) {

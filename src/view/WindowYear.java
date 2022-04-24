@@ -2,12 +2,15 @@ package view;
 
 import java.io.IOException;
 import java.time.LocalDate;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 
 import controller.Controller;
 import javafx.application.Application;
 import javafx.application.Platform;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.Event;
 import javafx.event.EventHandler;
@@ -16,6 +19,8 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.ListView;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.input.KeyCode;
@@ -24,10 +29,12 @@ import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
 import model.db.Constants;
 import model.domain.Month;
+
 /**
  * Icons:<br>
  * <a href="https://www.flaticon.com/free-icons/calendar" title="calendar icons">Calendar icons created by Freepik - Flaticon</a><br>
  * <a href="https://www.flaticon.com/free-icons/accounting" title="accounting icons">Accounting icons created by kerismaker - Flaticon</a>
+ * 
  * @author Peter Marley
  * @StudentNumber 13404067
  * @Email pmarley03@qub.ac.uk
@@ -78,7 +85,6 @@ public class WindowYear extends Application {
 	//									|
 	//**********************************/
 
-	@FXML private TextField year;
 	@FXML private Button monthJan;
 	@FXML private Button monthFeb;
 	@FXML private Button monthMar;
@@ -92,6 +98,8 @@ public class WindowYear extends Application {
 	@FXML private Button monthNov;
 	@FXML private Button monthDec;
 	@FXML private Button yearSelect;
+
+	@FXML private ComboBox<Integer> yearComboBox;
 
 	//**********************************\
 	//									|
@@ -110,11 +118,11 @@ public class WindowYear extends Application {
 			this.loader = new FXMLLoader(getClass().getResource(FXML));
 			this.loader.setController(this);
 			this.root = loader.load();
-			
+
 			// configure scene
 			this.scene = new Scene(root);
 			this.scene.getStylesheets().add(getClass().getResource(CSS).toExternalForm());
-			
+
 			// configure stage
 			this.stage.setScene(scene);
 			this.stage.setResizable(false);
@@ -132,6 +140,7 @@ public class WindowYear extends Application {
 			System.err.println("FXMLLoader.load IOException:");
 			e.printStackTrace();
 		}
+		lastSelectedYear = DEFAULT_YEAR;
 
 		// show this window
 		refresh(); // default to showing the current year
@@ -151,29 +160,12 @@ public class WindowYear extends Application {
 		// Place all the JavaFX Button controls into an array for simple iteration
 		Button[] buttons = new Button[] { monthJan, monthFeb, monthMar, monthApr, monthMay, monthJun, monthJul, monthAug, monthSep, monthOct, monthNov, monthDec };
 
-		// configure the currently selected year
-		if (this.year.getText().isBlank()) {
-			this.year.setText(Integer.toString(DEFAULT_YEAR));
-		}
-		this.year.setOnKeyPressed(new EventHandler<KeyEvent>() {
-			@Override
-			public void handle(KeyEvent event) {
-				if (event.getCode() == KeyCode.ENTER) {
-					yearSelect.fire();
-				}
-
-			}
-		});
-		int selectedYear;
-		try {
-			selectedYear = Integer.valueOf(this.year.getText());
-			lastSelectedYear = selectedYear;
-		} catch (NumberFormatException badYearStringEx) {
-			selectedYear = lastSelectedYear;
-		}
-
+		ObservableList<Integer> yearsList = FXCollections.observableArrayList(Controller.getDAO().getYears());
+		yearComboBox.setItems(yearsList);
+		yearComboBox.setValue(lastSelectedYear);
+		this.stage.setTitle("Months for " + lastSelectedYear);
 		// get Months data for this year from database, and map data for simple confirmation of existence below
-		List<Month> months = Controller.getDAO().pullMonthsForYear(selectedYear);
+		List<Month> months = Controller.getDAO().pullMonthsForYear(lastSelectedYear);
 		monthMap = new HashMap<Integer, Month>(12);
 		for (Month m : months) {
 			int thisMonth = m.getDate().getMonthValue() - 1;
@@ -220,6 +212,7 @@ public class WindowYear extends Application {
 		yearSelect.setOnAction(new EventHandler<ActionEvent>() {
 			@Override
 			public void handle(ActionEvent event) {
+				lastSelectedYear = yearComboBox.getValue();
 				refresh();
 			}
 		});
