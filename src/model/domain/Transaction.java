@@ -19,6 +19,14 @@ import model.db.Constants;
  */
 public class Transaction implements Comparable<Transaction> {
 
+	/**
+	 * The various types of Transaction available.
+	 * @author Peter Marley
+	 * @StudentNumber 13404067
+	 * @Email pmarley03@qub.ac.uk
+	 * @GitHub https://github.com/PeterMarley
+	 *
+	 */
 	public enum Type {
 		CASH("Cash", "-fx-background-color: #bbbbbb"),
 		BANKTRANSFER("Bank Transfer", "-fx-background-color: #aaaaaa"),
@@ -42,14 +50,7 @@ public class Transaction implements Comparable<Transaction> {
 		}
 	}
 
-	//	private boolean income;
-	//	private LocalDate date;
-	//	private Type type;
-	//	private double value;
-	//
-	//	private String name;
-	//	private boolean paid;
-
+	
 	private SimpleBooleanProperty income;
 	private SimpleStringProperty date;
 	private SimpleStringProperty type;

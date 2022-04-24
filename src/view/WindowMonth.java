@@ -317,10 +317,12 @@ public class WindowMonth {
 			checkBox.setOnAction(new EventHandler<ActionEvent>() {
 				@Override
 				public void handle(ActionEvent event) {
-					// capture checkbox
+					// capture CheckBox
 					CheckBox c = (CheckBox) event.getSource();
 					String s = c.getId().substring("filter".length()).toUpperCase();
+					// set this filter to user's selection.
 					transactionFilters.put(s, c.isSelected());
+					// refresh this window.
 					refresh(transactions);
 				}
 			});
@@ -328,7 +330,7 @@ public class WindowMonth {
 	}
 
 	/**
-	 * Filter transactions
+	 * Filter transactions by {@link model.domain.Transaction.Type Transaction Type}.
 	 * 
 	 * @param transactions
 	 * @return
