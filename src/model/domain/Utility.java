@@ -52,7 +52,7 @@ public class Utility {
 	 *                                  - min is NOT null and toValidate < min.<br>
 	 *                                  - max is NOT null and toValidate > max.<br>
 	 */
-	public static double validate(double toValidate, Double min, Double max) {
+	public static double validate(double toValidate, Double min, Double max) throws IllegalArgumentException {
 		// reject no bounds or if min > max
 		if (min == null && max == null) {
 			throw new IllegalArgumentException(traceCall() + " method: Cannot validate a numeric value with no bounds.");
@@ -84,7 +84,20 @@ public class Utility {
 		Double minD = (min == null) ? null : Double.valueOf(min);
 		Double maxD = (max == null) ? null : Double.valueOf(max);
 		Double value = Double.valueOf(toValidate);
-		return (int) validate(value, minD, maxD);
+		int validated = toValidate;
+		try {
+			validated = (int) validate(value, minD, maxD);
+		} catch (IllegalArgumentException illArgExPassedBack) {
+			String msg = illArgExPassedBack.getMessage();
+			if (min != null && msg.contains("less than")) {
+				msg = msg.replace(String.valueOf(Double.valueOf(min)), String.valueOf(min));
+			} else if (max != null && msg.contains("greater than")) {
+				msg = msg.replace(String.valueOf(Double.valueOf(max)), String.valueOf(max));
+			}
+			msg = msg.replace(String.valueOf(Double.valueOf(toValidate)), String.valueOf(toValidate));
+			throw new IllegalArgumentException(msg);
+		}
+		return validated;
 	}
 
 	/**

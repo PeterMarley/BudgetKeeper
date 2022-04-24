@@ -1,4 +1,4 @@
-package model;
+package model.domain;
 
 import static org.junit.jupiter.api.Assertions.*;
 

@@ -1,4 +1,4 @@
-package model;
+package model.domain;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -60,9 +60,9 @@ class TransactionTest {
 		t5 = new Transaction(nameGood5, true, d5, false, typeDirectDebit, valueGood5);
 		t6 = new Transaction(nameGood6, false, d6, false, typeBankTransfer, valueGood6);
 
-		t7SameAsT1 = new Transaction(t1.getName(), t1.isPaid(), t1.getDate(), t1.isIncome(), t1.getType(), t1.getValue());
-		t8SameAsT6 = new Transaction(t6.getName(), t6.isPaid(), t6.getDate(), t6.isIncome(), t6.getType(), t6.getValue());
-		t9SameAsT1ExceptName = new Transaction(t1.getName() + "z", t1.isPaid(), t1.getDate(), t1.isIncome(), t1.getType(), t1.getValue());
+		t7SameAsT1 = new Transaction(t1.getName(), t1.isPaid(), t1.getDate(), t1.isIncome(), t1.getType(), t1.getAbsoluteValue());
+		t8SameAsT6 = new Transaction(t6.getName(), t6.isPaid(), t6.getDate(), t6.isIncome(), t6.getType(), t6.getAbsoluteValue());
+		t9SameAsT1ExceptName = new Transaction(t1.getName() + "z", t1.isPaid(), t1.getDate(), t1.isIncome(), t1.getType(), t1.getAbsoluteValue());
 
 		valueBad1 = -0.01;
 		valueBad2 = -0.6;
@@ -76,42 +76,42 @@ class TransactionTest {
 		assertEquals(d1, t1.getDate());
 		assertEquals(true, t1.isIncome());
 		assertEquals(typeCash, t1.getType());
-		assertEquals(valueGood1Low1, t1.getValue());
+		assertEquals(valueGood1Low1, t1.getAbsoluteValue());
 
 		assertEquals(nameGood2, t2.getName());
 		assertEquals(false, t2.isPaid());
 		assertEquals(d2, t2.getDate());
 		assertEquals(true, t2.isIncome());
 		assertEquals(typeDirectDebit, t2.getType());
-		assertEquals(valueGood2Low2, t2.getValue());
+		assertEquals(valueGood2Low2, t2.getAbsoluteValue());
 
 		assertEquals(nameGood3, t3.getName());
 		assertEquals(true, t3.isPaid());
 		assertEquals(d3, t3.getDate());
 		assertEquals(true, t3.isIncome());
 		assertEquals(typeStandingOrder, t3.getType());
-		assertEquals(valueGood3, t3.getValue());
+		assertEquals(valueGood3, t3.getAbsoluteValue());
 
 		assertEquals(nameGood4, t4.getName());
 		assertEquals(false, t4.isPaid());
 		assertEquals(d4, t4.getDate());
 		assertEquals(false, t4.isIncome());
 		assertEquals(typeCash, t4.getType());
-		assertEquals(valueGood4, t4.getValue());
+		assertEquals(valueGood4, t4.getAbsoluteValue());
 
 		assertEquals(nameGood5, t5.getName());
 		assertEquals(true, t5.isPaid());
 		assertEquals(d5, t5.getDate());
 		assertEquals(false, t5.isIncome());
 		assertEquals(typeDirectDebit, t5.getType());
-		assertEquals(valueGood5, t5.getValue());
+		assertEquals(valueGood5, t5.getAbsoluteValue());
 
 		assertEquals(nameGood6, t6.getName());
 		assertEquals(false, t6.isPaid());
 		assertEquals(d6, t6.getDate());
 		assertEquals(false, t6.isIncome());
 		assertEquals(typeBankTransfer, t6.getType());
-		assertEquals(valueGood6, t6.getValue());
+		assertEquals(valueGood6, t6.getAbsoluteValue());
 	}
 
 	@Test

@@ -1,4 +1,4 @@
-package model;
+package model.domain;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -311,90 +311,90 @@ class UtilityTest {
 		IllegalArgumentException illArgEx;
 		String exMsgTxtFormatLess, exMsgTxtFormatGreater, expectedErrMsg;
 		String[] response;
-		exMsgTxtFormatLess = " numeric parameter cannot be less than %.1f, but is %.1f.";
-		exMsgTxtFormatGreater = " numeric parameter cannot be greater than %.1f, but is %.1f.";
+		exMsgTxtFormatLess = " numeric parameter cannot be less than %d, but is %d.";
+		exMsgTxtFormatGreater = " numeric parameter cannot be greater than %d, but is %d.";
 		//
 		illArgEx = assertThrows(IllegalArgumentException.class, () -> {
 			Utility.validate(intLowerBound1 - 1, intLowerBound1, intLowerBound1);
 		});
-		expectedErrMsg = String.format(exMsgTxtFormatLess, (double) intLowerBound1, (double) intLowerBound1 - 1);
+		expectedErrMsg = String.format(exMsgTxtFormatLess, intLowerBound1, intLowerBound1 - 1);
 		response = illArgEx.getMessage().split("method:");
 		assertEquals(expectedErrMsg, response[1]);
 
 		illArgEx = assertThrows(IllegalArgumentException.class, () -> {
 			Utility.validate(intLowerBound1 + 1, intLowerBound1, intLowerBound1);
 		});
-		expectedErrMsg = String.format(exMsgTxtFormatGreater, (double) intLowerBound1, (double) intLowerBound1 + 1);
+		expectedErrMsg = String.format(exMsgTxtFormatGreater, intLowerBound1, intLowerBound1 + 1);
 		response = illArgEx.getMessage().split("method:");
 		assertEquals(expectedErrMsg, response[1]);
 
 		illArgEx = assertThrows(IllegalArgumentException.class, () -> {
 			Utility.validate(intLowerBound1, intMid1, intUpperBound1);
 		});
-		expectedErrMsg = String.format(exMsgTxtFormatLess, (double) intMid1, (double) intLowerBound1);
+		expectedErrMsg = String.format(exMsgTxtFormatLess, intMid1, intLowerBound1);
 		response = illArgEx.getMessage().split("method:");
 		assertEquals(expectedErrMsg, response[1]);
 
 		illArgEx = assertThrows(IllegalArgumentException.class, () -> {
 			Utility.validate(intMid1 - 1, intMid1, intUpperBound1);
 		});
-		expectedErrMsg = String.format(exMsgTxtFormatLess, (double) intMid1, (double) intMid1 - 1);
+		expectedErrMsg = String.format(exMsgTxtFormatLess, intMid1, intMid1 - 1);
 		response = illArgEx.getMessage().split("method:");
 		assertEquals(expectedErrMsg, response[1]);
 
 		illArgEx = assertThrows(IllegalArgumentException.class, () -> {
 			Utility.validate(intUpperBound1 - 1, intUpperBound1, intUpperBound1);
 		});
-		expectedErrMsg = String.format(exMsgTxtFormatLess, (double) intUpperBound1, (double) intUpperBound1 - 1);
+		expectedErrMsg = String.format(exMsgTxtFormatLess, intUpperBound1, intUpperBound1 - 1);
 		response = illArgEx.getMessage().split("method:");
 		assertEquals(expectedErrMsg, response[1]);
 
 		illArgEx = assertThrows(IllegalArgumentException.class, () -> {
 			Utility.validate(intUpperBound1 + 1, intUpperBound1, intUpperBound1);
 		});
-		expectedErrMsg = String.format(exMsgTxtFormatGreater, (double) intUpperBound1, (double) intUpperBound1 + 1);
+		expectedErrMsg = String.format(exMsgTxtFormatGreater, intUpperBound1, intUpperBound1 + 1);
 		response = illArgEx.getMessage().split("method:");
 		assertEquals(expectedErrMsg, response[1]);
 		//======================================================================
 		illArgEx = assertThrows(IllegalArgumentException.class, () -> {
 			Utility.validate(intLowerBound2 - 1, intLowerBound2, intLowerBound2);
 		});
-		expectedErrMsg = String.format(exMsgTxtFormatLess, (double) intLowerBound2, (double) intLowerBound2 - 1);
+		expectedErrMsg = String.format(exMsgTxtFormatLess, intLowerBound2, intLowerBound2 - 1);
 		response = illArgEx.getMessage().split("method:");
 		assertEquals(expectedErrMsg, response[1]);
 
 		illArgEx = assertThrows(IllegalArgumentException.class, () -> {
 			Utility.validate(intLowerBound2 + 1, intLowerBound2, intLowerBound2);
 		});
-		expectedErrMsg = String.format(exMsgTxtFormatGreater, (double) intLowerBound2, (double) intLowerBound2 + 1);
+		expectedErrMsg = String.format(exMsgTxtFormatGreater, intLowerBound2, intLowerBound2 + 1);
 		response = illArgEx.getMessage().split("method:");
 		assertEquals(expectedErrMsg, response[1]);
 
 		illArgEx = assertThrows(IllegalArgumentException.class, () -> {
 			Utility.validate(intLowerBound2, intMid2, intUpperBound2);
 		});
-		expectedErrMsg = String.format(exMsgTxtFormatLess, (double) intMid2, (double) intLowerBound2);
+		expectedErrMsg = String.format(exMsgTxtFormatLess, intMid2, intLowerBound2);
 		response = illArgEx.getMessage().split("method:");
 		assertEquals(expectedErrMsg, response[1]);
 
 		illArgEx = assertThrows(IllegalArgumentException.class, () -> {
 			Utility.validate(intMid2 - 1, intMid2, intUpperBound2);
 		});
-		expectedErrMsg = String.format(exMsgTxtFormatLess, (double) intMid2, (double) intMid2 - 1);
+		expectedErrMsg = String.format(exMsgTxtFormatLess, intMid2, intMid2 - 1);
 		response = illArgEx.getMessage().split("method:");
 		assertEquals(expectedErrMsg, response[1]);
 
 		illArgEx = assertThrows(IllegalArgumentException.class, () -> {
 			Utility.validate(intUpperBound2 - 1, intUpperBound2, intUpperBound2);
 		});
-		expectedErrMsg = String.format(exMsgTxtFormatLess, (double) intUpperBound2, (double) intUpperBound2 - 1);
+		expectedErrMsg = String.format(exMsgTxtFormatLess, intUpperBound2, intUpperBound2 - 1);
 		response = illArgEx.getMessage().split("method:");
 		assertEquals(expectedErrMsg, response[1]);
 
 		illArgEx = assertThrows(IllegalArgumentException.class, () -> {
 			Utility.validate(intUpperBound2 + 1, intUpperBound2, intUpperBound2);
 		});
-		expectedErrMsg = String.format(exMsgTxtFormatGreater, (double) intUpperBound2, (double) intUpperBound2 + 1);
+		expectedErrMsg = String.format(exMsgTxtFormatGreater, intUpperBound2, intUpperBound2 + 1);
 		response = illArgEx.getMessage().split("method:");
 		assertEquals(expectedErrMsg, response[1]);
 		//======================================================================
@@ -402,46 +402,45 @@ class UtilityTest {
 		illArgEx = assertThrows(IllegalArgumentException.class, () -> {
 			Utility.validate(intLowerBound2 - 1, intLowerBound2, intLowerBound2);
 		});
-		expectedErrMsg = String.format(exMsgTxtFormatLess, (double) intLowerBound2, (double) intLowerBound2 - 1);
+		expectedErrMsg = String.format(exMsgTxtFormatLess, intLowerBound2, intLowerBound2 - 1);
 		response = illArgEx.getMessage().split("method:");
 		assertEquals(expectedErrMsg, response[1]);
 
 		illArgEx = assertThrows(IllegalArgumentException.class, () -> {
 			Utility.validate(intLowerBound2 + 1, intLowerBound2, intLowerBound2);
 		});
-		expectedErrMsg = String.format(exMsgTxtFormatGreater, (double) intLowerBound2, (double) intLowerBound2 + 1);
+		expectedErrMsg = String.format(exMsgTxtFormatGreater, intLowerBound2, intLowerBound2 + 1);
 		response = illArgEx.getMessage().split("method:");
 		assertEquals(expectedErrMsg, response[1]);
 
 		illArgEx = assertThrows(IllegalArgumentException.class, () -> {
 			Utility.validate(intLowerBound3, intMid3, intUpperBound3);
 		});
-		expectedErrMsg = String.format(exMsgTxtFormatLess, (double) intMid3, (double) intLowerBound3);
+		expectedErrMsg = String.format(exMsgTxtFormatLess, intMid3, intLowerBound3);
 		response = illArgEx.getMessage().split("method:");
 		assertEquals(expectedErrMsg, response[1]);
 
 		illArgEx = assertThrows(IllegalArgumentException.class, () -> {
 			Utility.validate(intMid3 - 1, intMid3, intUpperBound3);
 		});
-		expectedErrMsg = String.format(exMsgTxtFormatLess, (double) intMid3, (double) intMid3 - 1);
+		expectedErrMsg = String.format(exMsgTxtFormatLess, intMid3, intMid3 - 1);
 		response = illArgEx.getMessage().split("method:");
 		assertEquals(expectedErrMsg, response[1]);
 
 		illArgEx = assertThrows(IllegalArgumentException.class, () -> {
 			Utility.validate(intUpperBound3 - 1, intUpperBound3, intUpperBound3);
 		});
-		expectedErrMsg = String.format(exMsgTxtFormatLess, (double) intUpperBound3, (double) intUpperBound3 - 1);
+		expectedErrMsg = String.format(exMsgTxtFormatLess, intUpperBound3, intUpperBound3 - 1);
 		response = illArgEx.getMessage().split("method:");
 		assertEquals(expectedErrMsg, response[1]);
 
 		illArgEx = assertThrows(IllegalArgumentException.class, () -> {
 			Utility.validate(intUpperBound3 + 1, intUpperBound3, intUpperBound3);
 		});
-		expectedErrMsg = String.format(exMsgTxtFormatGreater, (double) intUpperBound3, (double) intUpperBound3 + 1);
+		expectedErrMsg = String.format(exMsgTxtFormatGreater, intUpperBound3, intUpperBound3 + 1);
 		response = illArgEx.getMessage().split("method:");
 		assertEquals(expectedErrMsg, response[1]);
 		//======================================================================
-		fail("getting doubles printed is borderline unintended behaviour. Should be changed eventually");
 	}
 
 	@Test
