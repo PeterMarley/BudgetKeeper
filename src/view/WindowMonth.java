@@ -44,11 +44,11 @@ public class WindowMonth {
 
 	//**********************************\
 	//									|
-	//	Scene Graph objects				|
+	//	Scene Graph Nodes				|
 	//									|
 	//**********************************/
 
-	@FXML private TableView<Transaction> transactions;
+	@FXML private TableView<Transaction> transactionsTable;
 	@FXML private TableColumn<Transaction, LocalDate> transactionsDate;
 	@FXML private TableColumn<Transaction, String> transactionsName;
 	@FXML private TableColumn<Transaction, Double> transactionsValue;
@@ -74,14 +74,8 @@ public class WindowMonth {
 	private Parent root;
 	private Stage stage;
 	private Scene scene;
-
 	private Month selectedMonth;
 	HashMap<String, Boolean> transactionFilters;
-
-	//	private boolean showTransactionsCash;
-	//	private boolean showTransactionsDirectDebit;
-	//	private boolean showTransactionsStandingOrder;
-	//	private boolean showTransactionsBankTransfer;
 
 	//**********************************\
 	//									|
@@ -114,22 +108,51 @@ public class WindowMonth {
 	 * @throws IllegalArgumentException if month is null
 	 */
 	public WindowMonth(Month month) throws IOException, IllegalArgumentException {
+		setSelectedMonth(month);
+		setRoot();
+		setScene();
+		setStage();
+		setFilterCheckBoxes();
+		configTable();
+	}
 
+	/**
+	 * Set the {@code selectedMonth} field.
+	 * 
+	 * @param month
+	 * @throws IllegalArgumentException if {@code month} parameter is null.
+	 */
+	private void setSelectedMonth(Month month) throws IllegalArgumentException {
 		this.selectedMonth = Utility.nullCheck(month);
+	}
 
-		// load FXML
+	/**
+	 * Set the {@code FXMLLoader}, and load the FXML. Additionally, set the controller for this scene-graph.
+	 * 
+	 * @throws IOException if an error occurs during FXML loading during {@link FXMLLoader#load() loading}.
+	 */
+	private void setRoot() throws IOException {
 		this.loader = new FXMLLoader(getClass().getResource(FXML));
 		this.loader.setController(this);
 		this.root = loader.load();
 
-		// configure Scene
-		this.scene = new Scene(root);
-		this.scene.getStylesheets().add(getClass().getResource(CSS).toExternalForm());
+	}
 
-		// configure Stage
+	/**
+	 * Set the {@code Scene} of this scene-graph, and apply CSS style sheets to the scene.
+	 */
+	private void setScene() {
+		this.scene = new Scene(this.root);
+		this.scene.getStylesheets().add(getClass().getResource(CSS).toExternalForm());
+	}
+
+	/**
+	 * Set the {@code Stage} of this scene-graph. Title, icon and various configurations are applied here.
+	 */
+	private void setStage() {
 		this.stage = new Stage();
 		this.stage.getIcons().add(new Image(getClass().getResource(ICON).toExternalForm()));
-		this.stage.setTitle(month.getDate().getMonth().getDisplayName(TextStyle.FULL, Locale.UK) + " " + month.getDate().getYear());
+		this.stage.setTitle(selectedMonth.getDate().getMonth().getDisplayName(TextStyle.FULL, Locale.UK) + " " + selectedMonth.getDate().getYear());
 		this.stage.setScene(scene);
 		this.stage.setResizable(false);
 		this.stage.setOnCloseRequest(new EventHandler<WindowEvent>() {
@@ -138,8 +161,15 @@ public class WindowMonth {
 				stage.close();
 			}
 		});
+	}
 
-		// set filters
+	/**
+	 * Generate the {@code HashMap} that contains key value pairs for the filter {@code CheckBox} nodes. The key is the {@code name} of the
+	 * {@link Transaction.Type Type} enum in the {@link model.domain.Transaction Transaction} class, and the value is a {@code Boolean}, representing
+	 * "should this
+	 * transaction type be displayed in the {@code transactionsTable} Node?"
+	 */
+	private void setFilterCheckBoxes() {
 		this.transactionFilters = new HashMap<String, Boolean>();
 		for (Type type : Type.values()) {
 			transactionFilters.put(type.name(), true);
@@ -150,103 +180,19 @@ public class WindowMonth {
 		this.filterBankTransfer.setSelected(true);
 	}
 
-	//**********************************\
-	//									|
-	//	JavaFX Application Methods		|
-	//									|
-	//**********************************/
-
 	/**
-	 * Refresh the data in the scene-graph and show stage.
+	 * Configure the TableView control.
 	 */
-	public void show() {
-		refresh(selectedMonth.getTransactions()); // default to showing the current year
-		this.stage.show();
-	}
+	private void configTable() {
+		// set the CellValueFactory attributes of the TableColumns in the TableView
+		this.transactionsDate.setCellValueFactory(new PropertyValueFactory<>("Date"));
+		this.transactionsName.setCellValueFactory(new PropertyValueFactory<>("Name"));
+		this.transactionsValue.setCellValueFactory(new PropertyValueFactory<>("Value"));
+		this.transactionsPaid.setCellValueFactory(new PropertyValueFactory<>("Paid"));
+		this.transactionsType.setCellValueFactory(new PropertyValueFactory<>("Type"));
 
-	/**
-	 * Hide this scene-graph.
-	 */
-	public void hide() {
-		this.stage.hide();
-	}
-
-	/**
-	 * Refresh all the nodes in this scene-graph.
-	 * 
-	 * @param transactions
-	 */
-	private void refresh(Collection<Transaction> transactions) {
-		fillTable(transactions);
-		fillTotals(transactions);
-	}
-
-	/**
-	 * Fill totals TextFields with Transaction data summary for this Month/
-	 * 
-	 * @param transactions
-	 */
-	private void fillTotals(Collection<Transaction> transactions) {
-		// declare calculation variables
-		double in = 0, out = 0, balance = 0;
-
-		// total the income and outgoings for all Transactions in this Month
-		for (Transaction t : transactions) {
-			if (t.isIncome()) {
-				in += t.getAbsoluteValue();
-			} else {
-				out += t.getAbsoluteValue();
-			}
-		}
-		balance = in - out;
-
-		// set the relevant buttons to show the calculations
-		this.totalIn.setText(String.format("%.2f", in));
-		this.totalOut.setText(String.format("%.2f", out));
-		this.totalBalance.setText(String.format("%s%.2f", (balance > 0) ? "+" : "", balance));
-		if (balance >= 0) {
-			this.totalBalance.setStyle("-fx-text-fill: green; -fx-font-weight: bold;");
-		} else {
-			this.totalBalance.setStyle("-fx-text-fill: red; -fx-font-weight: bold;");
-		}
-
-		TextField[] totals = new TextField[] { this.totalIn, this.totalOut, this.totalBalance };
-
-		for (TextField t : totals) {
-			t.setDisable(true);
-			t.setStyle(t.getStyle() + "-fx-opacity: 1.0;");
-		}
-
-	}
-
-	/**
-	 * Fill TableView with Transactions for selected Month
-	 * 
-	 * @param transactions
-	 */
-	private void fillTable(Collection<Transaction> transactions) {
-		// Create an ArrayList of Transactions that we can use from the interface type Collection
-		List<Transaction> sortedTransactions = filterTransactions(transactions);
-
-		// sort with two comparators to get a "nested" sort, first by date, then by type.
-		Collections.sort(sortedTransactions, new TransactionComparatorDate());
-		Collections.sort(sortedTransactions, new TransactionComparatorType());
-		Collections.sort(sortedTransactions, new TransactionComparatorIncome());
-
-		/*
-		 *  set the cell value factories of the model, in this case Transaction. The model has its instance fields as 
-		 *  type SimpleStringProperty instread of String, SimpleBooleanProperty instead of boolean, etc. 
-		 *  The arguments passed into the PropertyValueFactory constructor allows the object to 
-		 *  reflectively collect the instance field data and apply it to the table column
-		 */
-
-		transactionsDate.setCellValueFactory(new PropertyValueFactory<>("Date"));
-		transactionsName.setCellValueFactory(new PropertyValueFactory<>("Name"));
-		transactionsValue.setCellValueFactory(new PropertyValueFactory<>("Value"));
-		transactionsPaid.setCellValueFactory(new PropertyValueFactory<>("Paid"));
-		transactionsType.setCellValueFactory(new PropertyValueFactory<>("Type"));
-
-		this.transactions.setRowFactory(row -> new TableRow<Transaction>() {
+		// apply appropriate formatting to the rows depending on the Transaction Type field
+		this.transactionsTable.setRowFactory(row -> new TableRow<Transaction>() {
 			@Override
 			public void updateItem(Transaction t, boolean empty) {
 				if (t == null || empty) {
@@ -256,15 +202,8 @@ public class WindowMonth {
 				}
 			}
 		});
-		/**
-		 * Callback signature:
-		 * Callback c = new Callback<P, R>() {
-		 * };
-		 * Callback is a functional interface, and its single abstract method is .call() that a parameter of type P, and return an object of type R.
-		 * 
-		 * P is the type being passed in, and R is the type to return.
-		 * In this case we pass in a TableColumn, and use it to instantiate a TableRow and return that.
-		 */
+
+		// apply appropriate formatting to the Transaction value cells, depending on if the Transaction isIncome()
 		this.transactionsValue.setCellFactory(new Callback<TableColumn<Transaction, Double>, TableCell<Transaction, Double>>() {
 			@Override
 			public TableCell<Transaction, Double> call(TableColumn<Transaction, Double> param) {
@@ -284,49 +223,121 @@ public class WindowMonth {
 				};
 			}
 		});
-		this.transactionsType.setCellFactory(new Callback<TableColumn<Transaction, Type>, TableCell<Transaction, Type>>() {
 
-			@Override
-			public TableCell<Transaction, Type> call(TableColumn<Transaction, Type> param) {
-				// TODO Auto-generated method stub
-				return new TableCell<Transaction, Type>() {
-					@Override
-					public void updateItem(Type t, boolean empty) {
-						super.updateItem(t, empty);
-						if (!empty && t != null) {
-							this.setText(t.toString());
-						}
-					}
-				};
-			}
-
-		});
+		// set TableColumn widths
 		this.transactionsType.setPrefWidth(150.0);
 
-		TableViewSelectionModel<Transaction> selectionModel = this.transactions.getSelectionModel();
+		// configure the TableViewSelectionModel for TableView
+		TableViewSelectionModel<Transaction> selectionModel = this.transactionsTable.getSelectionModel();
 		selectionModel.setSelectionMode(SelectionMode.SINGLE);
 		selectionModel.setCellSelectionEnabled(false);
-		this.transactions.setSelectionModel(selectionModel);
+		this.transactionsTable.setSelectionModel(selectionModel);
 
-		this.transactions.setItems(FXCollections.observableArrayList(sortedTransactions));
+		// define and set EventHandlers for the filter CheckBox controls
+		EventHandler<ActionEvent> checkBoxAction = new EventHandler<ActionEvent>() {
+			@Override
+			public void handle(ActionEvent event) {
+				// capture CheckBox
+				CheckBox c = (CheckBox) event.getSource();
+				String s = c.getId().substring("filter".length()).toUpperCase();
+				// set this filter to user's selection.
+				transactionFilters.put(s, c.isSelected());
+				// refresh this window.
+				refresh();
+			}
+		};
+		filterCash.setOnAction(checkBoxAction);
+		filterDirectDebit.setOnAction(checkBoxAction);
+		filterStandingOrder.setOnAction(checkBoxAction);
+		filterBankTransfer.setOnAction(checkBoxAction);
 
-		CheckBox[] filters = new CheckBox[] { filterCash, filterDirectDebit, filterStandingOrder, filterBankTransfer };
+	}
 
-		// assign action handlers to each of the filtering CheckBox JavaFX controls
-		for (CheckBox checkBox : filters) {
-			checkBox.setOnAction(new EventHandler<ActionEvent>() {
-				@Override
-				public void handle(ActionEvent event) {
-					// capture CheckBox
-					CheckBox c = (CheckBox) event.getSource();
-					String s = c.getId().substring("filter".length()).toUpperCase();
-					// set this filter to user's selection.
-					transactionFilters.put(s, c.isSelected());
-					// refresh this window.
-					refresh(transactions);
-				}
-			});
+	//**********************************\
+	//									|
+	//	JavaFX Application Methods		|
+	//									|
+	//**********************************/
+
+	/**
+	 * Refresh the data in the scene-graph and show stage.
+	 */
+	public void show() {
+		refresh(); // default to showing the current year
+		this.stage.show();
+	}
+
+	/**
+	 * Hide this scene-graph.
+	 */
+	public void hide() {
+		this.stage.hide();
+	}
+
+	/**
+	 * Refresh all the nodes in this scene-graph.
+	 * 
+	 * @param transactionsTable
+	 */
+	private void refresh() {
+		fillTable();
+		fillTotals();
+	}
+
+	/**
+	 * Fill totals TextFields with Transaction data summary for this Month/
+	 * 
+	 * @param transactionsTable
+	 */
+	private void fillTotals() {
+		// declare calculation variables
+		double in = 0, out = 0, balance = 0;
+
+		// total the income and outgoings for all Transactions in this Month
+		for (Transaction t : selectedMonth.getTransactions()) {
+			if (t.isIncome()) {
+				in += t.getAbsoluteValue();
+			} else {
+				out += t.getAbsoluteValue();
+			}
 		}
+		balance = in - out;
+
+		// set the relevant buttons to show the calculations
+		this.totalIn.setText(String.format("%.2f", in));
+		this.totalOut.setText(String.format("%.2f", out));
+		this.totalBalance.setText(String.format("%s%.2f", (balance > 0) ? "+" : "", balance));
+		if (balance >= 0) {
+			this.totalBalance.setStyle("-fx-text-fill: green; -fx-font-weight: bold;");
+		} else {
+			this.totalBalance.setStyle("-fx-text-fill: red; -fx-font-weight: bold;");
+		}
+
+		TextField[] totals = new TextField[] { this.totalIn, this.totalOut, this.totalBalance };
+		for (TextField t : totals) {
+			t.setDisable(true);
+			t.setStyle(t.getStyle() + "-fx-opacity: 1.0;");
+		}
+
+	}
+
+	/**
+	 * Fill TableView with Transactions for selected Month
+	 * 
+	 * @param transactionsTable
+	 */
+	private void fillTable() {
+		// filter transactions by the CheckBox filter controls state. Defaulted all to true upon class instantiation.
+		List<Transaction> sortedTransactions = filterTransactions(selectedMonth.getTransactions());
+
+		// sort with three comparators to get a "nested" sort, first by date, then by type, then by income.
+		Collections.sort(sortedTransactions, new TransactionComparatorDate());
+		Collections.sort(sortedTransactions, new TransactionComparatorType());
+		Collections.sort(sortedTransactions, new TransactionComparatorIncome());
+
+		// set the TableView items
+		this.transactionsTable.setItems(FXCollections.observableArrayList(sortedTransactions));
+
 	}
 
 	/**
@@ -346,3 +357,21 @@ public class WindowMonth {
 
 	}
 }
+
+//this.transactionsType.setCellFactory(new Callback<TableColumn<Transaction, Type>, TableCell<Transaction, Type>>() {
+//
+//	@Override
+//	public TableCell<Transaction, Type> call(TableColumn<Transaction, Type> param) {
+//		// TODO Auto-generated method stub
+//		return new TableCell<Transaction, Type>() {
+//			@Override
+//			public void updateItem(Type t, boolean empty) {
+//				super.updateItem(t, empty);
+//				if (!empty && t != null) {
+//					this.setText(t.toString());
+//				}
+//			}
+//		};
+//	}
+//
+//});
