@@ -135,7 +135,7 @@ public class WindowMonth {
 		setScene();
 		setStage();
 		setFilterCheckBoxes();
-		configNodes();
+		configJavaFXControls();
 	}
 
 	/**
@@ -214,7 +214,7 @@ public class WindowMonth {
 	/**
 	 * Configure the TableView control.
 	 */
-	private void configNodes() {
+	private void configJavaFXControls() {
 		// set the CellValueFactory attributes of the TableColumns in the TableView
 		this.transactionsDate.setCellValueFactory(new PropertyValueFactory<>("Date"));
 		this.transactionsName.setCellValueFactory(new PropertyValueFactory<>("Name"));
