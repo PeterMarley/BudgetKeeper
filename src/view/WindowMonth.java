@@ -7,12 +7,14 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map.Entry;
 
 import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
@@ -48,21 +50,38 @@ public class WindowMonth {
 	//									|
 	//**********************************/
 
-	@FXML private TableView<Transaction> transactionsTable;
-	@FXML private TableColumn<Transaction, LocalDate> transactionsDate;
-	@FXML private TableColumn<Transaction, String> transactionsName;
-	@FXML private TableColumn<Transaction, Double> transactionsValue;
-	@FXML private TableColumn<Transaction, Boolean> transactionsPaid;
-	@FXML private TableColumn<Transaction, Type> transactionsType;
+	@FXML
+	private TableView<Transaction> transactionsTable;
+	@FXML
+	private TableColumn<Transaction, LocalDate> transactionsDate;
+	@FXML
+	private TableColumn<Transaction, String> transactionsName;
+	@FXML
+	private TableColumn<Transaction, Double> transactionsValue;
+	@FXML
+	private TableColumn<Transaction, Boolean> transactionsPaid;
+	@FXML
+	private TableColumn<Transaction, Type> transactionsType;
 
-	@FXML private TextField totalIn;
-	@FXML private TextField totalOut;
-	@FXML private TextField totalBalance;
+	@FXML
+	private TextField totalIn;
+	@FXML
+	private TextField totalOut;
+	@FXML
+	private TextField totalBalance;
 
-	@FXML private CheckBox filterCash;
-	@FXML private CheckBox filterDirectDebit;
-	@FXML private CheckBox filterStandingOrder;
-	@FXML private CheckBox filterBankTransfer;
+	@FXML
+	private CheckBox filterCash;
+	@FXML
+	private CheckBox filterDirectDebit;
+	@FXML
+	private CheckBox filterStandingOrder;
+	@FXML
+	private CheckBox filterBankTransfer;
+	@FXML
+	private CheckBox filterIncome;
+	@FXML
+	private CheckBox filterOutgoing;
 
 	//**********************************\
 	//									|
@@ -75,7 +94,10 @@ public class WindowMonth {
 	private Stage stage;
 	private Scene scene;
 	private Month selectedMonth;
-	HashMap<String, Boolean> transactionFilters;
+	HashMap<String, Boolean> transactionTypeFilters;
+	HashMap<String, Boolean> transactionInOutFilters;
+	private ObservableList<Transaction> transactionsObsList;
+	private List<Transaction> transactionsFilteredOut;
 
 	//**********************************\
 	//									|
@@ -113,7 +135,7 @@ public class WindowMonth {
 		setScene();
 		setStage();
 		setFilterCheckBoxes();
-		configTable();
+		configNodes();
 	}
 
 	/**
@@ -170,20 +192,29 @@ public class WindowMonth {
 	 * transaction type be displayed in the {@code transactionsTable} Node?"
 	 */
 	private void setFilterCheckBoxes() {
-		this.transactionFilters = new HashMap<String, Boolean>();
+		// Transaction type filters
+		this.transactionTypeFilters = new HashMap<String, Boolean>();
 		for (Type type : Type.values()) {
-			transactionFilters.put(type.name(), true);
+			transactionTypeFilters.put(type.name(), true);
 		}
 		this.filterCash.setSelected(true);
 		this.filterDirectDebit.setSelected(true);
 		this.filterStandingOrder.setSelected(true);
 		this.filterBankTransfer.setSelected(true);
+
+		// Transaction in/out filters
+		this.transactionInOutFilters = new HashMap<String, Boolean>();
+		this.transactionInOutFilters.put("Income", true);
+		this.transactionInOutFilters.put("Outgoing", true);
+
+		this.filterIncome.setSelected(true);
+		this.filterOutgoing.setSelected(true);
 	}
 
 	/**
 	 * Configure the TableView control.
 	 */
-	private void configTable() {
+	private void configNodes() {
 		// set the CellValueFactory attributes of the TableColumns in the TableView
 		this.transactionsDate.setCellValueFactory(new PropertyValueFactory<>("Date"));
 		this.transactionsName.setCellValueFactory(new PropertyValueFactory<>("Name"));
@@ -207,7 +238,7 @@ public class WindowMonth {
 		this.transactionsTable.getColumns().forEach(element -> {
 			element.setSortable(false);
 		});
-		
+
 		// apply appropriate formatting to the Transaction value cells, depending on if the Transaction isIncome()
 		this.transactionsValue.setCellFactory(new Callback<TableColumn<Transaction, Double>, TableCell<Transaction, Double>>() {
 			@Override
@@ -231,32 +262,47 @@ public class WindowMonth {
 
 		// set TableColumn widths
 		this.transactionsType.setPrefWidth(150.0);
-		
-		
+
 		// configure the TableViewSelectionModel for TableView
 		TableViewSelectionModel<Transaction> selectionModel = this.transactionsTable.getSelectionModel();
 		selectionModel.setSelectionMode(SelectionMode.SINGLE);
 		selectionModel.setCellSelectionEnabled(false);
 		this.transactionsTable.setSelectionModel(selectionModel);
 
-		// define and set EventHandlers for the filter CheckBox controls
-		EventHandler<ActionEvent> checkBoxAction = new EventHandler<ActionEvent>() {
+		// define and set EventHandlers for the Type filter CheckBox controls
+		EventHandler<ActionEvent> checkBoxTypeFilterAction = new EventHandler<ActionEvent>() {
 			@Override
 			public void handle(ActionEvent event) {
 				// capture CheckBox
 				CheckBox c = (CheckBox) event.getSource();
 				String s = c.getId().substring("filter".length()).toUpperCase();
 				// set this filter to user's selection.
-				transactionFilters.put(s, c.isSelected());
+				transactionTypeFilters.put(s, c.isSelected());
 				// refresh this window.
 				refresh();
 			}
 		};
-		filterCash.setOnAction(checkBoxAction);
-		filterDirectDebit.setOnAction(checkBoxAction);
-		filterStandingOrder.setOnAction(checkBoxAction);
-		filterBankTransfer.setOnAction(checkBoxAction);
+		filterCash.setOnAction(checkBoxTypeFilterAction);
+		filterDirectDebit.setOnAction(checkBoxTypeFilterAction);
+		filterStandingOrder.setOnAction(checkBoxTypeFilterAction);
+		filterBankTransfer.setOnAction(checkBoxTypeFilterAction);
 
+		// define and set EventHandlers for the In/Out filter CheckBox controls
+		EventHandler<ActionEvent> checkBoxInOutFilterAction = new EventHandler<ActionEvent>() {
+			@Override
+			public void handle(ActionEvent event) {
+				CheckBox c = (CheckBox) event.getSource();
+				String s = c.getId().substring("filter".length());
+				transactionInOutFilters.put(s, c.isSelected());
+				refresh();
+			}
+		};
+		filterIncome.setOnAction(checkBoxInOutFilterAction);
+		filterOutgoing.setOnAction(checkBoxInOutFilterAction);
+
+		// retrieve transactions from database
+		transactionsObsList = FXCollections.observableList(new ArrayList<Transaction>(this.selectedMonth.getTransactions()));
+		transactionsFilteredOut = new LinkedList<Transaction>();
 	}
 
 	//**********************************\
@@ -328,39 +374,31 @@ public class WindowMonth {
 	}
 
 	/**
-	 * Fill TableView with Transactions for selected Month
+	 * Fill TableView with Transactions in the {@code transactionObsList} ObservableList
 	 * 
-	 * @param transactionsTable
 	 */
 	private void fillTable() {
-		// filter transactions by the CheckBox filter controls state. Defaulted all to true upon class instantiation.
-		List<Transaction> sortedTransactions = filterTransactions(selectedMonth.getTransactions());
-
-		// sort with three comparators to get a "nested" sort, first by date, then by type, then by income.
-		Collections.sort(sortedTransactions, new TransactionComparatorDate());
-		Collections.sort(sortedTransactions, new TransactionComparatorType());
-		Collections.sort(sortedTransactions, new TransactionComparatorIncome());
-
-		// set the TableView items
-		this.transactionsTable.setItems(FXCollections.observableArrayList(sortedTransactions));
+		filterTransactions();
+		this.transactionsTable.setItems(transactionsObsList);
 		this.transactionsTable.refresh();
 
 	}
 
 	/**
-	 * Filter transactions by {@link model.domain.Transaction.Type Transaction Type}.
-	 * 
-	 * @param transactions
-	 * @return
+	 * Filters the {@code Transaction} objects in the {@code transactionObsList}, depending on whether {@code Transaction Type} for each element has a
+	 * true or false key in the {@code transactionFilters}.
 	 */
-	private List<Transaction> filterTransactions(Collection<Transaction> transactions) {
-		List<Transaction> filtered = new LinkedList<Transaction>();
-		for (Transaction t : transactions) {
-			if (transactionFilters.get(t.getType().name())) {
-				filtered.add(t);
+	private void filterTransactions() {
+		transactionsObsList.addAll(transactionsFilteredOut);
+		transactionsFilteredOut.clear();
+		List<Transaction> toRemove = new LinkedList<Transaction>();
+		for (Transaction t : transactionsObsList) {
+			String inOut = t.isIncome() ? "Income" : "Outgoing";
+			if (!transactionTypeFilters.get(t.getType().name()) || !transactionInOutFilters.get(inOut)) {
+				toRemove.add(t);
 			}
 		}
-		return filtered;
-
+		transactionsObsList.removeAll(toRemove);
+		transactionsFilteredOut.addAll(toRemove);
 	}
 }

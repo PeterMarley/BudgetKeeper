@@ -34,18 +34,23 @@
                <children>
                   <VBox prefHeight="109.0" prefWidth="243.0" spacing="5.0">
                      <children>
-                        <Label text="Transaction types to show:" />
+                        <Label text="Filters:" />
                         <!-- these CheckBox nodes must begin with the word "filter" and end with a case-insensitive Transaction.Type enum name() -->
-                        <CheckBox mnemonicParsing="false" fx:id="filterCash" text="Cash" />
-                        <CheckBox mnemonicParsing="false" fx:id="filterDirectDebit" text="Direct Debit" />
-                        <CheckBox mnemonicParsing="false" fx:id="filterStandingOrder" text="Standing Order" />
-                        <CheckBox mnemonicParsing="false" fx:id="filterBankTransfer" text="Bank Transfer" />
+                        <CheckBox fx:id="filterCash" mnemonicParsing="false" text="Cash" />
+                        <CheckBox fx:id="filterDirectDebit" mnemonicParsing="false" text="Direct Debit" />
+                        <CheckBox fx:id="filterStandingOrder" mnemonicParsing="false" text="Standing Order" />
+                        <CheckBox fx:id="filterBankTransfer" mnemonicParsing="false" text="Bank Transfer" />
                      </children>
                      <padding>
                         <Insets left="5.0" />
                      </padding>
                   </VBox>
-                  <VBox prefHeight="109.0" prefWidth="275.0" />
+                  <VBox prefHeight="109.0" prefWidth="275.0" spacing="5.0">
+                     <children>
+                        <Label />
+                        <CheckBox fx:id="filterIncome" mnemonicParsing="false" text="Income" />
+                        <CheckBox fx:id="filterOutgoing" mnemonicParsing="false" text="Outgoing" />
+                     </children></VBox>
                </children>
             </HBox>
          </children></FlowPane>
