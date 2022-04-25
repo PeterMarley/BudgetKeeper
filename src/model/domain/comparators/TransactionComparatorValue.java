@@ -8,10 +8,6 @@ import model.domain.Transaction;
 
 public class TransactionComparatorValue implements Comparator<Transaction> {
 
-	private enum Sort {
-		ASCENDING, DESCENDING;
-	}
-
 	private Sort sort;
 
 	/**

@@ -28,10 +28,10 @@ public class Transaction implements Comparable<Transaction> {
 	 *
 	 */
 	public enum Type {
-		CASH("Cash", "-fx-background-color: #bbbbbb"),
-		BANKTRANSFER("Bank Transfer", "-fx-background-color: #aaaaaa"),
-		DIRECTDEBIT("Direct Debit", "-fx-background-color: #999999"),
-		STANDINGORDER("Standing Order", "-fx-background-color: #888888");
+		CASH("Cash", "-fx-background-color: #E1F6FF"),
+		BANKTRANSFER("Bank Transfer", "-fx-background-color: #B9EBFF"),
+		DIRECTDEBIT("Direct Debit", "-fx-background-color: #91E0FF"),
+		STANDINGORDER("Standing Order", "-fx-background-color: #55CEFF");
 
 		private String text;
 		private String cssStyle;

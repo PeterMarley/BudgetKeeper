@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.DatePicker?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefWidth="346.0" spacing="5.0" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1">
+   <children>
+      <HBox prefHeight="20.0" prefWidth="600.0" spacing="5.0">
+         <children>
+            <Label alignment="CENTER_RIGHT" contentDisplay="TOP" prefWidth="150.0" text="Description" />
+            <TextField fx:id="name" />
+         </children>
+      </HBox>
+      <HBox prefHeight="20.0" prefWidth="600.0" spacing="5.0">
+         <children>
+            <Label alignment="CENTER_RIGHT" contentDisplay="TOP" prefWidth="150.0" text="Date" />
+            <DatePicker fx:id="date" />
+         </children>
+      </HBox>
+      <HBox prefHeight="20.0" prefWidth="600.0" spacing="5.0">
+         <children>
+            <Label alignment="CENTER_RIGHT" contentDisplay="TOP" prefWidth="150.0" text="Type" />
+            <ComboBox fx:id="type" prefWidth="150.0" />
+         </children>
+      </HBox>
+      <HBox prefHeight="20.0" prefWidth="600.0" spacing="5.0">
+         <children>
+            <Label alignment="CENTER_RIGHT" contentDisplay="TOP" prefWidth="150.0" text="Value" />
+            <TextField fx:id="value" />
+         </children>
+      </HBox>
+      <HBox prefHeight="20.0" prefWidth="600.0" spacing="5.0">
+         <children>
+            <Label alignment="CENTER_RIGHT" contentDisplay="TOP" prefWidth="150.0" text="Income/ Outgoing" />
+            <ComboBox fx:id="income" prefWidth="150.0" />
+         </children>
+      </HBox>
+      <HBox prefHeight="20.0" prefWidth="600.0" spacing="5.0">
+         <children>
+            <Label alignment="CENTER_RIGHT" contentDisplay="TOP" prefWidth="150.0" text="Paid?" />
+            <ComboBox fx:id="paid" />
+         </children>
+      </HBox>
+   </children>
+   <padding>
+      <Insets bottom="5.0" top="5.0" />
+   </padding>
+</VBox>

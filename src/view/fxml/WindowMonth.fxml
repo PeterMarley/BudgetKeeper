@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
 <?import javafx.scene.control.CheckBox?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.TableColumn?>
@@ -11,28 +12,26 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 
-<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="774.0" prefWidth="891.0" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1">
+<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="774.0" prefWidth="880.0" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1">
    <children>
-      <Label layoutX="96.0" layoutY="43.0" text="Income" />
-      <Label layoutX="78.0" layoutY="69.0" text="Outgoings" />
-      <Label layoutX="116.0" layoutY="98.0" text="+/-" />
-      <TextField fx:id="totalIn" layoutX="141.0" layoutY="39.0" />
-      <TextField fx:id="totalOut" layoutX="141.0" layoutY="65.0" />
-      <TextField fx:id="totalBalance" layoutX="141.0" layoutY="94.0" />
-      <TableView fx:id="transactionsTable" layoutX="25.0" layoutY="147.0" prefHeight="606.0" prefWidth="826.0">
-        <columns>
-            <TableColumn fx:id="transactionsType" prefWidth="75.0" text="Type" />
-            <TableColumn fx:id="transactionsDate" prefWidth="75.0" text="Date" />
-            <TableColumn fx:id="transactionsName" prefWidth="75.0" text="Name" />
-            <TableColumn fx:id="transactionsValue" prefWidth="75.0" text="Value" />
-            <TableColumn fx:id="transactionsPaid" prefWidth="75.0" text="Paid?" />
-        </columns>
-      </TableView>
-      <FlowPane fx:id="filtersPane" layoutX="323.0" layoutY="19.0" prefHeight="109.0" prefWidth="516.0">
+      <!-- Totals -->
+      <FlowPane hgap="5.0" layoutX="25.0" layoutY="19.0" prefHeight="94.0" prefWidth="185.0" vgap="5.0">
          <children>
-            <HBox minHeight="-Infinity" minWidth="-Infinity" prefHeight="109.0" prefWidth="516.0">
+            <Label alignment="TOP_RIGHT" prefHeight="17.0" prefWidth="61.0" text="Income" />
+            <TextField fx:id="totalIn" />
+            <Label alignment="TOP_RIGHT" prefHeight="17.0" prefWidth="61.0" text="Outgoings" />
+            <TextField fx:id="totalOut" />
+            <Label alignment="TOP_RIGHT" prefHeight="17.0" prefWidth="61.0" text="+/-" />
+            <TextField fx:id="totalBalance" />
+         </children>
+      </FlowPane>
+      
+      <!-- Filters -->
+      <FlowPane layoutX="258.0" layoutY="19.0" prefHeight="109.0" prefWidth="233.0" styleClass="paneWithBorder">
+         <children>
+            <HBox minHeight="-Infinity" minWidth="-Infinity" prefHeight="109.0">
                <children>
-                  <VBox prefHeight="109.0" prefWidth="243.0" spacing="5.0">
+                  <VBox prefHeight="109.0" prefWidth="150.0" spacing="5.0">
                      <children>
                         <Label text="Filters:" />
                         <!-- these CheckBox nodes must begin with the word "filter" and end with a case-insensitive Transaction.Type enum name() -->
@@ -45,7 +44,7 @@
                         <Insets left="5.0" />
                      </padding>
                   </VBox>
-                  <VBox prefHeight="109.0" prefWidth="275.0" spacing="5.0">
+                  <VBox prefHeight="109.0" prefWidth="150.0" spacing="5.0">
                      <children>
                         <Label />
                         <CheckBox fx:id="filterIncome" mnemonicParsing="false" text="Income" />
@@ -53,6 +52,80 @@
                      </children></VBox>
                </children>
             </HBox>
-         </children></FlowPane>
+         </children>
+      </FlowPane>
+      
+            <!-- Sorts -->
+      <VBox layoutX="600.0" layoutY="19.0" prefHeight="109.0" prefWidth="229.0" spacing="5.0" styleClass="paneWithBorder">
+         <children>
+            <Label prefWidth="127.0" text="Sort:" />
+            <HBox alignment="CENTER" spacing="5.0">
+               <children>
+                  <Button fx:id="sortButtonDate" mnemonicParsing="false" prefWidth="100.0" text="Date" />
+                  <Button fx:id="sortButtonValue" mnemonicParsing="false" prefWidth="100.0" text="Value" />
+               </children>
+            </HBox>
+            <HBox alignment="CENTER" spacing="5.0">
+               <children>
+                  <Button fx:id="sortButtonInOut" mnemonicParsing="false" prefHeight="25.0" prefWidth="100.0" text="Income/ Outgoing" />
+                  <Button fx:id="sortButtonType" mnemonicParsing="false" prefWidth="100.0" text="Transaction Type" />
+               </children>
+            </HBox>
+            <HBox alignment="CENTER" spacing="5.0">
+               <children>
+                  <Button fx:id="sortButtonClear" mnemonicParsing="false" prefHeight="25.0" prefWidth="173.0" text="Clear Sorts" />
+               </children>
+            </HBox>
+         </children>
+      </VBox>
+      
+      <!-- TableView -->
+      <TableView fx:id="transactionsTable" layoutX="25.0" layoutY="147.0" prefHeight="606.0" prefWidth="605.0">
+        <columns>
+            <TableColumn fx:id="transactionsType" prefWidth="75.0" text="Type" />
+            <TableColumn fx:id="transactionsDate" prefWidth="75.0" text="Date" />
+            <TableColumn fx:id="transactionsName" prefWidth="75.0" text="Name" />
+            <TableColumn fx:id="transactionsValue" prefWidth="75.0" text="Value" />
+            <TableColumn fx:id="transactionsPaid" prefWidth="75.0" text="Paid?" />
+        </columns>
+      </TableView>
+      
+      <!-- Operations VBox -->
+      <VBox alignment="TOP_CENTER" layoutX="642.0" layoutY="147.0" prefHeight="606.0" prefWidth="229.0" spacing="5.0" styleClass="paneWithBorder">
+         <children>
+            <Button mnemonicParsing="false" fx:id="opTransactionAdd" prefWidth="150.0" text="Add Transaction" />
+            <Button mnemonicParsing="false" fx:id="opTransactionDelete" prefWidth="150.0" text="Delete Transaction" />
+            <Button mnemonicParsing="false" fx:id="opSave" prefWidth="150.0" text="Save Changes" />
+            <Button mnemonicParsing="false" fx:id="opCancel" prefWidth="150.0" text="Cancel Changes" />
+         </children>
+         <padding>
+            <Insets top="5.0" />
+         </padding></VBox>
+      
+      <!-- MenuBar 
+      <MenuBar layoutY="2.0">
+        <menus>
+          <Menu mnemonicParsing="false" text="Show">
+            <items>
+              <MenuItem mnemonicParsing="false" text="Cash" />
+              <MenuItem mnemonicParsing="false" text="Standing Order" />
+              <MenuItem mnemonicParsing="false" text="Direct Debit" />
+              <MenuItem mnemonicParsing="false" text="Close" />
+              
+            </items>
+          </Menu>
+          <Menu mnemonicParsing="false" text="Filter">
+            <items>
+              <MenuItem mnemonicParsing="false" text="Delete" />
+            </items>
+          </Menu>
+          <Menu mnemonicParsing="false" text="Sort">
+            <items>
+              <MenuItem mnemonicParsing="false" text="About" />
+            </items>
+          </Menu>
+        </menus>
+      </MenuBar>-->
+      
    </children>
 </AnchorPane>
