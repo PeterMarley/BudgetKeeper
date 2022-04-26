@@ -121,6 +121,8 @@ public class WindowYear extends Application {
 			setStage();
 			lastSelectedYear = DEFAULT_YEAR;
 			refresh(); // default to showing the current year
+			
+			Controller.setWindowYear(this);
 			// show this window
 			this.stage.show();
 		} catch (IOException e) {
@@ -162,6 +164,7 @@ public class WindowYear extends Application {
 			public void handle(WindowEvent event) {
 				stage.close();
 				Platform.exit();
+				System.exit(0);
 			}
 		});
 	}
@@ -178,7 +181,7 @@ public class WindowYear extends Application {
 	public void refresh() {
 
 		// Get all years that have Month objects stored in database
-		ObservableList<Integer> yearsList = FXCollections.observableArrayList(Controller.getDAO().getYears());
+		ObservableList<Integer> yearsList = FXCollections.observableArrayList(Controller.getDatabaseAccessObject().getYears());
 
 		// set ComboBox drop down menu to hold values of all years from database.
 		yearComboBox.setItems(yearsList);
@@ -188,10 +191,23 @@ public class WindowYear extends Application {
 
 		// set new title for stage depending on the year selected
 		this.stage.setTitle("Months for " + lastSelectedYear);
-
+		
 		configMonthButtons();
 		configYearSelection();
+	}
 
+	/**
+	 * Show the WindowYear Stage.
+	 */
+	public void show() {
+		this.stage.show();
+	}
+
+	/**
+	 * Hide the WindowYear Stage.
+	 */
+	public void hide() {
+		this.stage.hide();
 	}
 
 	/**
@@ -199,7 +215,7 @@ public class WindowYear extends Application {
 	 */
 	private void configMonthButtons() {
 		// get Months data for this year from database, and map data for simple confirmation of existence below
-		List<Month> months = Controller.getDAO().pullMonthsForYear(lastSelectedYear);
+		List<Month> months = Controller.getDatabaseAccessObject().pullMonthsForYear(lastSelectedYear);
 		monthMap = new HashMap<Integer, Month>(12);
 		for (Month m : months) {
 			int thisMonth = m.getDate().getMonthValue() - 1;
@@ -232,20 +248,13 @@ public class WindowYear extends Application {
 				@Override
 				public void handle(ActionEvent e) {
 					Month monthToShow = monthMap.get(index);
-					Runnable windowMonth = new Runnable() {
-						@Override
-						public void run() {
-							try {
-								WindowMonth wm = new WindowMonth(monthToShow);
-								wm.show();
-							} catch (IOException e1) {
-								System.err.println("Attempt to instantiate and show a WindowMonth object for month failed!");
-								System.err.println(monthToShow.toString());
-								e1.printStackTrace();
-							}
-						}
-					};
-					windowMonth.run();
+					try {
+						WindowMonth wm = new WindowMonth(monthToShow);
+						hide();
+						wm.show();
+					} catch (IllegalArgumentException | IOException wmInstantiationFailureEx) {
+						wmInstantiationFailureEx.printStackTrace();
+					}
 				}
 			});
 		}

@@ -91,12 +91,13 @@
       </TableView>
       
       <!-- Operations VBox -->
-      <VBox alignment="TOP_CENTER" layoutX="642.0" layoutY="147.0" prefHeight="606.0" prefWidth="229.0" spacing="5.0" styleClass="paneWithBorder">
+      <VBox alignment="TOP_CENTER" layoutX="642.0" layoutY="147.0" prefHeight="157.0" prefWidth="229.0" spacing="5.0" styleClass="paneWithBorder">
          <children>
-            <Button mnemonicParsing="false" fx:id="opTransactionAdd" prefWidth="150.0" text="Add Transaction" />
-            <Button mnemonicParsing="false" fx:id="opTransactionDelete" prefWidth="150.0" text="Delete Transaction" />
-            <Button mnemonicParsing="false" fx:id="opSave" prefWidth="150.0" text="Save Changes" />
-            <Button mnemonicParsing="false" fx:id="opCancel" prefWidth="150.0" text="Cancel Changes" />
+            <Button fx:id="opTransactionAdd" mnemonicParsing="false" prefWidth="150.0" text="Add Transaction" />
+            <Button fx:id="opTransactionEdit" mnemonicParsing="false" prefWidth="150.0" text="Edit Transaction" />
+            <Button fx:id="opTransactionDelete" mnemonicParsing="false" prefWidth="150.0" text="Delete Transaction" />
+            <Button fx:id="opSave" mnemonicParsing="false" prefWidth="150.0" text="Save Changes" />
+            <Button fx:id="opCancel" mnemonicParsing="false" prefWidth="150.0" text="Cancel Changes" />
          </children>
          <padding>
             <Insets top="5.0" />

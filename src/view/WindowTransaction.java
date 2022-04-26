@@ -3,6 +3,7 @@ package view;
 import java.io.IOException;
 import java.util.Optional;
 
+import controller.Controller;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -15,6 +16,7 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.ButtonType;
 import javafx.scene.image.Image;
+import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
 import model.domain.Transaction;
@@ -105,6 +107,8 @@ public class WindowTransaction {
 		setStage();
 
 		configJavaFXControls();
+		
+		Controller.setWindowTransaction(this);
 	}
 
 	private void setRoot() throws IOException {
@@ -137,10 +141,12 @@ public class WindowTransaction {
 				alert.setTitle("Please confirm cancellation.");
 				Optional<ButtonType> result = alert.showAndWait();
 				if (result.isPresent() && result.get() == ButtonType.OK) {
-					stage.close();
+					//stage.close();
+					Controller.getWindowMonth().show();
 				}
 			}
 		});
+		this.stage.initModality(Modality.APPLICATION_MODAL);
 
 	}
 

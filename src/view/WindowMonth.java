@@ -80,6 +80,7 @@ public class WindowMonth {
 	@FXML private Button sortButtonClear;
 
 	@FXML private Button opTransactionAdd;
+	@FXML private Button opTransactionEdit;
 	@FXML private Button opTransactionDelete;
 	@FXML private Button opSave;
 	@FXML private Button opCancel;
@@ -151,6 +152,7 @@ public class WindowMonth {
 		setStage();
 		setFilterCheckBoxes();
 		configJavaFXControls();
+		Controller.setWindowMonth(this);
 	}
 
 	/**
@@ -162,7 +164,7 @@ public class WindowMonth {
 	 */
 	private void setSelectedMonth(Month month) throws IllegalArgumentException {
 		this.selectedMonth = Utility.nullCheck(month);
-		this.monthID = Controller.getDAO().pullMonthID(month);
+		this.monthID = Controller.getDatabaseAccessObject().pullMonthID(month);
 	}
 
 	/**
@@ -186,6 +188,7 @@ public class WindowMonth {
 	private void setScene() {
 		this.scene = new Scene(this.root);
 		this.scene.getStylesheets().add(getClass().getResource(CSS).toExternalForm());
+
 	}
 
 	/**
@@ -203,6 +206,7 @@ public class WindowMonth {
 			@Override
 			public void handle(WindowEvent event) {
 				stage.close();
+				Controller.getWindowYear().show();
 			}
 		});
 	}
@@ -254,6 +258,7 @@ public class WindowMonth {
 		this.transactionsTable.setRowFactory(row -> new TableRow<Transaction>() {
 			@Override
 			public void updateItem(Transaction t, boolean empty) {
+				super.updateItem(t, empty);
 				if (t == null || empty) {
 					setStyle("");
 				} else {
@@ -261,6 +266,7 @@ public class WindowMonth {
 				}
 			}
 		});
+		
 
 		// disable user sorting of TableView by column header
 		this.transactionsTable.getColumns().forEach(element -> {
@@ -291,13 +297,6 @@ public class WindowMonth {
 		// set TableColumn widths
 		this.transactionsType.setPrefWidth(150.0);
 		this.transactionsName.setPrefWidth(150.0);
-
-		// configure the TableViewSelectionModel for TableView
-		TableViewSelectionModel<Transaction> selectionModel = this.transactionsTable.getSelectionModel();
-		selectionModel.setSelectionMode(SelectionMode.SINGLE);
-		selectionModel.setCellSelectionEnabled(false);
-		this.transactionsTable.setSelectionModel(selectionModel);
-		this.transactionsTable.requestFocus();
 
 		/*
 		 * Totals
@@ -415,9 +414,11 @@ public class WindowMonth {
 		opSave.setOnAction(new EventHandler<ActionEvent>() {
 			@Override
 			public void handle(ActionEvent event) {
-				Controller.getDAO().updateMonth(selectedMonth, monthID);
+				System.out.println("opSave setOnAction not implemented");
+				//Controller.getDatabaseAccessObject().updateMonth(selectedMonth, monthID);
 			}
 		});
+
 		opTransactionAdd.setOnAction(new EventHandler<ActionEvent>() {
 			@Override
 			public void handle(ActionEvent event) {
@@ -427,6 +428,22 @@ public class WindowMonth {
 				} catch (IOException e) {
 					System.err.println("WindowTransaction to Add Transaction instantiation failed!");
 					e.printStackTrace();
+				}
+			}
+		});
+		opTransactionEdit.setOnAction(new EventHandler<ActionEvent>() {
+			@Override
+			public void handle(ActionEvent event) {
+				Transaction selected = transactionsTable.getSelectionModel().getSelectedItem();
+				if (selected != null) {
+					try {
+						WindowTransaction wt = new WindowTransaction(selected);
+						wt.show();
+						//hide();
+					} catch (IllegalArgumentException | IOException e) {
+						System.err.println("Failed to instantiate a WindowTransaction with Transaction :" + selected.toString());
+						e.printStackTrace();
+					}
 				}
 			}
 		});
@@ -513,6 +530,14 @@ public class WindowMonth {
 	private void fillTable() {
 		filterTransactions();
 		this.transactionsTable.setItems(transactionsActive);
+		// configure the TableViewSelectionModel for TableView
+		TableViewSelectionModel<Transaction> selectionModel = this.transactionsTable.getSelectionModel();
+		selectionModel.setSelectionMode(SelectionMode.SINGLE);
+		selectionModel.select(1);
+		//selectionModel.setCellSelectionEnabled(false);
+		this.transactionsTable.setSelectionModel(selectionModel);
+		this.transactionsTable.requestFocus();
+		this.transactionsTable.setDisable(false);
 		this.transactionsTable.refresh();
 
 	}
