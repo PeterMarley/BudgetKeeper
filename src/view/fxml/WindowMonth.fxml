@@ -82,11 +82,11 @@
       <!-- TableView -->
       <TableView fx:id="transactionsTable" layoutX="25.0" layoutY="147.0" prefHeight="606.0" prefWidth="605.0">
         <columns>
-            <TableColumn fx:id="transactionsType" prefWidth="75.0" text="Type" />
-            <TableColumn fx:id="transactionsDate" prefWidth="75.0" text="Date" />
-            <TableColumn fx:id="transactionsName" prefWidth="75.0" text="Name" />
+            <TableColumn styleClass="colDefaultStyle" fx:id="transactionsType" prefWidth="75.0" text="Type" />
+            <TableColumn styleClass="colDefaultStyle" fx:id="transactionsDate" prefWidth="75.0" text="Date" />
+            <TableColumn styleClass="colDefaultStyle" fx:id="transactionsName" prefWidth="75.0" text="Name" />
             <TableColumn fx:id="transactionsValue" prefWidth="75.0" text="Value" />
-            <TableColumn fx:id="transactionsPaid" prefWidth="75.0" text="Paid?" />
+            <TableColumn styleClass="colDefaultStyle" fx:id="transactionsPaid" prefWidth="75.0" text="Paid?" />
         </columns>
       </TableView>
       

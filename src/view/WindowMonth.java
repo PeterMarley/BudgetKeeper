@@ -151,7 +151,7 @@ public class WindowMonth {
 		setScene();
 		setStage();
 		setFilterCheckBoxes();
-		configJavaFXControls();
+		initialise();
 		Controller.setWindowMonth(this);
 	}
 
@@ -242,7 +242,7 @@ public class WindowMonth {
 	/**
 	 * Configure the TableView control.
 	 */
-	private void configJavaFXControls() {
+	private void initialise() {
 		/*
 		 * TableView
 		 */

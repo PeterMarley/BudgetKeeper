@@ -6,15 +6,13 @@
 	-fx-pref-height: 120.0;
 }
 
+.colDefaultStyle {
+	-fx-text-fill: black;
+}
+
 .table-row-cell:selected {
-	-fx-background-color:#000000;
-	-fx-text-fill:#ff0000;
-}
-
-.table-row-cell:selected .text {
-	-fx-fill:red;
-}
-
-.table-row-cell:unselected .text {
-	-fx-fill:inherit;
+	-fx-font-weight:bold;
+	/*
+	-fx-background-color: blue;
+	*/
 }
