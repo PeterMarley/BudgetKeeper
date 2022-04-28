@@ -72,6 +72,16 @@ public class SQLFactory {
 	}
 
 	private static final String ADD_MONTH_SQL = "INSERT INTO months (date) VALUES (?);";
+	private static final String REMOVE_MONTH_SQL = "DELETE FROM months WHERE monthID=?;";
+	private static final String SEARCH_MONTH = "SELECT monthID FROM months WHERE %s=?;";
+	private static final String PULL_MONTHS = "SELECT * FROM months;";
+	private static final String PULL_MONTHS_FOR_YEAR = "SELECT * FROM months WHERE date LIKE '%d/%%';";
+	private static final String SEARCH_TRANSACTIONS = "SELECT * FROM transactions WHERE %s=?;";
+	private static final String ADD_TRANSACTION = "INSERT INTO transactions (monthID, name, paid, income, date, type, value) VALUES (?,?,?,?,?,?,?);";
+	private static final String REMOVE_TRANSACTIONS_FOR_MONTH = "DELETE FROM transactions WHERE monthID=%d;";
+	private static final String GET_MONTH_ID = "SELECT monthID FROM months WHERE date=?;";
+	private static final String REMOVE_TRANSACTION = "DELETE FROM transactions WHERE monthID=? AND name=%s AND paid=%d AND income=%d AND date='%s' AND type='%s' AND value=%.2f;";
+	private static final String GET_YEARS = "SELECT * FROM months ORDER BY date;";
 
 	/**
 	 * Generate a PreparedStatement String for an INSERT INTO statement for inserting a {@link model.domain.Month Month} object into database
@@ -87,8 +97,6 @@ public class SQLFactory {
 		return ADD_MONTH_SQL;
 	}
 
-	private static final String REMOVE_MONTH_SQL = "DELETE FROM months WHERE monthID=?;";
-
 	/**
 	 * Generate SQL code String for deleting a row (representing a {@link model.domain.Month Month} object), but the {@code monthID}.
 	 * 
@@ -100,8 +108,6 @@ public class SQLFactory {
 	public static String removeMonth() {
 		return REMOVE_MONTH_SQL;
 	}
-
-	private static final String SEARCH_MONTH = "SELECT monthID FROM months WHERE %s=?;";
 
 	/**
 	 * Generate SQL code String for searching {@code months} table specific {@code column} value.
@@ -118,8 +124,6 @@ public class SQLFactory {
 		return String.format(SEARCH_MONTH, columnName);
 	}
 
-	private static final String PULL_MONTHS = "SELECT * FROM months;";
-
 	/**
 	 * Generate SQL code String for searching for and retrieving all {@code months} table data.
 	 * 
@@ -131,8 +135,6 @@ public class SQLFactory {
 		return PULL_MONTHS;
 	}
 
-	private static final String PULL_MONTHS_FOR_YEAR = "SELECT * FROM months WHERE date LIKE '%d/%%';";
-
 	/**
 	 * Generate SQL code String for searching for and retrieving {@code months} table data for year {@code year}.
 	 * 
@@ -143,8 +145,6 @@ public class SQLFactory {
 	public static String pullMonthsForYear(int year) {
 		return String.format(PULL_MONTHS_FOR_YEAR, year);
 	}
-
-	private static final String SEARCH_TRANSACTIONS = "SELECT * FROM transactions WHERE %s=?;";
 
 	/**
 	 * Generate SQL code String for searching {@code transactions} table specific {@code column} value.
@@ -161,8 +161,6 @@ public class SQLFactory {
 		return String.format(SEARCH_TRANSACTIONS, columnName);
 	}
 
-	private static final String ADD_TRANSACTION = "INSERT INTO transactions (monthID, name, paid, income, date, type, value) VALUES (?,?,?,?,?,?,?);";
-
 	/**
 	 * Generate SQL code String for adding a {@link model.domain.Transaction Transaction} to {@code transactions} table.
 	 * 
@@ -175,8 +173,6 @@ public class SQLFactory {
 	public static String addTransaction() {
 		return ADD_TRANSACTION;
 	}
-
-	private static final String REMOVE_TRANSACTIONS_FOR_MONTH = "DELETE FROM transactions WHERE monthID=%d;";
 
 	/**
 	 * Generate SQL code String for removing all {@link model.domain.Transaction Transaction}s from {@code transactions} table for all months with primary
@@ -192,8 +188,6 @@ public class SQLFactory {
 		return String.format(REMOVE_TRANSACTIONS_FOR_MONTH, monthID);
 	}
 
-	private static final String GET_MONTH_ID = "SELECT monthID FROM months WHERE date=?;";
-
 	/**
 	 * Generate SQL code String getting the {@code monthID} for a given {@link model.domain.Month Month} object's data.
 	 * 
@@ -207,19 +201,14 @@ public class SQLFactory {
 		return GET_MONTH_ID;
 	}
 
-	private static final String REMOVE_TRANSACTION = "DELETE FROM transactions WHERE monthID=? AND name=%s AND paid=%d AND income=%d AND date='%s' AND type='%s' AND value=%.2f;";
-
-	public static String removeTransaction(Transaction t) {
-		return String.format(REMOVE_TRANSACTION,
-				t.getName(),
-				(t.isPaid()) ? 1 : 0,
-				(t.isIncome()) ? 1 : 0,
-				t.getDate().format(Constants.FORMAT_YYYYMM),
-				t.getType().toString(),
-				t.getValue());
-	}
-	
-	private static final String GET_YEARS = "SELECT * FROM months ORDER BY date;";
-	
+	//	public static String removeTransaction(Transaction t) {
+	//		return String.format(REMOVE_TRANSACTION,
+	//				t.getName(),
+	//				(t.isPaid()) ? 1 : 0,
+	//				(t.isIncome()) ? 1 : 0,
+	//				t.getDate().format(Constants.FORMAT_YYYYMM),
+	//				t.getType().toString(),
+	//				t.getValue());
+	//	}
 
 }

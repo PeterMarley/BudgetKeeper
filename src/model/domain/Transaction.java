@@ -258,7 +258,6 @@ public class Transaction implements Comparable<Transaction> {
 	public int compareTo(Transaction t) {
 		int diff = monthDifferential(this.getDate(), t.getDate());
 		if (diff == 0) { // if same month chronologically
-
 			if (this.equals(t)) { // if object fields are equal
 				return 0;
 			} else {				// otherwise return value difference

@@ -1,18 +1,14 @@
 package view;
 
 import java.io.IOException;
+import java.nio.file.FileSystemLoopException;
 import java.time.LocalDate;
 import java.time.format.TextStyle;
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map.Entry;
-import java.util.function.Consumer;
 
 import controller.Controller;
 import javafx.collections.FXCollections;
@@ -104,7 +100,7 @@ public class WindowMonth {
 	private Sort sortLatchDate;
 	private Sort sortLatchValue;
 
-	private HashMap<String, Boolean> filtersType;
+	private HashMap<String, Boolean> filterMap;
 	private HashMap<String, Boolean> filtersIncome;
 	private ObservableList<Transaction> transactionsActive;
 	private LinkedList<Transaction> transactionsFiltered;
@@ -150,7 +146,6 @@ public class WindowMonth {
 		setRoot();
 		setScene();
 		setStage();
-		setFilterCheckBoxes();
 		initialise();
 		Controller.setWindowMonth(this);
 	}
@@ -211,6 +206,25 @@ public class WindowMonth {
 		});
 	}
 
+	//**********************************\
+	//									|
+	//	Initialisations					|
+	//									|
+	//**********************************/
+
+	/**
+	 * Configure the TableView control.
+	 */
+	private void initialise() {
+		initTableView();
+		initTotals();
+		initFilters();
+		initSorts();
+		initOperations();
+		initData();
+
+	}
+
 	/**
 	 * Generate the {@code HashMap} that contains key value pairs for the filter {@code CheckBox} nodes. The key is the {@code name} of the
 	 * {@link Transaction.Type Type} enum in the {@link model.domain.Transaction Transaction} class, and the value is a {@code Boolean}, representing
@@ -219,11 +233,11 @@ public class WindowMonth {
 	 * 
 	 * @category JavaFXControlConfiguration
 	 */
-	private void setFilterCheckBoxes() {
+	private void initFilters() {
 		// Transaction type filters
-		this.filtersType = new HashMap<String, Boolean>();
+		this.filterMap = new HashMap<String, Boolean>();
 		for (Type type : Type.values()) {
-			filtersType.put(type.name(), true);
+			filterMap.put(type.name(), true);
 		}
 		this.filterCash.setSelected(true);
 		this.filterDirectDebit.setSelected(true);
@@ -237,12 +251,53 @@ public class WindowMonth {
 
 		this.filterIncome.setSelected(true);
 		this.filterOutgoing.setSelected(true);
+
+		// define and set EventHandlers for the Type filter CheckBox controls
+		EventHandler<ActionEvent> checkBoxTypeFilterAction = new EventHandler<ActionEvent>() {
+			@Override
+			public void handle(ActionEvent filterToggled) {
+				if (filterToggled.getSource() instanceof CheckBox) {
+
+					// capture CheckBox and filterName
+					CheckBox filterCheckBox = (CheckBox) filterToggled.getSource();
+					String filterName = filterCheckBox.getId().substring("filter".length()).toUpperCase();
+
+					// set this filter to if currently selected
+					filterMap.put(filterName, filterCheckBox.isSelected());
+
+					// refresh this window.
+					refresh();
+				}
+			}
+		};
+		filterCash.setOnAction(checkBoxTypeFilterAction);
+		filterDirectDebit.setOnAction(checkBoxTypeFilterAction);
+		filterStandingOrder.setOnAction(checkBoxTypeFilterAction);
+		filterBankTransfer.setOnAction(checkBoxTypeFilterAction);
+
+		// define and set EventHandlers for the In/Out filter CheckBox controls
+		EventHandler<ActionEvent> checkBoxInOutFilterAction = new EventHandler<ActionEvent>() {
+			@Override
+			public void handle(ActionEvent event) {
+				if (event.getSource() instanceof CheckBox) {
+
+					// Capture CheckBox and filterName
+					CheckBox c = (CheckBox) event.getSource();
+					String s = c.getId().substring("filter".length());
+
+					// set this filter to if currently selected
+					filtersIncome.put(s, c.isSelected());
+
+					// refresh this window.
+					refresh();
+				}
+			}
+		};
+		filterIncome.setOnAction(checkBoxInOutFilterAction);
+		filterOutgoing.setOnAction(checkBoxInOutFilterAction);
 	}
 
-	/**
-	 * Configure the TableView control.
-	 */
-	private void initialise() {
+	private void initTableView() {
 		/*
 		 * TableView
 		 */
@@ -266,7 +321,6 @@ public class WindowMonth {
 				}
 			}
 		});
-		
 
 		// disable user sorting of TableView by column header
 		this.transactionsTable.getColumns().forEach(element -> {
@@ -298,53 +352,16 @@ public class WindowMonth {
 		this.transactionsType.setPrefWidth(150.0);
 		this.transactionsName.setPrefWidth(150.0);
 
-		/*
-		 * Totals
-		 */
+	}
 
-		// configure totals textboxes
-		TextField[] totals = new TextField[] { this.totalIn, this.totalOut, this.totalBalance };
-		for (TextField t : totals) {
-			t.setDisable(true);
-			t.setStyle(t.getStyle() + "-fx-opacity: 1.0;");
-			t.setPrefWidth(100.0);
-		}
+	private void initTotals() {
+		this.totalIn.setDisable(true);
+		this.totalOut.setDisable(true);
+		this.totalBalance.setDisable(true);
+		fillTotals();
+	}
 
-		/*
-		 * Filters
-		 */
-
-		// define and set EventHandlers for the Type filter CheckBox controls
-		EventHandler<ActionEvent> checkBoxTypeFilterAction = new EventHandler<ActionEvent>() {
-			@Override
-			public void handle(ActionEvent event) {
-				// capture CheckBox
-				CheckBox c = (CheckBox) event.getSource();
-				String s = c.getId().substring("filter".length()).toUpperCase();
-				// set this filter to user's selection.
-				filtersType.put(s, c.isSelected());
-				// refresh this window.
-				refresh();
-			}
-		};
-		filterCash.setOnAction(checkBoxTypeFilterAction);
-		filterDirectDebit.setOnAction(checkBoxTypeFilterAction);
-		filterStandingOrder.setOnAction(checkBoxTypeFilterAction);
-		filterBankTransfer.setOnAction(checkBoxTypeFilterAction);
-
-		// define and set EventHandlers for the In/Out filter CheckBox controls
-		EventHandler<ActionEvent> checkBoxInOutFilterAction = new EventHandler<ActionEvent>() {
-			@Override
-			public void handle(ActionEvent event) {
-				CheckBox c = (CheckBox) event.getSource();
-				String s = c.getId().substring("filter".length());
-				filtersIncome.put(s, c.isSelected());
-				refresh();
-			}
-		};
-		filterIncome.setOnAction(checkBoxInOutFilterAction);
-		filterOutgoing.setOnAction(checkBoxInOutFilterAction);
-
+	private void initSorts() {
 		/*
 		 * Sorts
 		 */
@@ -404,7 +421,21 @@ public class WindowMonth {
 				transactionsTable.refresh();
 			}
 		});
+	}
 
+	private void initData() {
+		// retrieve transactions from database
+		transactionsActive = FXCollections.observableList(new ArrayList<Transaction>(this.selectedMonth.getTransactions()));
+
+		// instantiate list for holding filtered Transactions
+		transactionsFiltered = new LinkedList<Transaction>();
+
+		// apply default sort
+		defaultSortTransactions();
+
+	}
+
+	private void initOperations() {
 		/*
 		 * Operations
 		 */
@@ -439,7 +470,6 @@ public class WindowMonth {
 					try {
 						WindowTransaction wt = new WindowTransaction(selected);
 						wt.show();
-						//hide();
 					} catch (IllegalArgumentException | IOException e) {
 						System.err.println("Failed to instantiate a WindowTransaction with Transaction :" + selected.toString());
 						e.printStackTrace();
@@ -451,15 +481,6 @@ public class WindowMonth {
 		/*
 		 * Get Transactions from database and store as ObservableList, sorted via the defaultSortTransactions() method
 		 */
-
-		// retrieve transactions from database
-		transactionsActive = FXCollections.observableList(new ArrayList<Transaction>(this.selectedMonth.getTransactions()));
-
-		// apply default sort
-		defaultSortTransactions();
-
-		// instantiate list for holding filtered Transactions
-		transactionsFiltered = new LinkedList<Transaction>();
 	}
 
 	//**********************************\
@@ -505,21 +526,20 @@ public class WindowMonth {
 	 */
 	private void fillTotals() {
 		// declare calculation variables
-		double in = selectedMonth.getIncome();
-		double out = selectedMonth.getOutgoing();
 		double balance = selectedMonth.getBalance();
 
 		// set the relevant buttons to show the calculations
-		this.totalIn.setText(String.format("%.2f", in));
-		this.totalOut.setText(String.format("%.2f", out));
+		this.totalIn.setText(String.format("%.2f", selectedMonth.getIncome()));
+		this.totalOut.setText(String.format("%.2f", selectedMonth.getOutgoing()));
 		this.totalBalance.setText(String.format("%.2f", balance));
-		String styleToApply = "";
+
+		StringBuilder style = new StringBuilder();
 		if (balance >= 0) {
-			styleToApply = "-fx-text-fill: green;";
+			style.append("-fx-text-fill: green;");
 		} else {
-			styleToApply = "-fx-text-fill: red;";
+			style.append("-fx-text-fill: red;");
 		}
-		this.totalBalance.setStyle(this.totalBalance.getStyle() + styleToApply + "-fx-font-weight: bold;");
+		this.totalBalance.setStyle(style.toString());
 
 	}
 
@@ -552,7 +572,7 @@ public class WindowMonth {
 		List<Transaction> toRemove = new LinkedList<Transaction>();
 		for (Transaction t : transactionsActive) {
 			String inOut = t.isIncome() ? "Income" : "Outgoing";
-			if (!filtersType.get(t.getType().name()) || !filtersIncome.get(inOut)) {
+			if (!filterMap.get(t.getType().name()) || !filtersIncome.get(inOut)) {
 				toRemove.add(t);
 			}
 		}

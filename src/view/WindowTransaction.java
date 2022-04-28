@@ -2,10 +2,12 @@ package view;
 
 import java.io.IOException;
 import java.time.LocalDate;
+import java.time.format.TextStyle;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.SortedMap;
@@ -14,6 +16,8 @@ import java.util.TreeSet;
 
 import controller.Controller;
 import javafx.collections.FXCollections;
+import javafx.event.ActionEvent;
+import javafx.event.Event;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -24,6 +28,7 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.control.DatePicker;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Alert.AlertType;
+import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.CheckBox;
 import javafx.scene.image.Image;
@@ -47,18 +52,14 @@ public class WindowTransaction {
 	//									|
 	//**********************************/
 
-	@FXML
-	private TextField name;
-	@FXML
-	private DatePicker date;
-	@FXML
-	private ComboBox<String> type;
-	@FXML
-	private TextField value;
-	@FXML
-	private ComboBox<String> income;
-	@FXML
-	private CheckBox paid;
+	@FXML private TextField name;
+	@FXML private DatePicker date;
+	@FXML private ComboBox<String> type;
+	@FXML private TextField value;
+	@FXML private ComboBox<String> income;
+	@FXML private CheckBox paid;
+	@FXML private Button buttonSave;
+	@FXML private Button buttonCancel;
 
 	//**********************************\
 	//									|
@@ -75,10 +76,13 @@ public class WindowTransaction {
 	private Operation operation;
 
 	private HashMap<String, String> typeMap;
+	private HashMap<String, Boolean> incomeMap;
+
+	private EventHandler<Event> closeHandler;
 
 	//**********************************\
 	//									|
-	//	Instance Fields					|
+	//	Constants						|
 	//									|
 	//**********************************/
 
@@ -132,7 +136,7 @@ public class WindowTransaction {
 		setScene();
 		setStage();
 
-		configJavaFXControls();
+		initialize();
 
 		Controller.setWindowTransaction(this);
 	}
@@ -155,44 +159,82 @@ public class WindowTransaction {
 		this.stage.setTitle((operation == Operation.ADD) ? "Add Transaction" : "Edit Transaction");
 		this.stage.setScene(scene);
 		this.stage.setResizable(false);
-		this.stage.setOnCloseRequest(new EventHandler<WindowEvent>() {
-			@Override
-			public void handle(WindowEvent event) {
-				System.out.println("not yet implemented");
-				Alert alert = new Alert(AlertType.CONFIRMATION);
-				alert.setContentText("Are you sure you want to cancel " +
-						((operation == Operation.ADD) ? "Adding" : "Editing") +
-						" this Transaction?");
-				alert.setHeaderText("You are about to abandon this transaction!");
-				alert.setTitle("Please confirm cancellation.");
-				Optional<ButtonType> result = alert.showAndWait();
-				if (result.isPresent() && result.get() == ButtonType.OK) {
-					//stage.close();
-					Controller.getWindowMonth().show();
-				}
-			}
-		});
+		this.stage.setOnCloseRequest(event -> close(event));
 		this.stage.initModality(Modality.APPLICATION_MODAL);
 
 	}
 
 	//**********************************\
 	//									|
-	//	JavaFX Application Methods		|
+	//	Initialisations					|
 	//									|
 	//**********************************/
 
-	public void show() {
-		this.stage.show();
-	}
+	private void close(Event event) {
+		boolean toClose = false;
+		//new Transaction(name, isPaid, date, isIncome, type, value)
+		Transaction validate = null;
+		try {
+			validate = new Transaction(
+					name.getText(),
+					paid.isSelected(),
+					date.getValue(),
+					incomeMap.get(income.getValue()),
+					Type.valueOf(typeMap.get(type.getValue())),
+					Double.valueOf(value.getText()));
 
-	private void configJavaFXControls() {
+		} catch (IllegalArgumentException e) {
+			toClose = true;
+		}
+
+		if (!toClose && validate != null && !validate.equals(t)) {
+			Alert alert = new Alert(AlertType.CONFIRMATION);
+			alert.setContentText("Are you sure you want to cancel " +
+					((operation == Operation.ADD) ? "Adding" : "Editing") +
+					" this Transaction?");
+			alert.setHeaderText("You are about to abandon this transaction!");
+			alert.setTitle("Please confirm cancellation.");
+			Optional<ButtonType> result = alert.showAndWait();
+			if (result.isPresent() && result.get() == ButtonType.OK) {
+				toClose = true;
+			} else if (result.isPresent() && result.get() == ButtonType.CANCEL) {
+				event.consume();
+			}
+		} else {
+			toClose = true;
+		}
+
+		if (toClose) {
+			stage.close();
+			Controller.setWindowTransaction(null);
+			Controller.getWindowMonth().show();
+		}
+	}
+	
+	private void initialize() {
+		
+		
 
 		// name
 		name.setText((t != null) ? t.getName() : "");
 
 		// date
 		date.setValue((t != null) ? t.getDate() : LocalDate.now());
+		date.setOnAction(new EventHandler<ActionEvent>() {
+			@Override
+			public void handle(ActionEvent event) {
+				if (event.getSource() instanceof DatePicker) {
+					DatePicker dp = (DatePicker) event.getSource();
+					if (dp.getValue().getMonthValue() != t.getDate().getMonthValue()
+							|| dp.getValue().getYear() != t.getDate().getYear()) {
+						dp.setValue(LocalDate.of(t.getDate().getYear(), t.getDate().getMonthValue(), t.getDate().getDayOfMonth()));
+						Alert alert = new Alert(AlertType.INFORMATION);
+						alert.setContentText("You must select a day in " + t.getDate().getMonth().getDisplayName(TextStyle.FULL, Locale.UK) + " " + t.getDate().getYear());
+						alert.show();
+					}
+				}
+			}
+		});
 
 		// type
 		Type[] types = Type.values();
@@ -208,14 +250,36 @@ public class WindowTransaction {
 		List<String> incomeNames = new ArrayList<String>(2);
 		incomeNames.add("Income");
 		incomeNames.add("Outgoing");
+		incomeMap = new HashMap<String, Boolean>(2);
+		incomeMap.put("Income", true);
+		incomeMap.put("Outgoing", false);
 		income.setItems(FXCollections.observableList(incomeNames));
 		income.setValue((t != null) ? ((t.isIncome()) ? "Income" : "Outgoing") : "Income");
-		
+
 		// value
-		value.setText((t != null) ? String.format("%.02f",t.getAbsoluteValue()) : "");
-		
+		value.setText((t != null) ? String.format("%.02f", t.getAbsoluteValue()) : "");
+
 		// paid
 		paid.setSelected((t != null) ? t.isPaid() : false);
+		
+		// close handlers
+		buttonCancel.setOnAction(request -> close(request));
+		buttonSave.setOnAction(new EventHandler<ActionEvent>() {
+			@Override
+			public void handle(ActionEvent event) {
+				System.out.println("button save not implemented yet");
+			}
+		});
+	}
+
+	//**********************************\
+	//									|
+	//	JavaFX Application Methods		|
+	//									|
+	//**********************************/
+
+	public void show() {
+		this.stage.show();
 	}
 
 }

@@ -15,14 +15,14 @@
 <AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="774.0" prefWidth="880.0" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1">
    <children>
       <!-- Totals -->
-      <FlowPane hgap="5.0" layoutX="25.0" layoutY="19.0" prefHeight="94.0" prefWidth="185.0" vgap="5.0">
+      <FlowPane hgap="5.0" layoutX="25.0" layoutY="19.0" prefHeight="151.0" prefWidth="197.0" vgap="5.0">
          <children>
-            <Label alignment="TOP_RIGHT" prefHeight="17.0" prefWidth="61.0" text="Income" />
-            <TextField fx:id="totalIn" />
-            <Label alignment="TOP_RIGHT" prefHeight="17.0" prefWidth="61.0" text="Outgoings" />
-            <TextField fx:id="totalOut" />
-            <Label alignment="TOP_RIGHT" prefHeight="17.0" prefWidth="61.0" text="+/-" />
-            <TextField fx:id="totalBalance" />
+            <Label alignment="TOP_RIGHT" prefHeight="17.0" prefWidth="58.0" text="Income" />
+            <TextField fx:id="totalIn" prefWidth="100.0" styleClass="totalsTextBoxes" />
+            <Label alignment="TOP_RIGHT" prefHeight="17.0" prefWidth="58.0" text="Outgoings" />
+            <TextField fx:id="totalOut" prefWidth="100.0" styleClass="totalsTextBoxes" />
+            <Label alignment="TOP_RIGHT" prefHeight="17.0" prefWidth="58.0" text="+/-" />
+            <TextField fx:id="totalBalance" prefWidth="100.0" styleClass="totalsTextBoxes" />
          </children>
       </FlowPane>
       
@@ -82,11 +82,11 @@
       <!-- TableView -->
       <TableView fx:id="transactionsTable" layoutX="25.0" layoutY="147.0" prefHeight="606.0" prefWidth="605.0">
         <columns>
-            <TableColumn styleClass="colDefaultStyle" fx:id="transactionsType" prefWidth="75.0" text="Type" />
-            <TableColumn styleClass="colDefaultStyle" fx:id="transactionsDate" prefWidth="75.0" text="Date" />
-            <TableColumn styleClass="colDefaultStyle" fx:id="transactionsName" prefWidth="75.0" text="Name" />
+            <TableColumn fx:id="transactionsType" prefWidth="75.0" styleClass="colDefaultStyle" text="Type" />
+            <TableColumn fx:id="transactionsDate" prefWidth="75.0" styleClass="colDefaultStyle" text="Date" />
+            <TableColumn fx:id="transactionsName" prefWidth="75.0" styleClass="colDefaultStyle" text="Name" />
             <TableColumn fx:id="transactionsValue" prefWidth="75.0" text="Value" />
-            <TableColumn styleClass="colDefaultStyle" fx:id="transactionsPaid" prefWidth="75.0" text="Paid?" />
+            <TableColumn fx:id="transactionsPaid" prefWidth="75.0" styleClass="colDefaultStyle" text="Paid?" />
         </columns>
       </TableView>
       

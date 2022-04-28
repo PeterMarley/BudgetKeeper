@@ -251,8 +251,8 @@ public class DatabaseAccessObject {
 
 	
 	public void updateMonth(Month m, int monthID) {
-		removeTransactionsForMonth(monthID);
-		addTransactions(m.getTransactions(), monthID);
+		removeMonth(m);
+		addMonth(m);
 	}
 	
 	//------------------------------\
