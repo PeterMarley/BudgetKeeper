@@ -42,8 +42,18 @@ import model.domain.Utility;
 public class WindowTransaction {
 
 	public enum Operation {
-		ADD,
-		EDIT;
+		ADD("Add Transaction"),
+		EDIT("Edit Transaction");
+
+		private String windowTitle;
+
+		private Operation(String windowTitle) {
+			this.windowTitle = windowTitle;
+		}
+
+		public String toString() {
+			return this.windowTitle;
+		}
 	}
 
 	//**********************************\
@@ -52,14 +62,22 @@ public class WindowTransaction {
 	//									|
 	//**********************************/
 
-	@FXML private TextField name;
-	@FXML private DatePicker date;
-	@FXML private ComboBox<String> type;
-	@FXML private TextField value;
-	@FXML private ComboBox<String> income;
-	@FXML private CheckBox paid;
-	@FXML private Button buttonSave;
-	@FXML private Button buttonCancel;
+	@FXML
+	private TextField name;
+	@FXML
+	private DatePicker date;
+	@FXML
+	private ComboBox<String> type;
+	@FXML
+	private TextField value;
+	@FXML
+	private ComboBox<String> income;
+	@FXML
+	private CheckBox paid;
+	@FXML
+	private Button buttonSave;
+	@FXML
+	private Button buttonCancel;
 
 	//**********************************\
 	//									|
@@ -79,6 +97,7 @@ public class WindowTransaction {
 	private HashMap<String, Boolean> incomeMap;
 
 	private EventHandler<Event> closeHandler;
+	private Integer transactionID;
 
 	//**********************************\
 	//									|
@@ -103,8 +122,8 @@ public class WindowTransaction {
 	 * @throws IllegalArgumentException if t is null
 	 * @throws IOException
 	 */
-	public WindowTransaction(Transaction t) throws IllegalArgumentException, IOException {
-		this(Utility.nullCheck(t), Operation.EDIT);
+	public WindowTransaction(int transactionID, Transaction t) throws IllegalArgumentException, IOException {
+		this(Utility.nullCheck(t), Operation.EDIT, Utility.validate(transactionID, 0, null));
 	}
 
 	/**
@@ -112,8 +131,8 @@ public class WindowTransaction {
 	 * 
 	 * @throws IOException
 	 */
-	public WindowTransaction() throws IOException {
-		this(null, Operation.ADD);
+	public WindowTransaction(int monthID) throws IOException {
+		this(null, Operation.ADD, Utility.validate(monthID, 0, null));
 	}
 
 	/**
@@ -123,9 +142,10 @@ public class WindowTransaction {
 	 * @param op
 	 * @throws IOException
 	 */
-	private WindowTransaction(Transaction t, Operation op) throws IOException {
+	private WindowTransaction(Transaction t, Operation op, Integer transactionID) throws IOException {
 		this.t = t;
 		this.operation = op;
+		this.transactionID = transactionID;
 
 		typeMap = new HashMap<String, String>();
 		for (Type type : Type.values()) {
@@ -141,25 +161,36 @@ public class WindowTransaction {
 		Controller.setWindowTransaction(this);
 	}
 
+	/**
+	 * Set the Root of this scene-graph.
+	 * 
+	 * @throws IOException if error occurs during FXML loading.
+	 */
 	private void setRoot() throws IOException {
 		this.loader = new FXMLLoader(getClass().getResource(FXML));
 		this.loader.setController(this);
 		this.root = loader.load();
 	}
 
+	/**
+	 * Set the Scene of this scene-graph.
+	 */
 	private void setScene() {
 		this.scene = new Scene(this.root);
 		this.scene.getStylesheets().add(getClass().getResource(CSS).toExternalForm());
 
 	}
 
+	/**
+	 * Sets the Stage of this scene-graph.
+	 */
 	private void setStage() {
 		this.stage = new Stage();
 		this.stage.getIcons().add(new Image(getClass().getResource(ICON).toExternalForm()));
-		this.stage.setTitle((operation == Operation.ADD) ? "Add Transaction" : "Edit Transaction");
+		this.stage.setTitle(operation.toString());
 		this.stage.setScene(scene);
 		this.stage.setResizable(false);
-		this.stage.setOnCloseRequest(event -> close(event));
+		this.stage.setOnCloseRequest(event -> closeWindow(event));
 		this.stage.initModality(Modality.APPLICATION_MODAL);
 
 	}
@@ -170,7 +201,7 @@ public class WindowTransaction {
 	//									|
 	//**********************************/
 
-	private void close(Event event) {
+	private void closeWindow(Event event) {
 		boolean toClose = false;
 		//new Transaction(name, isPaid, date, isIncome, type, value)
 		Transaction validate = null;
@@ -187,7 +218,7 @@ public class WindowTransaction {
 			toClose = true;
 		}
 
-		if (!toClose && validate != null && !validate.equals(t)) {
+		if (!toClose && !validate.equals(t)) {
 			Alert alert = new Alert(AlertType.CONFIRMATION);
 			alert.setContentText("Are you sure you want to cancel " +
 					((operation == Operation.ADD) ? "Adding" : "Editing") +
@@ -210,10 +241,8 @@ public class WindowTransaction {
 			Controller.getWindowMonth().show();
 		}
 	}
-	
+
 	private void initialize() {
-		
-		
 
 		// name
 		name.setText((t != null) ? t.getName() : "");
@@ -261,13 +290,16 @@ public class WindowTransaction {
 
 		// paid
 		paid.setSelected((t != null) ? t.isPaid() : false);
-		
+
 		// close handlers
-		buttonCancel.setOnAction(request -> close(request));
+		buttonCancel.setOnAction(request -> closeWindow(request));
 		buttonSave.setOnAction(new EventHandler<ActionEvent>() {
 			@Override
 			public void handle(ActionEvent event) {
-				System.out.println("button save not implemented yet");
+				System.out.println("ButtonSave action not implemented yet");
+				//Controller.getDatabaseAccessObject().updateMonth(monthID);
+				Transaction editedTransaction = new Transaction(name.getText(), paid.isSelected(), date.getValue(), (income.getValue().equals("Income")) ? true : false, Type.valueOf(typeMap.get(type.getValue())), Double.valueOf(value.getText()));
+				Controller.getDatabaseAccessObject().updateTransaction(transactionID, editedTransaction);
 			}
 		});
 	}

@@ -5,6 +5,7 @@ import java.time.LocalDate;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import controller.Controller;
 import javafx.application.Application;
@@ -60,7 +61,16 @@ public class WindowYear extends Application {
 	//									|
 	//**********************************/
 
-	private HashMap<Integer, Month> monthMap;
+	/**
+	 * Key: month of year (eg, jan = 0, dec = 11)<br>
+	 * value: Month object
+	 */
+	private HashMap<Integer, Month> mapOfMonths;
+	/**
+	 * Key: month of year (eg, jan = 0, dec = 11)<br>
+	 * value: monthID in database 
+	 */
+	private HashMap<Integer, Integer> mapOfMonthIDs;
 	private int lastSelectedYear = DEFAULT_YEAR;
 
 	//**********************************\
@@ -86,22 +96,36 @@ public class WindowYear extends Application {
 	//**********************************/
 
 	// x12 Month buttons
-	@FXML private Button monthJan;
-	@FXML private Button monthFeb;
-	@FXML private Button monthMar;
-	@FXML private Button monthMay;
-	@FXML private Button monthApr;
-	@FXML private Button monthJun;
-	@FXML private Button monthJul;
-	@FXML private Button monthAug;
-	@FXML private Button monthSep;
-	@FXML private Button monthOct;
-	@FXML private Button monthNov;
-	@FXML private Button monthDec;
+	@FXML
+	private Button monthJan;
+	@FXML
+	private Button monthFeb;
+	@FXML
+	private Button monthMar;
+	@FXML
+	private Button monthMay;
+	@FXML
+	private Button monthApr;
+	@FXML
+	private Button monthJun;
+	@FXML
+	private Button monthJul;
+	@FXML
+	private Button monthAug;
+	@FXML
+	private Button monthSep;
+	@FXML
+	private Button monthOct;
+	@FXML
+	private Button monthNov;
+	@FXML
+	private Button monthDec;
 
 	// year selection nodes
-	@FXML private Button selectYearButton;
-	@FXML private ComboBox<Integer> yearComboBox;
+	@FXML
+	private Button selectYearButton;
+	@FXML
+	private ComboBox<Integer> yearComboBox;
 
 	//**********************************\
 	//									|
@@ -121,7 +145,7 @@ public class WindowYear extends Application {
 			setStage();
 			lastSelectedYear = DEFAULT_YEAR;
 			refresh(); // default to showing the current year
-			
+
 			Controller.setWindowYear(this);
 			// show this window
 			this.stage.show();
@@ -191,7 +215,7 @@ public class WindowYear extends Application {
 
 		// set new title for stage depending on the year selected
 		this.stage.setTitle("Months for " + lastSelectedYear);
-		
+
 		configMonthButtons();
 		configYearSelection();
 	}
@@ -215,11 +239,16 @@ public class WindowYear extends Application {
 	 */
 	private void configMonthButtons() {
 		// get Months data for this year from database, and map data for simple confirmation of existence below
-		List<Month> months = Controller.getDatabaseAccessObject().pullMonthsForYear(lastSelectedYear);
-		monthMap = new HashMap<Integer, Month>(12);
-		for (Month m : months) {
-			int thisMonth = m.getDate().getMonthValue() - 1;
-			monthMap.put(thisMonth, m);
+		//List<Month> months = Controller.getDatabaseAccessObject().pullMonthsForYear(lastSelectedYear);
+		HashMap<Integer, Month> monthDBQuery = Controller.getDatabaseAccessObject().queryMonthsForYear(lastSelectedYear);
+		mapOfMonthIDs = new HashMap<Integer, Integer>(12);
+		mapOfMonths = new HashMap<Integer, Month>(12);
+		for (Map.Entry<Integer, Month> entryFromDB : monthDBQuery.entrySet()) {
+			Integer monthID = entryFromDB.getKey();
+			Month month = entryFromDB.getValue();
+			int monthOfYear = month.getDate().getMonthValue() - 1;
+			mapOfMonths.put(monthOfYear, month);
+			mapOfMonthIDs.put(monthOfYear, monthID);
 		}
 
 		Button[] buttons = new Button[] { monthJan, monthFeb, monthMar, monthApr, monthMay, monthJun, monthJul, monthAug, monthSep, monthOct, monthNov, monthDec };
@@ -227,7 +256,7 @@ public class WindowYear extends Application {
 			String styleToApply = "";
 			// set button style and enable/ disable depending on whether monthMap had that specific month
 			boolean disabled;
-			if (monthMap.containsKey(i)) {
+			if (mapOfMonths.containsKey(i)) {
 				styleToApply = ENABLED_MONTH_BUTTON_CSS;
 				disabled = false;
 			} else {
@@ -247,9 +276,10 @@ public class WindowYear extends Application {
 			buttons[i].setOnAction(new EventHandler<ActionEvent>() {
 				@Override
 				public void handle(ActionEvent e) {
-					Month monthToShow = monthMap.get(index);
+					Month month = mapOfMonths.get(index);
+					int monthID = mapOfMonthIDs.get(index);
 					try {
-						WindowMonth wm = new WindowMonth(monthToShow);
+						WindowMonth wm = new WindowMonth(month, monthID);
 						hide();
 						wm.show();
 					} catch (IllegalArgumentException | IOException wmInstantiationFailureEx) {

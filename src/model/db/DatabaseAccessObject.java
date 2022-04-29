@@ -14,6 +14,7 @@ import java.sql.Statement;
 import java.time.LocalDate;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -59,6 +60,108 @@ public class DatabaseAccessObject {
 	 */
 	private Connection getConnection() throws SQLException {
 		return DriverManager.getConnection(Files.DATABASE.toString());
+	}
+
+	//------------------------------\
+	//	Mapped Returns				|
+	//------------------------------/
+
+	public HashMap<Integer, Month> queryMonths() {
+		HashMap<Integer, Month> resultsMap = new HashMap<Integer, Month>();
+
+		// get connection to database and create read months query
+		try (Connection c = getConnection();
+				Statement stmtGetAllMonths = c.createStatement()) {
+
+			// execute query
+			try (ResultSet rs = stmtGetAllMonths.executeQuery(SQLFactory.pullMonths())) {
+				// iterate through ResultSet constructing months and adding them
+				while (rs.next()) {
+					int monthID = rs.getInt("monthID");
+					Month month = new Month(LocalDate.parse(rs.getString("date"), Constants.FORMAT_YYYYMM));
+					month.addTransactions(pullTransactionsForMonth(monthID));
+					resultsMap.put(monthID, month);
+				}
+			}
+
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		// return results
+		return resultsMap;
+
+	}
+
+	public HashMap<Integer, Month> queryMonthsForYear(int year) {
+		HashMap<Integer, Month> resultsMap = new HashMap<Integer, Month>();
+
+		// get connection to database and create read months query
+		try (Connection c = getConnection();
+				Statement stmtGetMonthsForYear = c.createStatement()) {
+			// execute query
+			try (ResultSet rs = stmtGetMonthsForYear.executeQuery(SQLFactory.pullMonthsForYear(year))) {
+				// iterate through ResultSet constructing months and adding them
+				while (rs.next()) {
+					int monthID = rs.getInt("monthID");
+					Month month = new Month(LocalDate.parse(rs.getString("date"), Constants.FORMAT_YYYYMM));
+					month.addTransactions(pullTransactionsForMonth(monthID));
+					resultsMap.put(monthID, month);
+				}
+			}
+
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		// return results
+		return resultsMap;
+
+	}
+
+	public void updateTransaction(int transactionID, Transaction t) {
+		String s = "UPDATE transactions SET income=?, date=?, type=?, value=? WHERE transactionID=?";
+		try (Connection c = getConnection();
+				PreparedStatement stmtUpdateTransaction = c.prepareStatement(s)) {
+			stmtUpdateTransaction.setBoolean(1, t.isIncome());
+			stmtUpdateTransaction.setString(2, t.getDate().format(Constants.FORMAT_YYYYMMDD));
+			stmtUpdateTransaction.setString(3, t.getType().name());
+			stmtUpdateTransaction.setDouble(4, t.getAbsoluteValue());
+			stmtUpdateTransaction.setInt(5, transactionID);
+			stmtUpdateTransaction.executeUpdate();
+		} catch (SQLException e) {
+			System.err.println("SQL Connection failed while attempting to update transaction (transactionID=\"" + transactionID + "\")");
+			e.printStackTrace();
+		}
+	}
+
+	public HashMap<Integer, Transaction> pullTransactionIDs(int monthID, List<Transaction> list) {
+		HashMap<Integer, Transaction> transactionIDs = new HashMap<Integer, Transaction>();
+		try (Connection c = getConnection();
+				PreparedStatement stmtGetTransactionForMonth = c.prepareStatement("SELECT * FROM transactions WHERE monthID=" + monthID)) {
+			try (ResultSet rs = stmtGetTransactionForMonth.executeQuery()) {
+				while (rs.next()) {
+					transactionIDs.put(rs.getInt("transactionID"), generateTransaction(rs));
+				}
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+
+		return transactionIDs;
+	}
+
+	private Transaction generateTransaction(ResultSet rs) {
+		Transaction toReturn = null;
+		try {
+			toReturn = new Transaction(rs.getString("name"),
+					(rs.getInt("paid") == 0) ? false : true,
+					LocalDate.parse(rs.getString("date"), Constants.FORMAT_YYYYMMDD),
+					(rs.getInt("income") == 0) ? false : true,
+					Type.valueOf(rs.getString("type")),
+					rs.getDouble("value"));
+		} catch (SQLException e) {
+			System.err.println("Transaction generation from ResultSet failed!");
+		}
+		return toReturn;
 	}
 
 	//------------------------------\
@@ -249,12 +352,11 @@ public class DatabaseAccessObject {
 		return monthID;
 	}
 
-	
-	public void updateMonth(Month m, int monthID) {
-		removeMonth(m);
-		addMonth(m);
-	}
-	
+	//	public void updateMonth(int monthID) {
+	//		removeMonth(m);
+	//		addMonth(m);
+	//	}
+
 	//------------------------------\
 	//	Transactions				|
 	//------------------------------/
@@ -366,7 +468,7 @@ public class DatabaseAccessObject {
 	public void removeTransaction(Transaction t) {
 		//SELECT * FROM transactions WHERE monthID=? AND income=? AND date=? AND type=? AND value=?
 	}
-	
+
 	//------------------------------\
 	//	Misc						|
 	//------------------------------/

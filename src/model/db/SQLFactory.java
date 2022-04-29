@@ -83,6 +83,7 @@ public class SQLFactory {
 	private static final String REMOVE_TRANSACTION = "DELETE FROM transactions WHERE monthID=? AND name=%s AND paid=%d AND income=%d AND date='%s' AND type='%s' AND value=%.2f;";
 	private static final String GET_YEARS = "SELECT * FROM months ORDER BY date;";
 
+	
 	/**
 	 * Generate a PreparedStatement String for an INSERT INTO statement for inserting a {@link model.domain.Month Month} object into database
 	 * {@code months} table.

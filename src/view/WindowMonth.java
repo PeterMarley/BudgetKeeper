@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 import controller.Controller;
 import javafx.collections.FXCollections;
@@ -105,6 +106,8 @@ public class WindowMonth {
 	private ObservableList<Transaction> transactionsActive;
 	private LinkedList<Transaction> transactionsFiltered;
 
+	private HashMap<Integer, Transaction> transactionIDs;
+
 	//**********************************\
 	//									|
 	//	Constants						|
@@ -139,10 +142,11 @@ public class WindowMonth {
 	 * @category Construction
 	 * @param month
 	 * @throws IOException              if FXMLLoader fails to load the FXML file.
-	 * @throws IllegalArgumentException if month is null
+	 * @throws IllegalArgumentException if month is null or monthID is negative.
 	 */
-	public WindowMonth(Month month) throws IOException, IllegalArgumentException {
-		setSelectedMonth(month);
+	public WindowMonth(Month month, int monthID) throws IOException, IllegalArgumentException {
+		setSelectedMonth(month, monthID);
+		setTransactionIDs();
 		setRoot();
 		setScene();
 		setStage();
@@ -151,15 +155,19 @@ public class WindowMonth {
 	}
 
 	/**
-	 * Set the {@code selectedMonth} field.
+	 * Set the {@code selectedMonth} and {@code monthID} fields.
 	 * 
 	 * @category Construction *
 	 * @param month
-	 * @throws IllegalArgumentException if {@code month} parameter is null.
+	 * @param monthID
 	 */
-	private void setSelectedMonth(Month month) throws IllegalArgumentException {
-		this.selectedMonth = Utility.nullCheck(month);
-		this.monthID = Controller.getDatabaseAccessObject().pullMonthID(month);
+	private void setSelectedMonth(Month month, int monthID) {
+		this.selectedMonth = month;
+		this.monthID = monthID;
+	}
+
+	private void setTransactionIDs() {
+		transactionIDs = Controller.getDatabaseAccessObject().pullTransactionIDs(monthID, new LinkedList<Transaction>(selectedMonth.getTransactions()));
 	}
 
 	/**
@@ -454,7 +462,7 @@ public class WindowMonth {
 			@Override
 			public void handle(ActionEvent event) {
 				try {
-					WindowTransaction wt = new WindowTransaction();
+					WindowTransaction wt = new WindowTransaction(monthID);
 					wt.show();
 				} catch (IOException e) {
 					System.err.println("WindowTransaction to Add Transaction instantiation failed!");
@@ -466,10 +474,23 @@ public class WindowMonth {
 			@Override
 			public void handle(ActionEvent event) {
 				Transaction selected = transactionsTable.getSelectionModel().getSelectedItem();
+				int transactionID = -1;
 				if (selected != null) {
 					try {
-						WindowTransaction wt = new WindowTransaction(selected);
-						wt.show();
+						for (Map.Entry<Integer, Transaction> entry : transactionIDs.entrySet()) {
+							int tID = entry.getKey();
+							Transaction val = entry.getValue();
+							if (val.equals(selected)) {
+								transactionID = tID;
+								break;
+							}
+						}
+						if (transactionID != -1) {
+							WindowTransaction wt = new WindowTransaction(monthID, selected);
+							wt.show();
+						} else {
+							System.out.println("Transaction not found!");
+						}
 					} catch (IllegalArgumentException | IOException e) {
 						System.err.println("Failed to instantiate a WindowTransaction with Transaction :" + selected.toString());
 						e.printStackTrace();
@@ -553,7 +574,6 @@ public class WindowMonth {
 		// configure the TableViewSelectionModel for TableView
 		TableViewSelectionModel<Transaction> selectionModel = this.transactionsTable.getSelectionModel();
 		selectionModel.setSelectionMode(SelectionMode.SINGLE);
-		selectionModel.select(1);
 		//selectionModel.setCellSelectionEnabled(false);
 		this.transactionsTable.setSelectionModel(selectionModel);
 		this.transactionsTable.requestFocus();
