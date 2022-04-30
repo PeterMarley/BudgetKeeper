@@ -62,15 +62,16 @@ public class WindowYear extends Application {
 	//**********************************/
 
 	/**
-	 * Key: month of year (eg, jan = 0, dec = 11)<br>
-	 * value: Month object
+	 * Key: month of year (0 to 11).<br>
+	 * Value: Month object.
 	 */
 	private HashMap<Integer, Month> mapOfMonths;
 	/**
-	 * Key: month of year (eg, jan = 0, dec = 11)<br>
-	 * value: monthID in database 
+	 * Key: month of year (0 to 11).<br>
+	 * Value: monthID in database.
 	 */
 	private HashMap<Integer, Integer> mapOfMonthIDs;
+
 	private int lastSelectedYear = DEFAULT_YEAR;
 
 	//**********************************\
@@ -96,36 +97,22 @@ public class WindowYear extends Application {
 	//**********************************/
 
 	// x12 Month buttons
-	@FXML
-	private Button monthJan;
-	@FXML
-	private Button monthFeb;
-	@FXML
-	private Button monthMar;
-	@FXML
-	private Button monthMay;
-	@FXML
-	private Button monthApr;
-	@FXML
-	private Button monthJun;
-	@FXML
-	private Button monthJul;
-	@FXML
-	private Button monthAug;
-	@FXML
-	private Button monthSep;
-	@FXML
-	private Button monthOct;
-	@FXML
-	private Button monthNov;
-	@FXML
-	private Button monthDec;
+	@FXML private Button monthJan;
+	@FXML private Button monthFeb;
+	@FXML private Button monthMar;
+	@FXML private Button monthMay;
+	@FXML private Button monthApr;
+	@FXML private Button monthJun;
+	@FXML private Button monthJul;
+	@FXML private Button monthAug;
+	@FXML private Button monthSep;
+	@FXML private Button monthOct;
+	@FXML private Button monthNov;
+	@FXML private Button monthDec;
 
 	// year selection nodes
-	@FXML
-	private Button selectYearButton;
-	@FXML
-	private ComboBox<Integer> yearComboBox;
+	@FXML private Button selectYearButton;
+	@FXML private ComboBox<Integer> yearComboBox;
 
 	//**********************************\
 	//									|
@@ -138,17 +125,15 @@ public class WindowYear extends Application {
 	 */
 	@Override
 	public void start(Stage generatedStage) throws IOException {
-		this.stage = generatedStage;
+		stage = generatedStage;
 		try {
 			setRoot();
 			setScene();
 			setStage();
 			lastSelectedYear = DEFAULT_YEAR;
-			refresh(); // default to showing the current year
-
+			refresh();
 			Controller.setWindowYear(this);
-			// show this window
-			this.stage.show();
+			stage.show();
 		} catch (IOException e) {
 			System.err.println("FXMLLoader.load IOException:");
 			e.printStackTrace();
@@ -252,19 +237,19 @@ public class WindowYear extends Application {
 		}
 
 		Button[] buttons = new Button[] { monthJan, monthFeb, monthMar, monthApr, monthMay, monthJun, monthJul, monthAug, monthSep, monthOct, monthNov, monthDec };
-		for (int i = 0; i < buttons.length; i++) {
-			String styleToApply = "";
+		for (int month = 0; month < buttons.length; month++) {
+			String styleToApply = null;
 			// set button style and enable/ disable depending on whether monthMap had that specific month
 			boolean disabled;
-			if (mapOfMonths.containsKey(i)) {
+			if (mapOfMonths.containsKey(month)) {
 				styleToApply = ENABLED_MONTH_BUTTON_CSS;
 				disabled = false;
 			} else {
 				styleToApply = DISABLED_MONTH_BUTTON_CSS;
 				disabled = true;
 			}
-			buttons[i].setStyle(styleToApply);
-			buttons[i].setDisable(disabled);
+			buttons[month].setStyle(styleToApply);
+			buttons[month].setDisable(disabled);
 
 			/**
 			 * set action handler for button
@@ -272,21 +257,23 @@ public class WindowYear extends Application {
 			 * When Button for a particular Month is fired, a Runnable created as an anonymouse inner class and run on a new Thread,
 			 * which displays the WindowMonth JavaFX scene-graph/
 			 */
-			final int index = i;
-			buttons[i].setOnAction(new EventHandler<ActionEvent>() {
-				@Override
-				public void handle(ActionEvent e) {
-					Month month = mapOfMonths.get(index);
-					int monthID = mapOfMonthIDs.get(index);
-					try {
-						WindowMonth wm = new WindowMonth(month, monthID);
-						hide();
-						wm.show();
-					} catch (IllegalArgumentException | IOException wmInstantiationFailureEx) {
-						wmInstantiationFailureEx.printStackTrace();
+			if (!disabled) {
+				final int index = month;
+				buttons[month].setOnAction(new EventHandler<ActionEvent>() {
+					@Override
+					public void handle(ActionEvent e) {
+						Month month = mapOfMonths.get(index);
+						int monthID = mapOfMonthIDs.get(index);
+						try {
+							WindowMonth wm = new WindowMonth(month, monthID);
+							hide();
+							wm.show();
+						} catch (IllegalArgumentException | IOException wmInstantiationFailureEx) {
+							wmInstantiationFailureEx.printStackTrace();
+						}
 					}
-				}
-			});
+				});
+			}
 		}
 	}
 

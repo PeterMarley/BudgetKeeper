@@ -62,22 +62,14 @@ public class WindowTransaction {
 	//									|
 	//**********************************/
 
-	@FXML
-	private TextField name;
-	@FXML
-	private DatePicker date;
-	@FXML
-	private ComboBox<String> type;
-	@FXML
-	private TextField value;
-	@FXML
-	private ComboBox<String> income;
-	@FXML
-	private CheckBox paid;
-	@FXML
-	private Button buttonSave;
-	@FXML
-	private Button buttonCancel;
+	@FXML private TextField name;
+	@FXML private DatePicker date;
+	@FXML private ComboBox<String> type;
+	@FXML private TextField value;
+	@FXML private ComboBox<String> income;
+	@FXML private CheckBox paid;
+	@FXML private Button buttonSave;
+	@FXML private Button buttonCancel;
 
 	//**********************************\
 	//									|
@@ -190,7 +182,7 @@ public class WindowTransaction {
 		this.stage.setTitle(operation.toString());
 		this.stage.setScene(scene);
 		this.stage.setResizable(false);
-		this.stage.setOnCloseRequest(event -> closeWindow(event));
+		this.stage.setOnCloseRequest(event -> closeWindow(event, true));
 		this.stage.initModality(Modality.APPLICATION_MODAL);
 
 	}
@@ -201,10 +193,12 @@ public class WindowTransaction {
 	//									|
 	//**********************************/
 
-	private void closeWindow(Event event) {
+	private void closeWindow(Event event, boolean toAlert) {
 		boolean toClose = false;
+		boolean toUpdate = false;
 		//new Transaction(name, isPaid, date, isIncome, type, value)
 		Transaction validate = null;
+
 		try {
 			validate = new Transaction(
 					name.getText(),
@@ -213,23 +207,28 @@ public class WindowTransaction {
 					incomeMap.get(income.getValue()),
 					Type.valueOf(typeMap.get(type.getValue())),
 					Double.valueOf(value.getText()));
+			toUpdate = true;
 
 		} catch (IllegalArgumentException e) {
 			toClose = true;
 		}
 
 		if (!toClose && !validate.equals(t)) {
-			Alert alert = new Alert(AlertType.CONFIRMATION);
-			alert.setContentText("Are you sure you want to cancel " +
-					((operation == Operation.ADD) ? "Adding" : "Editing") +
-					" this Transaction?");
-			alert.setHeaderText("You are about to abandon this transaction!");
-			alert.setTitle("Please confirm cancellation.");
-			Optional<ButtonType> result = alert.showAndWait();
-			if (result.isPresent() && result.get() == ButtonType.OK) {
+			if (toAlert) {
+				Alert alert = new Alert(AlertType.CONFIRMATION);
+				alert.setContentText("Are you sure you want to cancel " +
+						((operation == Operation.ADD) ? "Adding" : "Editing") +
+						" this Transaction?");
+				alert.setHeaderText("You are about to abandon this transaction!");
+				alert.setTitle("Please confirm cancellation.");
+				Optional<ButtonType> result = alert.showAndWait();
+				if (result.isPresent() && result.get() == ButtonType.OK) {
+					toClose = true;
+				} else if (result.isPresent() && result.get() == ButtonType.CANCEL) {
+					event.consume();
+				}
+			} else {
 				toClose = true;
-			} else if (result.isPresent() && result.get() == ButtonType.CANCEL) {
-				event.consume();
 			}
 		} else {
 			toClose = true;
@@ -237,6 +236,9 @@ public class WindowTransaction {
 
 		if (toClose) {
 			stage.close();
+			if (toUpdate) {
+				Controller.getWindowMonth().updateTransaction(transactionID, t, validate);
+			}
 			Controller.setWindowTransaction(null);
 			Controller.getWindowMonth().show();
 		}
@@ -254,6 +256,14 @@ public class WindowTransaction {
 			public void handle(ActionEvent event) {
 				if (event.getSource() instanceof DatePicker) {
 					DatePicker dp = (DatePicker) event.getSource();
+					if (t == null) {
+						t = new Transaction(name.getText(),
+								paid.isSelected(),
+								date.getValue(),
+								incomeMap.get(income.getValue()),
+								Type.valueOf(typeMap.get(type.getValue())),
+								Math.abs(Integer.valueOf(value.getText())));
+					}
 					if (dp.getValue().getMonthValue() != t.getDate().getMonthValue()
 							|| dp.getValue().getYear() != t.getDate().getYear()) {
 						dp.setValue(LocalDate.of(t.getDate().getYear(), t.getDate().getMonthValue(), t.getDate().getDayOfMonth()));
@@ -292,16 +302,8 @@ public class WindowTransaction {
 		paid.setSelected((t != null) ? t.isPaid() : false);
 
 		// close handlers
-		buttonCancel.setOnAction(request -> closeWindow(request));
-		buttonSave.setOnAction(new EventHandler<ActionEvent>() {
-			@Override
-			public void handle(ActionEvent event) {
-				System.out.println("ButtonSave action not implemented yet");
-				//Controller.getDatabaseAccessObject().updateMonth(monthID);
-				Transaction editedTransaction = new Transaction(name.getText(), paid.isSelected(), date.getValue(), (income.getValue().equals("Income")) ? true : false, Type.valueOf(typeMap.get(type.getValue())), Double.valueOf(value.getText()));
-				Controller.getDatabaseAccessObject().updateTransaction(transactionID, editedTransaction);
-			}
-		});
+		buttonCancel.setOnAction(request -> closeWindow(request, true));
+		buttonSave.setOnAction(request -> closeWindow(request, false));
 	}
 
 	//**********************************\

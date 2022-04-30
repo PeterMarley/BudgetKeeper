@@ -1,6 +1,7 @@
 package model.db;
 
 import model.db.Constants.Files;
+import model.db.Constants.Tables;
 import model.domain.Month;
 import model.domain.Transaction;
 import model.domain.Transaction.Type;
@@ -12,11 +13,14 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.InputMismatchException;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * This class provides methods needed to interact with the BudgetKeeper programs database ({@link})
@@ -53,6 +57,16 @@ public class DatabaseAccessObject {
 	 */
 
 	/**
+	 * 0 "name"<br>
+	 * 1 "paid"<br>
+	 * 2 "date"<br>
+	 * 3 "income"<br>
+	 * 4 "type"<br>
+	 * 5 "value"<br>
+	 */
+	private static final String[] COLUMNS_TRANSACTIONS = new String[] { "name", "paid", "date", "income", "type", "value" };
+
+	/**
 	 * Unified source for database connections in DatabaseAccessObject
 	 * 
 	 * @return SQL Connection object
@@ -66,6 +80,12 @@ public class DatabaseAccessObject {
 	//	Mapped Returns				|
 	//------------------------------/
 
+	/**
+	 * Retrieve all {@code Month}s from the database, and return as a {@code HashMap<Integer,Month>}, with keys being the monthID and values being the
+	 * {@code Month}s themselves.
+	 * 
+	 * @return A HashMap of K:V (monthID:Month)
+	 */
 	public HashMap<Integer, Month> queryMonths() {
 		HashMap<Integer, Month> resultsMap = new HashMap<Integer, Month>();
 
@@ -98,12 +118,11 @@ public class DatabaseAccessObject {
 		// get connection to database and create read months query
 		try (Connection c = getConnection();
 				Statement stmtGetMonthsForYear = c.createStatement()) {
-			// execute query
 			try (ResultSet rs = stmtGetMonthsForYear.executeQuery(SQLFactory.pullMonthsForYear(year))) {
 				// iterate through ResultSet constructing months and adding them
 				while (rs.next()) {
-					int monthID = rs.getInt("monthID");
-					Month month = new Month(LocalDate.parse(rs.getString("date"), Constants.FORMAT_YYYYMM));
+					int monthID = rs.getInt(1);
+					Month month = new Month(LocalDate.parse(rs.getString(2), Constants.FORMAT_YYYYMM));
 					month.addTransactions(pullTransactionsForMonth(monthID));
 					resultsMap.put(monthID, month);
 				}
@@ -133,13 +152,18 @@ public class DatabaseAccessObject {
 		}
 	}
 
-	public HashMap<Integer, Transaction> pullTransactionIDs(int monthID, List<Transaction> list) {
-		HashMap<Integer, Transaction> transactionIDs = new HashMap<Integer, Transaction>();
+	public HashMap<Transaction, Integer> mapTransactionIDs(int monthID, List<Transaction> list) {
+		HashMap<Transaction, Integer> transactionIDs = new HashMap<Transaction, Integer>();
+		final String SQL = "SELECT * FROM transactions WHERE monthID=?";
 		try (Connection c = getConnection();
-				PreparedStatement stmtGetTransactionForMonth = c.prepareStatement("SELECT * FROM transactions WHERE monthID=" + monthID)) {
-			try (ResultSet rs = stmtGetTransactionForMonth.executeQuery()) {
-				while (rs.next()) {
-					transactionIDs.put(rs.getInt("transactionID"), generateTransaction(rs));
+				PreparedStatement stmtGetTransactionForMonth = c.prepareStatement(SQL)) {
+			stmtGetTransactionForMonth.setInt(1, monthID);
+			try (ResultSet result = stmtGetTransactionForMonth.executeQuery()) {
+				while (result.next()) {
+					Transaction generated = generateTransaction(result);
+					if (generated != null && list.contains(generated)) {
+						transactionIDs.put(generated, result.getInt("transactionID"));
+					}
 				}
 			}
 		} catch (SQLException e) {
@@ -150,18 +174,71 @@ public class DatabaseAccessObject {
 	}
 
 	private Transaction generateTransaction(ResultSet rs) {
-		Transaction toReturn = null;
+		Transaction t = null;
 		try {
-			toReturn = new Transaction(rs.getString("name"),
-					(rs.getInt("paid") == 0) ? false : true,
-					LocalDate.parse(rs.getString("date"), Constants.FORMAT_YYYYMMDD),
-					(rs.getInt("income") == 0) ? false : true,
-					Type.valueOf(rs.getString("type")),
-					rs.getDouble("value"));
-		} catch (SQLException e) {
+			t = new Transaction(rs.getString(COLUMNS_TRANSACTIONS[0]),
+					(rs.getInt(COLUMNS_TRANSACTIONS[1]) == 1) ? true : false,
+					LocalDate.parse(rs.getString(COLUMNS_TRANSACTIONS[2]), Constants.FORMAT_YYYYMMDD),
+					(rs.getInt(COLUMNS_TRANSACTIONS[3]) == 1) ? true : false,
+					Type.valueOf(rs.getString(COLUMNS_TRANSACTIONS[4])),
+					rs.getDouble(COLUMNS_TRANSACTIONS[5]));
+		} catch (SQLException | IllegalArgumentException | InputMismatchException e) {
 			System.err.println("Transaction generation from ResultSet failed!");
+			e.printStackTrace();
 		}
-		return toReturn;
+		return t;
+	}
+
+	public void updateMonth(Month m, int monthID, HashMap<Transaction, Integer> mapOftIDs) {
+
+		String updtMonth = "UPDATE months SET date=? WHERE monthID=?;";
+		String updtTransaction = "UPDATE transactions SET income=?, date=?, type=?, value=? WHERE monthID=? AND transactionID=?;";
+		try (Connection c = getConnection();
+				PreparedStatement stmtUpdtMonth = c.prepareStatement(updtMonth);
+				PreparedStatement stmtUpdtTransaction = c.prepareStatement(updtTransaction)) {
+			stmtUpdtMonth.setString(1, m.getDate().format(Constants.FORMAT_YYYYMM));
+			stmtUpdtMonth.setInt(2, monthID);
+			stmtUpdtMonth.executeUpdate();
+			HashMap<Transaction, Integer> db = mapTransactionIDs(monthID, new ArrayList<Transaction>(mapOftIDs.keySet()));
+			for (Map.Entry<Transaction, Integer> entry : mapOftIDs.entrySet()) {
+				Transaction t = entry.getKey();
+				Integer tID = entry.getValue();
+				if (!db.containsKey(t)) {
+					stmtUpdtTransaction.setInt(1, t.isIncome() ? 1 : 0);
+					stmtUpdtTransaction.setString(2, t.getDate().format(Constants.FORMAT_YYYYMMDD));
+					stmtUpdtTransaction.setString(3, t.getType().name());
+					stmtUpdtTransaction.setDouble(4, t.getAbsoluteValue());
+					stmtUpdtTransaction.setInt(5, monthID);
+					stmtUpdtTransaction.setInt(6, tID);
+					stmtUpdtTransaction.executeUpdate();
+				}
+			}
+
+			/*
+			 * 	/**
+			* <pre>
+			* CREATE TABLE transactions (
+			* 	transactionID INTEGER NOT NULL,
+			* 	monthID INTEGER NOT NULL,
+			* 	income INTEGER,
+			* 	date TEXT,
+			* 	type TEXT,
+			* 	value REAL,
+			* 	PRIMARY KEY(transactionID),
+			* 	FOREIGN KEY(monthID) REFERENCES months (monthID)
+			* );
+			*
+			* CREATE TABLE months (
+			* 	monthID INTEGER NOT NULL,
+			* 	date TEXT,
+			* 	PRIMARY KEY(monthID)
+			* );
+			* </pre>
+			*/
+
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
 	}
 
 	//------------------------------\
@@ -311,7 +388,6 @@ public class DatabaseAccessObject {
 		// get connection to database and create read months query
 		try (Connection c = getConnection();
 				Statement stmtGetAllMonths = c.createStatement()) {
-
 			// execute query
 			try (ResultSet rs = stmtGetAllMonths.executeQuery(SQLFactory.pullMonthsForYear(year))) {
 				// iterate through ResultSet constructing months and adding them
@@ -385,6 +461,8 @@ public class DatabaseAccessObject {
 					trans.add(t);
 				}
 
+			} catch (SQLException | IllegalArgumentException e) {
+				e.printStackTrace();
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();

@@ -11,6 +11,7 @@ import java.util.Objects;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
+import model.db.Constants;
 import model.domain.Transaction.Type;
 
 /**
@@ -169,7 +170,7 @@ public class Month implements Comparable<Month> {
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + ((date == null) ? 0 : date.hashCode());
+		result = prime * result + ((date == null) ? 0 : date.format(Constants.FORMAT_YYYYMM).hashCode());
 		return result;
 	}
 

@@ -21,6 +21,7 @@ public class Transaction implements Comparable<Transaction> {
 
 	/**
 	 * The various types of Transaction available.
+	 * 
 	 * @author Peter Marley
 	 * @StudentNumber 13404067
 	 * @Email pmarley03@qub.ac.uk
@@ -50,7 +51,6 @@ public class Transaction implements Comparable<Transaction> {
 		}
 	}
 
-	
 	private SimpleBooleanProperty income;
 	private SimpleStringProperty date;
 	private SimpleStringProperty type;
@@ -88,7 +88,7 @@ public class Transaction implements Comparable<Transaction> {
 	/**
 	 * @param isIncome the isIncome to set
 	 */
-	private void setIncome(boolean isIncome) {
+	public void setIncome(boolean isIncome) {
 		this.income = new SimpleBooleanProperty(isIncome);
 
 	}
@@ -96,7 +96,7 @@ public class Transaction implements Comparable<Transaction> {
 	/**
 	 * @param isPaid the isPaid to get
 	 */
-	private void setPaid(boolean isPaid) {
+	public void setPaid(boolean isPaid) {
 		this.isPaid = new SimpleBooleanProperty(isPaid);
 
 	}
@@ -111,7 +111,7 @@ public class Transaction implements Comparable<Transaction> {
 	/**
 	 * @param name the name to set
 	 */
-	private void setName(String name) {
+	public void setName(String name) {
 		this.name = new SimpleStringProperty(validate(name, 1, null));
 	}
 
@@ -195,61 +195,6 @@ public class Transaction implements Comparable<Transaction> {
 	// Overrides & Interface Impl	|
 	//------------------------------/
 
-	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + ((date == null) ? 0 : date.hashCode());
-		result = prime * result + (isIncome() ? 1231 : 1237);
-		result = prime * result + ((type == null) ? 0 : type.hashCode());
-		long temp;
-		temp = Double.doubleToLongBits(getValue());
-		result = prime * result + (int) (temp ^ (temp >>> 32));
-		return result;
-	}
-
-	/**
-	 * An object is equal to this object if the memory position of the objects is equal or the class, type, and date (month and year only) are equal.
-	 */
-	@Override
-	public boolean equals(Object obj) {
-		// EQUAL it is the same object in memory
-		if (this == obj)
-			return true;
-
-		// UNEQUAL if obj is null
-		if (obj == null)
-			return false;
-
-		// UNEQUAL if RuntimeClass is different
-		if (getClass() != obj.getClass())
-			return false;
-
-		Transaction other = (Transaction) obj;
-		// UNEQUAL if this date is null, and other date is not null
-		if (date == null) {
-			if (other.date != null)
-				return false;
-
-			// UNEQUAL if date fields are not equal
-			//} else if (!date.equals(other.date))
-		} else if (getDate().getYear() != other.getDate().getYear() && getDate().getMonth() != other.getDate().getMonth())
-			return false;
-		// UNEQUAL if income fields are not equal
-		if (isIncome() != other.isIncome())
-			return false;
-		// UNEQUAL if type fields are not equal
-		if (getType() != other.getType())
-			return false;
-		// UNEQUAL if value fields are not equal
-		if (Double.doubleToLongBits(getValue()) != Double.doubleToLongBits(other.getValue()))
-			return false;
-		if (!this.getName().equals(other.getName()))
-			return false;
-		// OTHERWISE EQUAL
-		return true;
-	}
-
 	/**
 	 * A {@code Transaction} object's total ordering is chronologically by difference in months. If months are chronologically equal, then all fields are
 	 * compared, if they are equal the value is compared? (is this working as intended?)
@@ -270,6 +215,76 @@ public class Transaction implements Comparable<Transaction> {
 
 		}
 		return diff;
+	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((date == null) ? 0 : date.get().hashCode());
+		result = prime * result + ((income == null) ? 0 : (income.get()) ? 2 : 4);
+		result = prime * result + ((isPaid == null) ? 0 : (isPaid.get()) ? 3 : 6);
+		result = prime * result + ((name == null) ? 0 : name.get().hashCode());
+		result = prime * result + ((type == null) ? 0 : type.get().hashCode());
+		result = prime * result + ((value == null) ? 0 : (int) (value.get() * 10));
+		return result;
+	}
+
+	/**
+	 * An object is equal to this object if the memory position of the objects is equal or the class, type, and date (month and year only) are equal.
+	 */
+	@Override
+	public boolean equals(Object obj) {
+		//		// EQUAL it is the same object in memory
+		if (this == obj)
+			return true;
+
+		//		// UNEQUAL if obj is null
+		if (obj == null)
+			return false;
+
+		// UNEQUAL if RuntimeClass is different
+		if (getClass() != obj.getClass())
+			return false;
+
+		Transaction other = (Transaction) obj;
+		//		// UNEQUAL if this date is null, and other date is not null
+		//		if (date == null) {
+		//			if (other.date != null)
+		//				return false;
+		//
+		//			// UNEQUAL if date fields are not equal
+		//			//} else if (!date.equals(other.date))
+		//		} else if (getDate().getYear() != other.getDate().getYear() && getDate().getMonth() != other.getDate().getMonth())
+		//			return false;
+		//		// UNEQUAL if income fields are not equal
+		//		if (isIncome() != other.isIncome())
+		//			return false;
+		//		// UNEQUAL if type fields are not equal
+		//		if (getType() != other.getType())
+		//			return false;
+		//		// UNEQUAL if value fields are not equal
+		//		if (Double.doubleToLongBits(getValue()) != Double.doubleToLongBits(other.getValue()))
+		//			return false;
+		//		if (!this.getName().equals(other.getName()))
+		//			return false;
+		//		// OTHERWISE EQUAL
+
+		//		if (this.getName().equals(other.getName())
+		//				&& this.getDate().equals(other.getDate())
+		//				&& this.getType().equals(other.getType())
+		//				&& this.getAbsoluteValue() == other.getAbsoluteValue()) {
+		//			return true;
+		//		} else {
+		//			return false;
+		//		}
+
+		if (this.hashCode() == other.hashCode()) {
+			return true;
+		} else {
+			return false;
+		}
+
 	}
 
 	@Override

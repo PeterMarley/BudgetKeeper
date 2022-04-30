@@ -39,7 +39,7 @@ public class SQLFactory {
 	 * Generate CREATE TABLE statements for a {@link Tables} enum.
 	 * 
 	 * @param table
-	 * @return an SQL code String that will create a table specified by {@code table} parameter.
+	 * @return an SQL code String that will create a table specified by {@code table} parameter. Formatted pleasingly for .schema viewing.
 	 */
 	public static String createTable(Tables table) throws IllegalArgumentException {
 		nullCheck(table);
@@ -71,11 +71,13 @@ public class SQLFactory {
 		return String.format(b.toString());
 	}
 
+	/**
+	 * {@value #ADD_MONTH_SQL}
+	 */
 	private static final String ADD_MONTH_SQL = "INSERT INTO months (date) VALUES (?);";
 	private static final String REMOVE_MONTH_SQL = "DELETE FROM months WHERE monthID=?;";
 	private static final String SEARCH_MONTH = "SELECT monthID FROM months WHERE %s=?;";
 	private static final String PULL_MONTHS = "SELECT * FROM months;";
-	private static final String PULL_MONTHS_FOR_YEAR = "SELECT * FROM months WHERE date LIKE '%d/%%';";
 	private static final String SEARCH_TRANSACTIONS = "SELECT * FROM transactions WHERE %s=?;";
 	private static final String ADD_TRANSACTION = "INSERT INTO transactions (monthID, name, paid, income, date, type, value) VALUES (?,?,?,?,?,?,?);";
 	private static final String REMOVE_TRANSACTIONS_FOR_MONTH = "DELETE FROM transactions WHERE monthID=%d;";
@@ -83,7 +85,6 @@ public class SQLFactory {
 	private static final String REMOVE_TRANSACTION = "DELETE FROM transactions WHERE monthID=? AND name=%s AND paid=%d AND income=%d AND date='%s' AND type='%s' AND value=%.2f;";
 	private static final String GET_YEARS = "SELECT * FROM months ORDER BY date;";
 
-	
 	/**
 	 * Generate a PreparedStatement String for an INSERT INTO statement for inserting a {@link model.domain.Month Month} object into database
 	 * {@code months} table.
@@ -141,10 +142,12 @@ public class SQLFactory {
 	 * 
 	 * @return an SQL code String (for use in a Statement) that will retrieve all {@code Month}'s for year {@code year} from the database.<br>
 	 *         <br>
-	 *         {@value #PULL_MONTHS_FOR_YEAR} placeholder is replaced by {@code year} value.
+	 *         SELECT * FROM months WHERE date LIKE '?/%%';
 	 */
 	public static String pullMonthsForYear(int year) {
+		final String PULL_MONTHS_FOR_YEAR = "SELECT * FROM months WHERE date LIKE '%d/%%';";
 		return String.format(PULL_MONTHS_FOR_YEAR, year);
+		//return "SELECT * FROM months WHERE date LIKE '?/%%';";
 	}
 
 	/**
