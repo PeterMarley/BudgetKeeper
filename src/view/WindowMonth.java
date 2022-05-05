@@ -5,6 +5,8 @@ import java.nio.file.FileSystemLoopException;
 import java.time.LocalDate;
 import java.time.format.TextStyle;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -54,6 +56,7 @@ public class WindowMonth {
 	//**********************************/
 
 	@FXML private TableView<Transaction> transactionsTable;
+
 	@FXML private TableColumn<Transaction, LocalDate> transactionsDate;
 	@FXML private TableColumn<Transaction, String> transactionsName;
 	@FXML private TableColumn<Transaction, Double> transactionsValue;
@@ -94,8 +97,9 @@ public class WindowMonth {
 	private Stage stage;
 	private Scene scene;
 	private Month selectedMonth;
+	private Month originalMonth;
 
-	private int monthID;
+	// returned from windowtransaction
 
 	private Sort sortLatchInOut;
 	private Sort sortLatchType;
@@ -113,9 +117,10 @@ public class WindowMonth {
 	 * <b>Key:</b> Transaction <br>
 	 * <b>Value:</b> Integer Transaction ID
 	 */
-	private HashMap<Transaction, Integer> mapOftIDs;
+	//private HashMap<Transaction, Integer> mapOftIDs;
 
 	private boolean unsavedChanges = false;
+	private List<Comparator<Transaction>> comparators;
 
 	//**********************************\
 	//									|
@@ -131,6 +136,7 @@ public class WindowMonth {
 	private static final String SORT_BUTTON_DEFAULT_TYPE = "Type";
 	private static final String SORT_BUTTON_DEFAULT_VALUE = "Value";
 	private static final String SORT_BUTTON_DEFAULT_IN_OUT = "In/ Out";
+	private static final String SORT_BUTTON_DEFAULT_CLEAR = "Clear Sort/ Restore Default";
 
 	//**********************************\
 	//									|
@@ -153,9 +159,9 @@ public class WindowMonth {
 	 * @throws IOException              if FXMLLoader fails to load the FXML file.
 	 * @throws IllegalArgumentException if month is null or monthID is negative.
 	 */
-	public WindowMonth(Month month, int monthID) throws IOException, IllegalArgumentException {
-		setSelectedMonth(month, monthID);
-		setTransactionIDs();
+	public WindowMonth(Month month) throws IOException, IllegalArgumentException {
+		comparators = new LinkedList<Comparator<Transaction>>();
+		setSelectedMonth(month);
 		setRoot();
 		setScene();
 		setStage();
@@ -170,13 +176,11 @@ public class WindowMonth {
 	 * @param month
 	 * @param monthID
 	 */
-	private void setSelectedMonth(Month month, int monthID) {
+	void setSelectedMonth(Month month) {
 		this.selectedMonth = month;
-		this.monthID = monthID;
-	}
-
-	private void setTransactionIDs() {
-		mapOftIDs = Controller.getDatabaseAccessObject().mapTransactionIDs(monthID, new LinkedList<Transaction>(selectedMonth.getTransactions()));
+		Month copy = new Month(month.getDate());
+		copy.addTransactions(month.getTransactions());
+		this.originalMonth = copy;
 	}
 
 	/**
@@ -231,24 +235,47 @@ public class WindowMonth {
 
 	/**
 	 * Configure the TableView control.
+	 * 
+	 * @category Initialisation
 	 */
-	private void initialise() {
+	void initialise() {
 		initTableView();
 		initTotals();
 		initFilters();
 		initSorts();
 		initOperations();
 		initData();
+	}
+
+	/**
+	 * Initialise the data in this {@code WindowMonth}. This method should be called, any time the selectedMonth is updated
+	 * 
+	 * @category Initialisation
+	 */
+	void initData() {
+		// retrieve transactions from database
+		tActive = FXCollections.observableList(new LinkedList<Transaction>(selectedMonth.getTransactions()));
+
+		// instantiate list for holding filtered Transactions
+		tFiltered = new LinkedList<Transaction>();
+
+		// apply default sort
+		defaultSortTransactions();
 
 	}
 
 	/**
 	 * Generate the {@code HashMap} that contains key value pairs for the filter {@code CheckBox} nodes. The key is the {@code name} of the
 	 * {@link Transaction.Type Type} enum in the {@link model.domain.Transaction Transaction} class, and the value is a {@code Boolean}, representing
-	 * "should this
-	 * transaction type be displayed in the {@code transactionsTable} Node?"
+	 * "should this transaction type be displayed in the {@code transactionsTable} Node?".
 	 * 
-	 * @category JavaFXControlConfiguration
+	 * The filters buttons are all set.
+	 * 
+	 * <br>
+	 * <br>
+	 * This should only be called once, during construction of this {@code WindowMonth}.
+	 * 
+	 * @category Initialisation
 	 */
 	private void initFilters() {
 		// Transaction type filters
@@ -314,6 +341,14 @@ public class WindowMonth {
 		filterOutgoing.setOnAction(checkBoxInOutFilterAction);
 	}
 
+	/**
+	 * Initialise the TableView.
+	 * <br>
+	 * <br>
+	 * This should only be called once, during construction of this {@code WindowMonth}.
+	 * 
+	 * @category Initialisation
+	 */
 	private void initTableView() {
 		/*
 		 * TableView
@@ -371,6 +406,15 @@ public class WindowMonth {
 
 	}
 
+	/**
+	 * Initialise the total {@code TextBox} controls. Displaying total income, total outgoings and balance for this month. These {@code TextBox}s are only
+	 * for displaying the totals, and cannot be edited by the user.
+	 * <br>
+	 * <br>
+	 * This should only be called once, during construction of this {@code WindowMonth}.
+	 * 
+	 * @category Initialisation
+	 */
 	private void initTotals() {
 		this.totalIn.setDisable(true);
 		this.totalOut.setDisable(true);
@@ -378,51 +422,28 @@ public class WindowMonth {
 		fillTotals();
 	}
 
+	/**
+	 * Initialise the sorting buttons
+	 * 
+	 * @category Initialisation
+	 */
 	private void initSorts() {
 		/*
 		 * Sorts
 		 */
 
 		sortButtonInOut.setText(SORT_BUTTON_DEFAULT_IN_OUT);
-		sortButtonInOut.setOnAction(new EventHandler<ActionEvent>() {
-			@Override
-			public void handle(ActionEvent event) {
-				sortLatchInOut = (sortLatchInOut == null) ? Sort.DESCENDING : ((sortLatchInOut == Sort.ASCENDING) ? Sort.DESCENDING : Sort.ASCENDING);
-				sortButtonInOut.setText(SORT_BUTTON_DEFAULT_IN_OUT + " " + sortLatchInOut.toString());
-				tActive.sort(new TransactionComparatorIncome(sortLatchInOut));
-				transactionsTable.refresh();
-			}
-		});
+		sortButtonInOut.setOnAction(event -> sortByInOut());
+
 		sortButtonType.setText(SORT_BUTTON_DEFAULT_TYPE);
-		sortButtonType.setOnAction(new EventHandler<ActionEvent>() {
-			@Override
-			public void handle(ActionEvent event) {
-				sortLatchType = (sortLatchType == null) ? Sort.DESCENDING : ((sortLatchType == Sort.ASCENDING) ? Sort.DESCENDING : Sort.ASCENDING);
-				sortButtonType.setText(SORT_BUTTON_DEFAULT_TYPE + " " + sortLatchType.toString());
-				tActive.sort(new TransactionComparatorType(sortLatchType));
-				transactionsTable.refresh();
-			}
-		});
+		sortButtonType.setOnAction(event -> sortByType());
+
 		sortButtonDate.setText(SORT_BUTTON_DEFAULT_DATE);
-		sortButtonDate.setOnAction(new EventHandler<ActionEvent>() {
-			@Override
-			public void handle(ActionEvent event) {
-				sortLatchDate = (sortLatchDate == null) ? Sort.ASCENDING : ((sortLatchDate == Sort.ASCENDING) ? Sort.DESCENDING : Sort.ASCENDING);
-				sortButtonDate.setText(SORT_BUTTON_DEFAULT_DATE + " " + sortLatchDate.toString());
-				tActive.sort(new TransactionComparatorDate(sortLatchDate));
-				transactionsTable.refresh();
-			}
-		});
+		sortButtonDate.setOnAction(event -> sortByDate());
+
 		sortButtonValue.setText(SORT_BUTTON_DEFAULT_VALUE);
-		sortButtonValue.setOnAction(new EventHandler<ActionEvent>() {
-			@Override
-			public void handle(ActionEvent event) {
-				sortLatchValue = (sortLatchValue == null) ? Sort.DESCENDING : ((sortLatchValue == Sort.ASCENDING) ? Sort.DESCENDING : Sort.ASCENDING);
-				sortButtonValue.setText(SORT_BUTTON_DEFAULT_VALUE + " " + sortLatchValue.toString());
-				tActive.sort(new TransactionComparatorValue(sortLatchValue));
-				transactionsTable.refresh();
-			}
-		});
+		sortButtonValue.setOnAction(event -> sortByValue());
+
 		sortButtonClear.setOnAction(new EventHandler<ActionEvent>() {
 			@Override
 			public void handle(ActionEvent event) {
@@ -434,24 +455,18 @@ public class WindowMonth {
 				sortButtonInOut.setText(SORT_BUTTON_DEFAULT_IN_OUT);
 				sortButtonType.setText(SORT_BUTTON_DEFAULT_TYPE);
 				sortButtonValue.setText(SORT_BUTTON_DEFAULT_VALUE);
+				comparators.clear();
 				defaultSortTransactions();
 				transactionsTable.refresh();
 			}
 		});
 	}
 
-	private void initData() {
-		// retrieve transactions from database
-		tActive = FXCollections.observableList(new ArrayList<Transaction>(mapOftIDs.keySet()));
-
-		// instantiate list for holding filtered Transactions
-		tFiltered = new LinkedList<Transaction>();
-
-		// apply default sort
-		defaultSortTransactions();
-
-	}
-
+	/**
+	 * Initialise the operations buttons for this {@code WindowMonth}.
+	 * 
+	 * @category Initialisation
+	 */
 	private void initOperations() {
 		/*
 		 * Operations
@@ -462,7 +477,7 @@ public class WindowMonth {
 		opSave.setOnAction(new EventHandler<ActionEvent>() {
 			@Override
 			public void handle(ActionEvent event) {
-				Controller.getDatabaseAccessObject().updateMonth(selectedMonth, monthID, mapOftIDs);
+				Controller.updateMonth(originalMonth, selectedMonth);
 				unsavedChanges = false;
 				refresh();
 			}
@@ -472,7 +487,7 @@ public class WindowMonth {
 			@Override
 			public void handle(ActionEvent event) {
 				try {
-					WindowTransaction wt = new WindowTransaction(monthID);
+					WindowTransaction wt = new WindowTransaction(selectedMonth);
 					wt.show();
 				} catch (IOException e) {
 					System.err.println("WindowTransaction to Add Transaction instantiation failed!");
@@ -484,23 +499,12 @@ public class WindowMonth {
 			@Override
 			public void handle(ActionEvent event) {
 				Transaction selected = transactionsTable.getSelectionModel().getSelectedItem();
-				int transactionID = -1;
 				if (selected != null) {
 					try {
-						for (Map.Entry<Transaction, Integer> entry : mapOftIDs.entrySet()) {
-							int tID = entry.getValue();
-							Transaction t = entry.getKey();
-							if (t.equals(selected)) {
-								transactionID = tID;
-								break;
-							}
-						}
-						if (transactionID != -1) {
-							WindowTransaction wt = new WindowTransaction(transactionID, selected);
-							wt.show();
-						} else {
-							System.out.println("Transaction not found!");
-						}
+
+						WindowTransaction wt = new WindowTransaction(selectedMonth, selected);
+						wt.show();
+
 					} catch (IllegalArgumentException | IOException e) {
 						System.err.println("Failed to instantiate a WindowTransaction with Transaction :" + selected.toString());
 						e.printStackTrace();
@@ -516,9 +520,79 @@ public class WindowMonth {
 
 	//**********************************\
 	//									|
+	//	Sort Methods					|
+	//									|
+	//**********************************/
+
+	private void sortByInOut() {
+		sortLatchInOut = (sortLatchInOut == null) ? Sort.DESCENDING : ((sortLatchInOut == Sort.ASCENDING) ? Sort.DESCENDING : Sort.ASCENDING);
+		sortButtonInOut.setText(SORT_BUTTON_DEFAULT_IN_OUT + " " + sortLatchInOut.toString());
+		Comparator<Transaction> c = new TransactionComparatorIncome(sortLatchInOut);
+		tActive.sort(c);
+		comparators.add(c);
+		//executeActiveComparators();
+		transactionsTable.refresh();
+	}
+
+	private void sortByType() {
+		sortLatchType = (sortLatchType == null) ? Sort.DESCENDING : ((sortLatchType == Sort.ASCENDING) ? Sort.DESCENDING : Sort.ASCENDING);
+		sortButtonType.setText(SORT_BUTTON_DEFAULT_TYPE + " " + sortLatchType.toString());
+		Comparator<Transaction> c = new TransactionComparatorType(sortLatchType);
+		tActive.sort(c);
+		comparators.add(c);
+		//executeActiveComparators();
+		transactionsTable.refresh();
+	}
+
+	private void sortByDate() {
+		sortLatchDate = (sortLatchDate == null) ? Sort.ASCENDING : ((sortLatchDate == Sort.ASCENDING) ? Sort.DESCENDING : Sort.ASCENDING);
+		sortButtonDate.setText(SORT_BUTTON_DEFAULT_DATE + " " + sortLatchDate.toString());
+		Comparator<Transaction> c = new TransactionComparatorDate(sortLatchDate);
+		tActive.sort(c);
+		comparators.add(c);
+		//executeActiveComparators();
+		transactionsTable.refresh();
+	}
+
+	private void sortByValue() {
+		sortLatchValue = (sortLatchValue == null) ? Sort.DESCENDING : ((sortLatchValue == Sort.ASCENDING) ? Sort.DESCENDING : Sort.ASCENDING);
+		sortButtonValue.setText(SORT_BUTTON_DEFAULT_VALUE + " " + sortLatchValue.toString());
+		Comparator<Transaction> c = new TransactionComparatorValue(sortLatchValue);
+		tActive.sort(c);
+		comparators.add(c);
+		//executeActiveComparators();
+		transactionsTable.refresh();
+	}
+
+	private void executeActiveComparators() {
+		if (comparators.size() > 0) {
+			for (Comparator<Transaction> c : comparators) {
+				tActive.sort(c);
+			}
+		} else {
+			defaultSortTransactions();
+		}
+	}
+
+	//**********************************\
+	//									|
 	//	JavaFX Application Methods		|
 	//									|
 	//**********************************/
+
+	/**
+	 * Reset this selected month, reinitialise data, and refresh.
+	 * 
+	 * @param m new month to set as {@code selectedMonth}.
+	 * 
+	 * @category GUImethods
+	 */
+	void update(Month m) {
+		unsavedChanges = true;
+		setSelectedMonth(m);
+		initData();
+		refresh();
+	}
 
 	/**
 	 * Update a Transaction for this Month.
@@ -527,74 +601,60 @@ public class WindowMonth {
 	 * @param original
 	 * @param edited
 	 * @throws IllegalArgumentException if transactionID is negative, either Transaction argument is null, or if tActive or tFiltered fields are null.
+	 * 
+	 * @category GUImethods
 	 */
-	public void updateTransaction(int transactionID, Transaction original, Transaction edited) throws IllegalArgumentException {
+	void updateTransaction(Transaction original, Transaction edited) throws IllegalArgumentException {
 		Utility.nullCheck(original);
 		Utility.nullCheck(edited);
-		Utility.nullCheck(tActive);
-		Utility.nullCheck(tFiltered);
-		Utility.validate(transactionID, 0, null);
-
-		tActive.addAll(tFiltered);
-		tFiltered.clear();
-		mapOftIDs.remove(original);
-		mapOftIDs.put(edited, transactionID);
-
-		if (tActive.contains(original)) {
-			tActive.remove(original);
-			tActive.add(edited);
-			unsavedChanges = true;
-		}
+		selectedMonth.getTransactions().remove(original);
+		selectedMonth.getTransactions().add(edited);
 		defaultSortTransactions();
+		unsavedChanges = true;
+		refresh();
+	}
+
+	void updateTransaction(Transaction toAdd) {
+		Utility.nullCheck(toAdd);
+		selectedMonth.getTransactions().add(toAdd);
+		unsavedChanges = true;
 		refresh();
 	}
 
 	/**
 	 * Refresh the data in the scene-graph and show stage.
+	 * 
+	 * @category GUImethods
 	 */
-	public void show() {
+	void show() {
 		refresh(); // default to showing the current year
 		this.stage.show();
-	}
-
-	/**
-	 * Hide this scene-graph.
-	 */
-	public void hide() {
-		this.stage.hide();
 	}
 
 	/**
 	 * Refresh all the nodes in this scene-graph.
 	 * 
 	 * @param transactionsTable
+	 * 
+	 * @category GUImethods
 	 */
-	public void refresh() {
+	void refresh() {
 		try {
 			fillTable();
 			fillTotals();
-			colorUnsavedChanges();
+			opSave.setStyle(unsavedChanges ? "-fx-text-fill: red" : "-fx-text-fill: black");
 		} catch (Exception e) {
 			System.out.println("WindowMonth.refresh() did not like that one bit...");
 			e.printStackTrace();
 		}
 	}
 
-	private void colorUnsavedChanges() {
-		String style;
-		if (unsavedChanges) {
-			style = "-fx-text-fill: red";
-		} else {
-			style = "-fx-text-fill: black";
-		}
-		opSave.setStyle(style);
-
-	}
-
 	/**
 	 * Fill totals TextFields with Transaction data summary for this Month/
 	 * 
 	 * @param transactionsTable
+	 * 
+	 * @category GUImethods
 	 */
 	private void fillTotals() {
 		// declare calculation variables
@@ -618,6 +678,7 @@ public class WindowMonth {
 	/**
 	 * Fill TableView with Transactions in the {@code transactionObsList} ObservableList
 	 * 
+	 * @category GUImethods
 	 */
 	private void fillTable() {
 		filterTransactions();
@@ -636,6 +697,8 @@ public class WindowMonth {
 	/**
 	 * Filters the {@code Transaction} objects in the {@code transactionObsList}, depending on whether {@code Transaction Type} for each element has a
 	 * true or false key in the {@code transactionFilters}.
+	 * 
+	 * @category GUImethods
 	 */
 	private void filterTransactions() {
 		tActive.addAll(tFiltered);
@@ -649,10 +712,13 @@ public class WindowMonth {
 		}
 		tActive.removeAll(toRemove);
 		tFiltered.addAll(toRemove);
+		executeActiveComparators();
 	}
 
 	/**
 	 * This method is called whenever the "default" sorting of the {@code transactionsObsList} must be initially set, or restored.
+	 * 
+	 * @category GUImethods
 	 */
 	private void defaultSortTransactions() {
 		tActive.sort(new TransactionComparatorDate());

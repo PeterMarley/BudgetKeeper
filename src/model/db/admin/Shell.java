@@ -24,6 +24,7 @@ import model.domain.Transaction.Type;
  */
 public class Shell {
 	private static List<Month> testMonths;
+	private static final DatabaseAdministration DAO = new DatabaseAdministration();
 
 	/**
 	 * Start point
@@ -75,7 +76,7 @@ public class Shell {
 			public boolean menuAction() {
 				System.out.println(DIV);
 				System.out.println("Creating Tables...");
-				DatabaseAdministration.createTables();
+				DAO.createTables();
 				System.out.println(DIV);
 				return true;
 			}
@@ -84,7 +85,7 @@ public class Shell {
 			public boolean menuAction() {
 				System.out.println(DIV);
 				System.out.println("Dropping Tables...");
-				DatabaseAdministration.dropTables();
+				DAO.dropTables();
 				System.out.println(DIV);
 				return true;
 			}
@@ -92,7 +93,7 @@ public class Shell {
 		ADD_TEST_DATA("Add Test Data") {
 			public boolean menuAction() {
 				for (Month m : testMonths) {
-					DatabaseAdministration.dao.addMonth(m);
+					DAO.addMonth(m);
 				}
 				return true;
 			}
@@ -130,8 +131,8 @@ public class Shell {
 		boolean toContinue = true;
 		while (toContinue) {
 			System.out.println(DIV);
-			for (Menu m : menu) {
-				System.out.println(m.toString());
+			for (Menu item : menu) {
+				System.out.println(item.toString());
 			}
 			System.out.println(DIV);
 			int selection = getInt("Please select a menu item by entering a number:", "Sorry you must enter a number between 1 and " + Menu.values().length + ".", 1, Menu.values().length);
@@ -148,7 +149,7 @@ public class Shell {
 	 * @param errMsg
 	 * @param lowerBound
 	 * @param upperBound
-	 * @return the int selected by user.
+	 * @return the selected int, validated range.
 	 */
 	private static int getInt(String prompt, String errMsg, int lowerBound, int upperBound) {
 		Scanner scanner = new Scanner(System.in);

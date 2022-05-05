@@ -63,7 +63,7 @@ public class Month implements Comparable<Month> {
 		}
 	}
 
-	public void addTransactions(List<Transaction> transactions) {
+	public void addTransactions(SortedSet<Transaction> transactions) {
 		for (Transaction t : transactions) {
 			addTransaction(t);
 		}
@@ -123,10 +123,11 @@ public class Month implements Comparable<Month> {
 		return this.transactions;
 	}
 
-	public int getNumberOfTransactions() {
-		return this.transactions.size();
-	}
-
+	/**
+	 * Get the summation of all income transactions for this month.
+	 * 
+	 * @return total income
+	 */
 	public double getIncome() {
 		double income = 0.0;
 		for (Transaction transaction : transactions) {
@@ -137,6 +138,11 @@ public class Month implements Comparable<Month> {
 		return income;
 	}
 
+	/**
+	 * Get the summation of all outgoing transaction (as positive numbers) for this month.
+	 * 
+	 * @return total outgoing
+	 */
 	public double getOutgoing() {
 		double outgoing = 0.0;
 		for (Transaction transaction : transactions) {
@@ -148,6 +154,11 @@ public class Month implements Comparable<Month> {
 
 	}
 
+	/**
+	 * Get the +/- balance of this month (income - outgoing).
+	 * 
+	 * @return total balance for month
+	 */
 	public double getBalance() {
 		return getIncome() - getOutgoing();
 
@@ -174,31 +185,39 @@ public class Month implements Comparable<Month> {
 		return result;
 	}
 
+	/**
+	 * Does not consider transactions field, but does consider every other field
+	 */
 	@Override
 	public boolean equals(Object obj) {
-		// EQUAL if memory location same
-		if (this == obj)
+
+		if (this == obj) {						// EQUAL if object reference same
 			return true;
-		// UNEQUAL if obj is null
-		if (obj == null)
+		}
+
+		if (obj == null) {						// UNEQUAL if obj is null
 			return false;
-		// UNEQUAL if class is not the same
-		if (getClass() != obj.getClass())
+		}
+
+		if (getClass() != obj.getClass()) {		// UNEQUAL if class is not the same
 			return false;
+		}
+
 		Month other = (Month) obj;
-		// UNEQUAL if date is null, but obj.date is not
-		if (date == null) {
-			if (other.date != null)
+
+		if (date == null) { 					// UNEQUAL if date is null, but obj.date is not
+			if (other.date != null) {
 				return false;
-			// UNEQUAL if dates are not the same
-		} else if (!date.equals(other.date))
+			}
+		} else if (!date.equals(other.date)) { 	// UNEQUAL if dates are not the same
 			return false;
-		// otherwise EQUAL
-		return true;
+		}
+
+		return true;							// otherwise EQUAL
 	}
 
 	public String toString() {
-		return this.getDate().getMonth().toString() + " " + this.getDate().getYear();
+		return this.getDate().getMonth().toString() + " " + this.getDate().getYear() + " [" + transactions.size() + " transactions]";
 	}
 
 }

@@ -138,19 +138,32 @@ class MonthTest {
 		assertNotNull(m1.getDate());
 		assertEquals(d1, m1.getDate());
 		assertNotNull(m1.getTransactions());
-		assertEquals(0, m1.getNumberOfTransactions());
-		assertEquals(m1.getTransactions().size(), m1.getNumberOfTransactions());
+		assertEquals(0, m1.getTransactions().size());
 
+		assertNotNull(m2.getDate());
+		assertEquals(d2, m2.getDate());
+		assertNotNull(m2.getTransactions());
+		assertEquals(0, m2.getTransactions().size());
+		
+		assertNotNull(m3.getDate());
+		assertEquals(d3, m3.getDate());
+		assertNotNull(m3.getTransactions());
+		assertEquals(0, m3.getTransactions().size());
+		
+		assertNotNull(m4.getDate());
+		assertEquals(d4, m4.getDate());
+		assertNotNull(m4.getTransactions());
+		assertEquals(0, m4.getTransactions().size());
 	}
 
 	@Test
 	void test_addTransaction_validArgs() {
 		assertNotNull(m11Mar2012.getTransactions());
-		assertEquals(0, m11Mar2012.getNumberOfTransactions());
+		assertEquals(0, m11Mar2012.getTransactions().size());
 		m11Mar2012.addTransaction(t1);
 		m11Mar2012.addTransaction(t2);
 		m11Mar2012.addTransaction(t3);
-		assertEquals(3, m11Mar2012.getNumberOfTransactions());
+		assertEquals(3, m11Mar2012.getTransactions().size());
 	}
 
 	@Test
@@ -197,21 +210,21 @@ class MonthTest {
 	@Test
 	void test_removeTransaction() {
 		assertNotNull(m11Mar2012.getTransactions());
-		assertEquals(0, m11Mar2012.getNumberOfTransactions());
+		assertEquals(0, m11Mar2012.getTransactions().size());
 		m11Mar2012.addTransaction(t1);
 		m11Mar2012.addTransaction(t2);
 		m11Mar2012.addTransaction(t3);
-		assertEquals(3, m11Mar2012.getNumberOfTransactions());
+		assertEquals(3, m11Mar2012.getTransactions().size());
 
 		// remove existing transactions
 		m11Mar2012.removeTransaction(t1);
-		assertEquals(2, m11Mar2012.getNumberOfTransactions());
+		assertEquals(2, m11Mar2012.getTransactions().size());
 
 		m11Mar2012.removeTransaction(t2);
-		assertEquals(1, m11Mar2012.getNumberOfTransactions());
+		assertEquals(1, m11Mar2012.getTransactions().size());
 
 		m11Mar2012.removeTransaction(t3);
-		assertEquals(0, m11Mar2012.getNumberOfTransactions());
+		assertEquals(0, m11Mar2012.getTransactions().size());
 
 		// remove transations not in month
 		assertFalse(m11Mar2012.removeTransaction(t1));

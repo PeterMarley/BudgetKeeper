@@ -2,10 +2,15 @@ package view;
 
 import java.io.IOException;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 import controller.Controller;
 import javafx.application.Application;
@@ -61,17 +66,16 @@ public class WindowYear extends Application {
 	//									|
 	//**********************************/
 
+
+
 	/**
+	 * This HashMap is used to associate month values (0-11) with Month objects, so the GUI can select, for example, December, in a year,
+	 * attempting to get from the HashMap using the month value 11.<br>
+	 * <hr>
 	 * Key: month of year (0 to 11).<br>
 	 * Value: Month object.
 	 */
-	private HashMap<Integer, Month> mapOfMonths;
-	/**
-	 * Key: month of year (0 to 11).<br>
-	 * Value: monthID in database.
-	 */
-	private HashMap<Integer, Integer> mapOfMonthIDs;
-
+	private HashMap<Integer, Month> mapOfSingleYear;
 	private int lastSelectedYear = DEFAULT_YEAR;
 
 	//**********************************\
@@ -121,62 +125,65 @@ public class WindowYear extends Application {
 	//**********************************/
 
 	/**
-	 * Initialise and configure this {@code WindowYear} object, and show.
+	 * Initialise and configure this {@code WindowYear} object, then show.
 	 */
 	@Override
 	public void start(Stage generatedStage) throws IOException {
 		stage = generatedStage;
+		initialise();
+	}
+
+	/**
+	 * Initialise JavaFX Nodes.
+	 */
+	private void initialise() {
 		try {
-			setRoot();
-			setScene();
-			setStage();
+
+			// configure root
+			this.loader = new FXMLLoader(getClass().getResource(FXML));
+			this.loader.setController(this);
+			this.root = loader.load();
+
+			// configure scene
+			this.scene = new Scene(root);
+			this.scene.getStylesheets().add(getClass().getResource(CSS).toExternalForm());
+
+			// configure stage
+			this.stage.setScene(scene);
+			this.stage.setResizable(false);
+			this.stage.setTitle("Months for " + lastSelectedYear);
+			this.stage.getIcons().add(new Image(getClass().getResource(ICON).toExternalForm()));
+			this.stage.setOnCloseRequest(new EventHandler<WindowEvent>() {
+				@Override
+				public void handle(WindowEvent event) {
+					stage.close();
+					Platform.exit();
+					System.exit(0);
+				}
+			});
+
+			// set lastSelectedYear
 			lastSelectedYear = DEFAULT_YEAR;
+
+			// refresh data
 			refresh();
+
+			// pass this to Controller
 			Controller.setWindowYear(this);
+
+			// show stage
 			stage.show();
 		} catch (IOException e) {
 			System.err.println("FXMLLoader.load IOException:");
 			e.printStackTrace();
 		}
-
 	}
 
-	/**
-	 * Set the {@code FXMLLoader}, and load the FXML. Additionally, set the controller for this scene-graph.
-	 * 
-	 * @throws IOException if an error occurs during FXML loading during {@link FXMLLoader#load() loading}.
-	 */
-	private void setRoot() throws IOException {
-		this.loader = new FXMLLoader(getClass().getResource(FXML));
-		this.loader.setController(this);
-		this.root = loader.load();
-	}
-
-	/**
-	 * Set the {@code Scene} of this scene-graph, and apply CSS style sheets to the scene.
-	 */
-	private void setScene() {
-		this.scene = new Scene(root);
-		this.scene.getStylesheets().add(getClass().getResource(CSS).toExternalForm());
-	}
-
-	/**
-	 * Set the {@code Stage} of this scene-graph. Title, icon and various configurations are applied here.
-	 */
-	private void setStage() {
-		this.stage.setScene(scene);
-		this.stage.setResizable(false);
-		this.stage.setTitle("Months for " + lastSelectedYear);
-		this.stage.getIcons().add(new Image(getClass().getResource(ICON).toExternalForm()));
-		this.stage.setOnCloseRequest(new EventHandler<WindowEvent>() {
-			@Override
-			public void handle(WindowEvent event) {
-				stage.close();
-				Platform.exit();
-				System.exit(0);
-			}
-		});
-	}
+	//**********************************\
+	//									|
+	//	Getters							|
+	//									|
+	//**********************************/
 
 	//**********************************\
 	//									|
@@ -188,9 +195,29 @@ public class WindowYear extends Application {
 	 * Refresh the Nodes in this scene-graph
 	 */
 	public void refresh() {
+		// get data from Controller
+		List<Month> data = Controller.getData();
+
+		// build mapOfSingleYear and list of years
+		mapOfSingleYear = new HashMap<Integer, Month>();
+		List<Integer> years = new LinkedList<Integer>();
+
+		for (Month month : data) {
+			int yearVal = month.getDate().getYear();
+			int monthVal = month.getDate().getMonthValue() - 1;
+			if (!years.contains(yearVal)) {
+				years.add(yearVal);
+			}
+			if (yearVal == lastSelectedYear) {
+				if (!mapOfSingleYear.containsKey(monthVal)) {
+					mapOfSingleYear.put(monthVal, month);
+				}
+			}
+		}
 
 		// Get all years that have Month objects stored in database
-		ObservableList<Integer> yearsList = FXCollections.observableArrayList(Controller.getDatabaseAccessObject().getYears());
+		ObservableList<Integer> yearsList = FXCollections.observableArrayList(years);
+		Collections.sort(yearsList);
 
 		// set ComboBox drop down menu to hold values of all years from database.
 		yearComboBox.setItems(yearsList);
@@ -223,25 +250,15 @@ public class WindowYear extends Application {
 	 * Configure the 12 buttons that open the {@link view.WindowMonth WindowMonth} for a particular {@link model.domain.Month Month}.
 	 */
 	private void configMonthButtons() {
-		// get Months data for this year from database, and map data for simple confirmation of existence below
-		//List<Month> months = Controller.getDatabaseAccessObject().pullMonthsForYear(lastSelectedYear);
-		HashMap<Integer, Month> monthDBQuery = Controller.getDatabaseAccessObject().queryMonthsForYear(lastSelectedYear);
-		mapOfMonthIDs = new HashMap<Integer, Integer>(12);
-		mapOfMonths = new HashMap<Integer, Month>(12);
-		for (Map.Entry<Integer, Month> entryFromDB : monthDBQuery.entrySet()) {
-			Integer monthID = entryFromDB.getKey();
-			Month month = entryFromDB.getValue();
-			int monthOfYear = month.getDate().getMonthValue() - 1;
-			mapOfMonths.put(monthOfYear, month);
-			mapOfMonthIDs.put(monthOfYear, monthID);
-		}
+
+		// get Months data for this year from Controller
 
 		Button[] buttons = new Button[] { monthJan, monthFeb, monthMar, monthApr, monthMay, monthJun, monthJul, monthAug, monthSep, monthOct, monthNov, monthDec };
 		for (int month = 0; month < buttons.length; month++) {
 			String styleToApply = null;
 			// set button style and enable/ disable depending on whether monthMap had that specific month
 			boolean disabled;
-			if (mapOfMonths.containsKey(month)) {
+			if (mapOfSingleYear.containsKey(month)) {
 				styleToApply = ENABLED_MONTH_BUTTON_CSS;
 				disabled = false;
 			} else {
@@ -262,10 +279,8 @@ public class WindowYear extends Application {
 				buttons[month].setOnAction(new EventHandler<ActionEvent>() {
 					@Override
 					public void handle(ActionEvent e) {
-						Month month = mapOfMonths.get(index);
-						int monthID = mapOfMonthIDs.get(index);
 						try {
-							WindowMonth wm = new WindowMonth(month, monthID);
+							WindowMonth wm = new WindowMonth(mapOfSingleYear.get(index));
 							hide();
 							wm.show();
 						} catch (IllegalArgumentException | IOException wmInstantiationFailureEx) {
