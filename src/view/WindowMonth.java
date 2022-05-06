@@ -477,7 +477,7 @@ public class WindowMonth {
 		opSave.setOnAction(new EventHandler<ActionEvent>() {
 			@Override
 			public void handle(ActionEvent event) {
-				Controller.updateMonth(originalMonth, selectedMonth);
+				Controller.saveData(selectedMonth);
 				unsavedChanges = false;
 				refresh();
 			}

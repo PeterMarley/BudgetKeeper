@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.SortedSet;
 import java.util.TreeSet;
+import java.util.function.Consumer;
 
 /**
  * This class provides methods needed to interact with the BudgetKeeper programs database ({@link})
@@ -107,14 +108,13 @@ public class DatabaseAccessObject {
 			try (ResultSet rs = stmtGetAllMonths.executeQuery(SQLFactory.READ_MONTHS)) {
 				// iterate through ResultSet constructing months and adding them
 				while (rs.next()) {
-					Month month = new Month(LocalDate.parse(rs.getString("date"), Constants.FORMAT_YYYYMM));
+					Month month = generateMonth(rs);
 					month.addTransactions(queryTransactions(rs.getInt("monthID")));
 					resultsList.add(month);
 				}
 			}
 
 		} catch (SQLException e) {
-			e.printStackTrace();
 		}
 		// return results
 		return resultsList;
@@ -154,32 +154,65 @@ public class DatabaseAccessObject {
 	//									|
 	//**********************************/
 
-//	public void saveData(HashMap<Month, Boolean> months) {
-//		//ALGORITHM PSEUDOCODE
-//		//get data (from parameter)
-//		// find months not in data - HOW?
-//		//	add new months
-//		// find months data with different Transaction Lists
-//		//	update months with transaction changes
-//		String SQL = "SELECT * FROM transactions;";
-//		String SQL2 = "SELECT * FROM months;";
-//
-//		List<Month> monthsToUpdate = new LinkedList<Month>();
-//		for (Month month : months.keySet()) {
-//			if (months.get(month)) {
-//				monthsToUpdate.add(month);
-//			}
-//		}
-//
-//		try (Connection c = getConnection();
-//			Statement stmt = c.createStatement()) {
-//			for (Month m : monthsToUpdate) {
-//				String SQL = "UPDATE months SET "
-//			}
-//		} catch (SQLException e) {
-//			e.printStackTrace();
-//		}
-//	}
+	public boolean saveData(Month toSave) {
+
+		try {
+			int monthID = getMonthID(toSave); // TODO presumes the month is present, needs consideration when creating new months
+			HashMap<Transaction, Integer> transactions = queryTransactionsMap(monthID);
+			transactions = filterUneditedTransaction(transactions, toSave.getTransactions());
+
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return false;
+	}
+
+	private HashMap<Transaction, Integer> filterUneditedTransaction(HashMap<Transaction, Integer> transFromDB, SortedSet<Transaction> transFromObj) {
+		for (Transaction t : transFromObj) {
+			if (transFromDB.containsKey(t)) {
+				transFromDB.remove(t);
+			}
+		}
+		return transFromDB;
+	}
+
+	private HashMap<Transaction, Integer> queryTransactionsMap(int monthID) {
+		HashMap<Transaction, Integer> map = new HashMap<Transaction, Integer>();
+		try (Connection c = getConnection();
+			PreparedStatement statement = c.prepareStatement("SELECT * FROM transaction WHERE monthID=?;")) {
+			statement.setInt(1, monthID);
+			try (ResultSet rs = statement.executeQuery();) {
+				while (rs.next()) {
+					map.put(generateTransaction(rs), rs.getInt("monthID"));
+				}
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return map;
+	}
+
+	/**
+	 * Get a Transaction: transactionID HashMap.
+	 * 
+	 * @return {@code HashMap<Transaction, Integer>} a Transaction: transactionID HashMap.
+	 */
+	private HashMap<Transaction, Integer> getTransactions(int monthID) {
+		return null;
+	}
+
+	private int getMonthID(Month toSave) throws SQLException {
+		String s = "SELECT monthID FROM months WHERE date=?;";
+		Integer monthID = null;
+		try (Connection c = getConnection();
+			PreparedStatement state = c.prepareStatement(s)) {
+			state.setString(1, toSave.getDate().format(Constants.FORMAT_YYYYMM));
+			try (ResultSet rs = state.executeQuery()) {
+				monthID = rs.getInt("monthID");
+				return monthID;
+			}
+		}
+	}
 
 	//**********************************\
 	//									|
@@ -213,9 +246,6 @@ public class DatabaseAccessObject {
 		return new Month(LocalDate.parse(rs.getString("date"), Constants.FORMAT_YYYYMM));
 	}
 
-	public boolean saveData() {
-		return false;
-	}
 }
 
 //private HashMap<Transaction, Integer> mapTransactionIDs(int monthID, List<Transaction> list) {
@@ -364,7 +394,6 @@ public class DatabaseAccessObject {
 //			}
 //		}
 //	} catch (SQLException e) {
-//		// TODO Auto-generated catch block
 //		e.printStackTrace();
 //	}
 //	return monthID;

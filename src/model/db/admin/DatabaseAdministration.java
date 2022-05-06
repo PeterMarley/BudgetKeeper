@@ -52,7 +52,7 @@ public class DatabaseAdministration extends DatabaseAccessObject {
 	public int addTransaction(Transaction t, int monthID) {
 		int transKey = SENTINEL_RETURN;
 		try (Connection c = getConnection();
-				PreparedStatement stmtGetTransactions = c.prepareStatement(SQLFactory.READ_TRANSACTIONS_WHERE_MONTHID)) {
+			PreparedStatement stmtGetTransactions = c.prepareStatement(SQLFactory.READ_TRANSACTIONS_WHERE_MONTHID)) {
 			stmtGetTransactions.setInt(1, monthID);
 			SortedSet<Transaction> transactions = queryTransactions(monthID);
 			if (transactions.contains(t)) {
@@ -97,8 +97,8 @@ public class DatabaseAdministration extends DatabaseAccessObject {
 
 		// make connection to database, and create 2 prepared statements
 		try (Connection c = super.getConnection();
-				PreparedStatement stmtSearch = c.prepareStatement(SQLFactory.READ_MONTHS);
-				PreparedStatement stmtAdd = c.prepareStatement(SQLFactory.INSERT_MONTH, Statement.RETURN_GENERATED_KEYS)) {
+			PreparedStatement stmtSearch = c.prepareStatement(SQLFactory.READ_MONTHS);
+			PreparedStatement stmtAdd = c.prepareStatement(SQLFactory.INSERT_MONTH, Statement.RETURN_GENERATED_KEYS)) {
 
 			// search for month, to see if it already exists
 			stmtSearch.setString(1, m.getDate().format(Constants.FORMAT_YYYYMM));
@@ -134,8 +134,8 @@ public class DatabaseAdministration extends DatabaseAccessObject {
 	 */
 	protected void createTables() {
 		try (Connection c = DriverManager.getConnection(Files.DATABASE.toString());
-				Statement stmtCreateTables = c.createStatement();
-				Statement stmtCheckTables = c.createStatement();) {
+			Statement stmtCreateTables = c.createStatement();
+			Statement stmtCheckTables = c.createStatement();) {
 			for (Tables t : Tables.values()) {
 				System.out.println("Schema for table " + t.tableName() + ":");
 				System.out.println(createTable(t));
@@ -150,7 +150,6 @@ public class DatabaseAdministration extends DatabaseAccessObject {
 				System.out.println();
 			}
 		} catch (SQLException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 
@@ -172,7 +171,6 @@ public class DatabaseAdministration extends DatabaseAccessObject {
 
 			}
 		} catch (SQLException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}

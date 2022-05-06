@@ -81,14 +81,16 @@ public class Controller {
 	 */
 	private static void loadData() {
 		months = dao.queryMonths();
-		generateMaps();
+		generateMaps(months);
 	}
 	
-	static void saveData() {
-		dao.saveData(mapToSave);
+
+	
+	public static void saveData(Month m) {
+		dao.saveData(m);
 	}
 
-	private static void generateMaps() {
+	private static void generateMaps(List<Month> months) {
 		mapOfYears = new HashMap<Integer, List<Month>>();
 		mapToSave = new HashMap<Month, Boolean>();
 		for (Month month : months) {
