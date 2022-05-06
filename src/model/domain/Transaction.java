@@ -248,38 +248,32 @@ public class Transaction implements Comparable<Transaction> {
 			return false;
 
 		Transaction other = (Transaction) obj;
-		//		// UNEQUAL if this date is null, and other date is not null
-		//		if (date == null) {
-		//			if (other.date != null)
-		//				return false;
-		//
-		//			// UNEQUAL if date fields are not equal
-		//			//} else if (!date.equals(other.date))
-		//		} else if (getDate().getYear() != other.getDate().getYear() && getDate().getMonth() != other.getDate().getMonth())
-		//			return false;
-		//		// UNEQUAL if income fields are not equal
-		//		if (isIncome() != other.isIncome())
-		//			return false;
-		//		// UNEQUAL if type fields are not equal
-		//		if (getType() != other.getType())
-		//			return false;
-		//		// UNEQUAL if value fields are not equal
-		//		if (Double.doubleToLongBits(getValue()) != Double.doubleToLongBits(other.getValue()))
-		//			return false;
-		//		if (!this.getName().equals(other.getName()))
-		//			return false;
-		//		// OTHERWISE EQUAL
+		// UNEQUAL if this date is null, and other date is not null
+		if (date == null) {
+			if (other.date != null)
+				return false;
 
-		//		if (this.getName().equals(other.getName())
-		//				&& this.getDate().equals(other.getDate())
-		//				&& this.getType().equals(other.getType())
-		//				&& this.getAbsoluteValue() == other.getAbsoluteValue()) {
-		//			return true;
-		//		} else {
-		//			return false;
-		//		}
+			// UNEQUAL if date fields are not equal
+			//} else if (!date.equals(other.date))
+		} else if (getDate().getYear() != other.getDate().getYear() && getDate().getMonth() != other.getDate().getMonth())
+			return false;
+		// UNEQUAL if income fields are not equal
+		if (isIncome() != other.isIncome())
+			return false;
+		// UNEQUAL if type fields are not equal
+		if (getType() != other.getType())
+			return false;
+		// UNEQUAL if value fields are not equal
+		if (Double.doubleToLongBits(getValue()) != Double.doubleToLongBits(other.getValue()))
+			return false;
+		if (!this.getName().equals(other.getName()))
+			return false;
+		// OTHERWISE EQUAL
 
-		if (this.hashCode() == other.hashCode()) {
+		if (this.getName().equals(other.getName())
+				&& this.getDate().equals(other.getDate())
+				&& this.getType().equals(other.getType())
+				&& this.getAbsoluteValue() == other.getAbsoluteValue()) {
 			return true;
 		} else {
 			return false;

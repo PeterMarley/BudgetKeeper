@@ -209,11 +209,13 @@ public class DatabaseAccessObject {
 		return t;
 	}
 
-	private Month generateMonth(ResultSet rs) {
-		Month m
-		return null;
+	private Month generateMonth(ResultSet rs) throws SQLException {
+		return new Month(LocalDate.parse(rs.getString("date"), Constants.FORMAT_YYYYMM));
 	}
 
+	public boolean saveData() {
+		return false;
+	}
 }
 
 //private HashMap<Transaction, Integer> mapTransactionIDs(int monthID, List<Transaction> list) {

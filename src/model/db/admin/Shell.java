@@ -7,7 +7,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Scanner;
 
-import model.db.DatabaseAccessObject;
 import model.domain.Month;
 import model.domain.Transaction;
 import model.domain.Transaction.Type;

@@ -209,7 +209,7 @@ public class Month implements Comparable<Month> {
 			if (other.date != null) {
 				return false;
 			}
-		} else if (!date.equals(other.date)) { 	// UNEQUAL if dates are not the same
+		} else if (!date.equals(other.getDate())) { 	// UNEQUAL if dates are not the same
 			return false;
 		}
 
