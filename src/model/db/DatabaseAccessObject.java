@@ -21,6 +21,7 @@ import java.util.InputMismatchException;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.function.Consumer;
@@ -155,35 +156,162 @@ public class DatabaseAccessObject {
 	//**********************************/
 
 	public boolean saveData(Month toSave) {
+System.out.println("*********************************");
+System.out.println("saving data");
+System.out.println("*********************************");
 
 		try {
 			int monthID = getMonthID(toSave); // TODO presumes the month is present, needs consideration when creating new months
-			HashMap<Transaction, Integer> transactions = queryTransactionsMap(monthID);
-			transactions = filterUneditedTransaction(transactions, toSave.getTransactions());
+			//			HashMap<Transaction, Integer> transactions = queryTransactionsMap(monthID).forEach(null);;
+			//			transactions = filterUneditedTransaction(transactions, toSave.getTransactions());
+			//			StringBuilder d = new StringBuilder();
+			//			d.append("DELETE FROM transactions WHERE");
+			//			StringBuilder u = new StringBuilder();
+			//			u.append("UPDATE transactions SET transactionID=?, date=?, type=?, value=? WHERE monthID=? AND transactionID=?;");
+			//			StringBuilder a = new StringBuilder();
+			//			a.append("INSERT INTO transactions (transactionID, monthID, income, date, type, value) VALUES (?,?,?,?,?,?);");
 
-		} catch (SQLException e) {
+			List<String> addSQLs = new LinkedList<String>();
+			List<String> updSQLs = new LinkedList<String>();
+			List<String> delSQLs = new LinkedList<String>();
+			HashMap<Integer, Transaction> tMap = queryTransactionsMap(monthID);
+			Set<Integer> transactionIDsFromDB = tMap.keySet();
+			List<Transaction> tFromObj = new LinkedList<Transaction>(toSave.getTransactions());
+
+			//			List<Transaction> dList = new LinkedList<Transaction>();
+			//			List<Transaction> uList = new LinkedList<Transaction>();
+			//			List<Transaction> aList = new LinkedList<Transaction>();
+
+			//List<Transaction> toRemove = new LinkedList<Transaction>();
+			for (int i = 0; i < tFromObj.size(); i++) {
+				//for (Transaction t : tFromObj) {
+				Transaction t = tFromObj.get(i);
+				System.out.println(t);
+				System.out.println(t.hasChanged());
+				System.out.println(t.getTransactionID());
+				System.out.println(t.hashCode());
+				int oldTID = t.getTransactionID();
+				boolean hasChanged = t.hasChanged();
+				t.updateTransactionID();
+
+
+				if (transactionIDsFromDB.contains(oldTID)) {	// db has tid
+
+					if (hasChanged) {									// but t has changed: update list
+
+						t.updateTransactionID();
+
+						updSQLs.add(String.format("UPDATE transactions SET transactionID=%d, date='%s', type='%s', value=%f, income=%d, paid=%d WHERE monthID=%d AND transactionID=%s;",
+							t.getTransactionID(),
+							t.getDate().format(Constants.FORMAT_YYYYMMDD),
+							t.getType().name(),
+							t.getAbsoluteValue(),
+							(t.isIncome()) ? 1 : 0,
+							(t.isPaid()) ? 1 : 0,
+							monthID, // where
+							oldTID));
+
+					}
+
+				} else {													// db does NOT have old tid
+
+					if (!transactionIDsFromDB.contains(t.getTransactionID())) {		// db does NOT have new tidhave
+						/*
+						UPDATE table_name
+						SET column1 = value1, column2 = value2, ...
+						WHERE condition; 
+						 */
+						//						String.format("UPDATE transactions SET transactionID=%d, income=%d, paid=%d, type='%s', value=%f WHERE transactionID=%d AND monthID=%d;",
+						//							t.getTransactionID(),
+						//							t.isIncome() ? 1 : 0,
+						//							t.isPaid() ? 1 : 0,
+						//							t.getType().name(),
+						//							t.getAbsoluteValue(),
+						//							oldTID,
+						//							monthID);
+						//						String.format("INSERT INTO transactions (transactionID, monthID, income, paid, date, type, value) VALUES (%d,%d,%d,%d,'%s','%s',%f);",
+						//							t.getTransactionID(),
+						//							monthID,
+						//							(t.isIncome()) ? 1 : 0,
+						//							(t.isPaid()) ? 1 : 0,
+						//							t.getDate().format(Constants.FORMAT_YYYYMMDD),
+						//							t.getType().name(),
+						//							t.getAbsoluteValue());
+						addSQLs.add(String.format("UPDATE transactions SET transactionID=%d, income=%d, paid=%d, type='%s', value=%f WHERE transactionID=%d AND monthID=%d;",
+							t.getTransactionID(),
+							t.isIncome() ? 1 : 0,
+							t.isPaid() ? 1 : 0,
+							t.getType().name(),
+							t.getAbsoluteValue(),
+							oldTID,
+							monthID));
+
+						// db does not have new tid, but does have old: add list
+
+					}
+				}
+			}
+
+			try (Connection c = getConnection()) {
+				for (String add : addSQLs) {
+					try (Statement addStmt = c.createStatement()) {
+						addStmt.executeUpdate(add);
+					} catch (SQLException e) {
+						System.err.println("Failed to add the following transaction from addSQLs:");
+						System.err.println(add);
+					}
+				}
+
+				for (String update : updSQLs) {
+					try (Statement uptStmt = c.createStatement()) {
+						uptStmt.executeUpdate(update);
+					}
+				}
+			}
+
+			toSave.getTransactions().clear();
+			toSave.getTransactions().addAll(tFromObj);
+
+			/* <pre>
+			 * CREATE TABLE transactions (
+			 * 	transactionID INTEGER NOT NULL,
+			 * 	monthID INTEGER NOT NULL,
+			 * 	income INTEGER,
+			 * 	date TEXT,
+			 * 	type TEXT,
+			 * 	value REAL,
+			 * 	PRIMARY KEY(transactionID),
+			 * 	FOREIGN KEY(monthID) REFERENCES months (monthID)
+			 * );*/
+
+		} catch (
+
+		SQLException e) {
 			e.printStackTrace();
 		}
+		System.out.println("*********************************");
+		System.out.println("finished saving data");
+		System.out.println("*********************************");
 		return false;
+	
 	}
 
-	private HashMap<Transaction, Integer> filterUneditedTransaction(HashMap<Transaction, Integer> transFromDB, SortedSet<Transaction> transFromObj) {
-		for (Transaction t : transFromObj) {
-			if (transFromDB.containsKey(t)) {
-				transFromDB.remove(t);
-			}
-		}
-		return transFromDB;
-	}
+	//	private HashMap<Transaction, Integer> filterUneditedTransaction(HashMap<Transaction, Integer> transFromDB, SortedSet<Transaction> transFromObj) {
+	//		for (Transaction t : transFromObj) {
+	//			if (transFromDB.containsKey(t)) {
+	//				transFromDB.remove(t);
+	//			}
+	//		}
+	//		return transFromDB;
 
-	private HashMap<Transaction, Integer> queryTransactionsMap(int monthID) {
-		HashMap<Transaction, Integer> map = new HashMap<Transaction, Integer>();
+	private HashMap<Integer, Transaction> queryTransactionsMap(int monthID) {
+		HashMap<Integer, Transaction> map = new HashMap<Integer, Transaction>();
 		try (Connection c = getConnection();
-			PreparedStatement statement = c.prepareStatement("SELECT * FROM transaction WHERE monthID=?;")) {
+			PreparedStatement statement = c.prepareStatement("SELECT * FROM transactions WHERE monthID=?;")) {
 			statement.setInt(1, monthID);
 			try (ResultSet rs = statement.executeQuery();) {
 				while (rs.next()) {
-					map.put(generateTransaction(rs), rs.getInt("monthID"));
+					map.put(rs.getInt("transactionID"), generateTransaction(rs));
 				}
 			}
 		} catch (SQLException e) {

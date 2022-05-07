@@ -198,8 +198,8 @@ public class WindowTransaction {
 			} else {
 				Alert alert = new Alert(AlertType.CONFIRMATION);
 				alert.setContentText("Are you sure you want to cancel " +
-						((operation == Operation.ADD) ? "Adding" : "Editing") +
-						" this Transaction?");
+					((operation == Operation.ADD) ? "Adding" : "Editing") +
+					" this Transaction?");
 				alert.setHeaderText("You are about to abandon this transaction!");
 				alert.setTitle("Please confirm cancellation.");
 				Optional<ButtonType> result = alert.showAndWait();
@@ -333,8 +333,8 @@ public class WindowTransaction {
 		} else {
 			Alert alert = new Alert(AlertType.CONFIRMATION);
 			alert.setContentText("Are you sure you want to cancel " +
-					((operation == Operation.ADD) ? "Adding" : "Editing") +
-					" this Transaction?");
+				((operation == Operation.ADD) ? "Adding" : "Editing") +
+				" this Transaction?");
 			alert.setHeaderText("You are about to abandon this transaction!");
 			alert.setTitle("Please confirm cancellation.");
 			Optional<ButtonType> result = alert.showAndWait();
@@ -389,18 +389,36 @@ public class WindowTransaction {
 	 */
 	private Transaction collectTransaction() {
 		Transaction tr = null;
+		// capture parameters
+		String paramName = name.getText();
+		boolean paramPaid = paid.isSelected();
+		boolean paramIncome = incomeMap.get(income.getValue());
+		Type paramType = Type.valueOf(typeMap.get(type.getValue()));
+		double paramValue = Math.abs(Double.valueOf(value.getText()));
+		LocalDate paramDate = date.getValue();
+		int paramOldTID = t.getTransactionID();
 		try {
-			tr = new Transaction(name.getText(),
-					paid.isSelected(),
-					date.getValue(),
-					incomeMap.get(income.getValue()),
-					Type.valueOf(typeMap.get(type.getValue())),
-					Math.abs(Double.valueOf(value.getText())));
-		} catch (Exception e) {
-			System.out.println("Collecting Transaction failed!");
-			System.out.println(e.getClass().toString());
+		tr = new Transaction(paramName,
+			paramPaid,
+			paramDate,
+			paramIncome,
+			paramType,
+			paramValue,
+			paramOldTID);
+		} catch (IllegalArgumentException instantiationFailEx) {
 		}
+		int trHash = tr.hashCode();
+		int tHash = t.hashCode();
+//		if (tr != null && trHash != tHash) {
+//			t.setName(paramName);
+//			t.setIncome(paramIncome);
+//			t.setPaid(paramPaid);
+//			t.setValue(paramValue);
+//			t.setDate(paramDate);
+//			return t;
+//		} 
 		return tr;
+
 	}
 
 	/**

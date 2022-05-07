@@ -59,6 +59,8 @@ public class Transaction implements Comparable<Transaction> {
 	private SimpleStringProperty name;
 	private SimpleBooleanProperty isPaid;
 
+	private int transactionID;
+
 	//------------------------------\
 	//	Construction				|
 	//------------------------------/
@@ -79,6 +81,29 @@ public class Transaction implements Comparable<Transaction> {
 		this.setType(type);
 		this.setValue(value);
 		this.setIncome(isIncome);
+		this.setTransactionID(this.hashCode());
+	}
+
+	/**
+	 * Create a Transaction object
+	 * 
+	 * @param date     the date of this transaction
+	 * @param isIncome true = income, false = outgoing
+	 * @param type
+	 * @param value    the value of this transaction
+	 */
+
+	public Transaction(String name, boolean isPaid, LocalDate date, boolean isIncome, Type type, double value, int transID) {
+		this.setName(name);
+		this.setPaid(isPaid);
+		this.setDate(date);
+		this.setType(type);
+		this.setValue(value);
+		this.setIncome(isIncome);
+		this.setTransactionID(transID);
+		System.out.println(this.toString());
+		System.out.println(hashCode());
+
 	}
 
 	//------------------------------\
@@ -113,6 +138,23 @@ public class Transaction implements Comparable<Transaction> {
 	 */
 	public void setName(String name) {
 		this.name = new SimpleStringProperty(validate(name, 1, null));
+	}
+
+	/**
+	 * Update the transactionID of this object to its current hashCode.
+	 */
+	public void setTransactionID(int transID) {
+		System.out.println("========================");
+		System.out.println("Setting tID in updateTransactionID " + transID);
+		this.transactionID = transID;
+
+		System.out.println(this.toString());
+		System.out.println("========================");
+
+	}
+
+	public void updateTransactionID() {
+		setTransactionID(hashCode());
 	}
 
 	/**
@@ -163,10 +205,24 @@ public class Transaction implements Comparable<Transaction> {
 	}
 
 	/**
+	 * If this object has been changed since construction, then the transactionID (that is set on construction to the hashCode()) will not equal the
+	 * current hashCode();
+	 * 
+	 * @return
+	 */
+	public boolean hasChanged() {
+		return this.hashCode() != this.transactionID;
+	}
+
+	/**
 	 * @return the type
 	 */
 	public Type getType() {
 		return Type.valueOf(type.get());
+	}
+
+	public int getTransactionID() {
+		return this.transactionID;
 	}
 
 	/**
@@ -271,9 +327,9 @@ public class Transaction implements Comparable<Transaction> {
 		// OTHERWISE EQUAL
 
 		if (this.getName().equals(other.getName())
-				&& this.getDate().equals(other.getDate())
-				&& this.getType().equals(other.getType())
-				&& this.getAbsoluteValue() == other.getAbsoluteValue()) {
+			&& this.getDate().equals(other.getDate())
+			&& this.getType().equals(other.getType())
+			&& this.getAbsoluteValue() == other.getAbsoluteValue()) {
 			return true;
 		} else {
 			return false;
@@ -283,7 +339,8 @@ public class Transaction implements Comparable<Transaction> {
 
 	@Override
 	public String toString() {
-		return "Transaction [income=" + isIncome() + ", date=" + getDate() + ", type=" + getType() + ", value=" + getValue() + "]";
+		return "Transaction [name=" + getName() + ", income=" + isIncome() + ", date=" + getDate() + ", type=" + getType() + ", value=" + getValue() + ", transID=" + getTransactionID() + ", hashCode="
+			+ hashCode() + ", hasChanged=" + hasChanged() + "]";
 	}
 
 }

@@ -61,13 +61,14 @@ public class DatabaseAdministration extends DatabaseAccessObject {
 				try (PreparedStatement stmtAddTrans = c.prepareStatement(SQLFactory.INSERT_TRANSACTION, Statement.RETURN_GENERATED_KEYS)) {
 					//"INSERT INTO transactions (monthID, name, paid, income, date, type, value) VALUES (?,?,?,?,?);";
 
-					stmtAddTrans.setInt(1, monthID);
-					stmtAddTrans.setString(2, t.getName());
-					stmtAddTrans.setInt(3, (t.isPaid()) ? 1 : 0);
-					stmtAddTrans.setInt(4, ((t.isIncome()) ? 1 : 0));
-					stmtAddTrans.setString(5, t.getDate().format(Constants.FORMAT_YYYYMMDD));
-					stmtAddTrans.setString(6, t.getType().name());
-					stmtAddTrans.setDouble(7, t.getAbsoluteValue());
+					stmtAddTrans.setInt(1, t.getTransactionID());
+					stmtAddTrans.setInt(2, monthID);
+					stmtAddTrans.setString(3, t.getName());
+					stmtAddTrans.setInt(4, t.isPaid() ? 1 : 0);
+					stmtAddTrans.setInt(5, t.isIncome() ? 1 : 0);
+					stmtAddTrans.setString(6, t.getDate().format(Constants.FORMAT_YYYYMMDD));
+					stmtAddTrans.setString(7, t.getType().name());
+					stmtAddTrans.setDouble(8, t.getAbsoluteValue());
 					transKey = stmtAddTrans.executeUpdate();
 					System.out.println("Transaction Successfully added.");
 				}
@@ -97,7 +98,7 @@ public class DatabaseAdministration extends DatabaseAccessObject {
 
 		// make connection to database, and create 2 prepared statements
 		try (Connection c = super.getConnection();
-			PreparedStatement stmtSearch = c.prepareStatement(SQLFactory.READ_MONTHS);
+			PreparedStatement stmtSearch = c.prepareStatement(SQLFactory.READ_MONTHS_WHERE_DATE);
 			PreparedStatement stmtAdd = c.prepareStatement(SQLFactory.INSERT_MONTH, Statement.RETURN_GENERATED_KEYS)) {
 
 			// search for month, to see if it already exists

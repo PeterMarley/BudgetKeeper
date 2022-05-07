@@ -26,7 +26,7 @@ public class SQLFactory {
 	/**
 	 * <code>{@value}</code>
 	 */
-	public static final String INSERT_TRANSACTION = "INSERT INTO transactions (monthID, name, paid, income, date, type, value) VALUES (?,?,?,?,?,?,?);";
+	public static final String INSERT_TRANSACTION = "INSERT INTO transactions (transactionID, monthID, name, paid, income, date, type, value) VALUES (?,?,?,?,?,?,?,?);";
 
 	//**********************************\
 	//									|
