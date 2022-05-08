@@ -117,6 +117,9 @@ public class WindowYear extends Application {
 	// year selection nodes
 	@FXML private Button selectYearButton;
 	@FXML private ComboBox<Integer> yearComboBox;
+	
+	// operations nodes
+	@FXML private Button addMonth;
 
 	//**********************************\
 	//									|
@@ -196,13 +199,13 @@ public class WindowYear extends Application {
 	 */
 	public void refresh() {
 		// get data from Controller
-		List<Month> data = Controller.getData();
+		List<Month> obsData = Controller.getObservableData();
 
 		// build mapOfSingleYear and list of years
 		mapOfSingleYear = new HashMap<Integer, Month>();
 		List<Integer> years = new LinkedList<Integer>();
 
-		for (Month month : data) {
+		for (Month month : obsData) {
 			int yearVal = month.getDate().getYear();
 			int monthVal = month.getDate().getMonthValue() - 1;
 			if (!years.contains(yearVal)) {
@@ -250,23 +253,23 @@ public class WindowYear extends Application {
 	 * Configure the 12 buttons that open the {@link view.WindowMonth WindowMonth} for a particular {@link model.domain.Month Month}.
 	 */
 	private void configMonthButtons() {
-
+		
 		// get Months data for this year from Controller
 
 		Button[] buttons = new Button[] { monthJan, monthFeb, monthMar, monthApr, monthMay, monthJun, monthJul, monthAug, monthSep, monthOct, monthNov, monthDec };
 		for (int month = 0; month < buttons.length; month++) {
 			String styleToApply = null;
 			// set button style and enable/ disable depending on whether monthMap had that specific month
-			boolean disabled;
+			boolean monthExists;
 			if (mapOfSingleYear.containsKey(month)) {
 				styleToApply = ENABLED_MONTH_BUTTON_CSS;
-				disabled = false;
+				monthExists = true;
 			} else {
 				styleToApply = DISABLED_MONTH_BUTTON_CSS;
-				disabled = true;
+				monthExists = false;
 			}
 			buttons[month].setStyle(styleToApply);
-			buttons[month].setDisable(disabled);
+			//buttons[month].setDisable(monthExists);
 
 			/**
 			 * set action handler for button
@@ -274,13 +277,28 @@ public class WindowYear extends Application {
 			 * When Button for a particular Month is fired, a Runnable created as an anonymouse inner class and run on a new Thread,
 			 * which displays the WindowMonth JavaFX scene-graph/
 			 */
-			if (!disabled) {
-				final int index = month;
+			final int monthIndex = month;
+			if (monthExists) {
 				buttons[month].setOnAction(new EventHandler<ActionEvent>() {
 					@Override
 					public void handle(ActionEvent e) {
 						try {
-							WindowMonth wm = new WindowMonth(mapOfSingleYear.get(index));
+							WindowMonth wm = new WindowMonth(mapOfSingleYear.get(monthIndex));
+							hide();
+							wm.show();
+						} catch (IllegalArgumentException | IOException wmInstantiationFailureEx) {
+							wmInstantiationFailureEx.printStackTrace();
+						}
+					}
+				});
+			} else {
+				buttons[month].setOnAction(new EventHandler<ActionEvent>() {
+					@Override
+					public void handle(ActionEvent e) {
+						try {
+							Month m = new Month(LocalDate.parse(String.format("%4d/%02d", lastSelectedYear, monthIndex + 1), Constants.FORMAT_YYYYMM) );
+							mapOfSingleYear.put(monthIndex, m);
+							WindowMonth wm = new WindowMonth(m);
 							hide();
 							wm.show();
 						} catch (IllegalArgumentException | IOException wmInstantiationFailureEx) {
@@ -310,5 +328,6 @@ public class WindowYear extends Application {
 			if (key.getCode() == KeyCode.ENTER)
 				selectYearButton.fire();
 		});
+		
 	}
 }

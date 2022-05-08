@@ -3,6 +3,7 @@ package view;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.format.TextStyle;
+import java.time.temporal.ChronoField;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -259,7 +260,7 @@ public class WindowTransaction {
 		name.setText((t != null) ? t.getName() : "");
 
 		// date
-		date.setValue((t != null) ? t.getDate() : LocalDate.now());
+		date.setValue((t != null) ? t.getDate() : (m != null) ? m.getDate() : LocalDate.now());
 		date.setOnAction(new EventHandler<ActionEvent>() {
 			@Override
 			public void handle(ActionEvent event) {
@@ -267,15 +268,20 @@ public class WindowTransaction {
 					DatePicker dp = (DatePicker) event.getSource();
 					boolean accepted = true;
 
-					if (t == null || dp.getValue().getMonthValue() != t.getDate().getMonthValue() || dp.getValue().getYear() != t.getDate().getYear()) {
+					if (dp.getValue().getMonthValue() != m.getDate().getMonthValue()
+						|| dp.getValue().getYear() != m.getDate().getYear()) {
 						accepted = false;
 					}
 
-					if (accepted) {
-						dp.setValue(LocalDate.of(t.getDate().getYear(), t.getDate().getMonthValue(), t.getDate().getDayOfMonth()));
+					if (!accepted && m != null) {
 						Alert alert = new Alert(AlertType.INFORMATION);
-						alert.setContentText("You must select a day in " + t.getDate().getMonth().getDisplayName(TextStyle.FULL, Locale.UK) + " " + t.getDate().getYear());
+						alert.setContentText("You must select a day in " + m.getDate().getMonth().getDisplayName(TextStyle.FULL, Locale.UK) + " " + m.getDate().getYear());
+						alert.setTitle("Bad date selection...");
+						LocalDate dpValue = dp.getValue();
+						alert.setHeaderText("You selected a date in " + dpValue.getMonth().getDisplayName(TextStyle.FULL_STANDALONE, Locale.UK) + " " + dpValue.getYear());
 						alert.show();
+						//dp.setValue(LocalDate.of(t.getDate().getYear(), t.getDate().getMonthValue(), t.getDate().getDayOfMonth()));
+						dp.setValue(m.getDate());
 					}
 				}
 			}
@@ -328,6 +334,8 @@ public class WindowTransaction {
 
 		Transaction collectedTransaction = collectTransaction();
 
+		boolean collectionSuccess;
+		boolean transactionChanged;
 		if (collectedTransaction == null || (t != null && collectedTransaction.equals(t))) {
 			close();
 		} else {
@@ -389,34 +397,35 @@ public class WindowTransaction {
 	 */
 	private Transaction collectTransaction() {
 		Transaction tr = null;
-		// capture parameters
-		String paramName = name.getText();
-		boolean paramPaid = paid.isSelected();
-		boolean paramIncome = incomeMap.get(income.getValue());
-		Type paramType = Type.valueOf(typeMap.get(type.getValue()));
-		double paramValue = Math.abs(Double.valueOf(value.getText()));
-		LocalDate paramDate = date.getValue();
-		int paramOldTID = t.getTransactionID();
+
 		try {
-		tr = new Transaction(paramName,
-			paramPaid,
-			paramDate,
-			paramIncome,
-			paramType,
-			paramValue,
-			paramOldTID);
+			// capture parameters
+			String paramName = name.getText();
+			boolean paramPaid = paid.isSelected();
+			boolean paramIncome = incomeMap.get(income.getValue());
+			Type paramType = Type.valueOf(typeMap.get(type.getValue()));
+			double paramValue = Math.abs(Double.valueOf(value.getText()));
+			LocalDate paramDate = date.getValue();
+			int paramOldTID = (t != null) ? t.getTransactionID() : Transaction.NEW_ID;
+			tr = new Transaction(paramName,
+				paramPaid,
+				paramDate,
+				paramIncome,
+				paramType,
+				paramValue,
+				paramOldTID);
 		} catch (IllegalArgumentException instantiationFailEx) {
 		}
-		int trHash = tr.hashCode();
-		int tHash = t.hashCode();
-//		if (tr != null && trHash != tHash) {
-//			t.setName(paramName);
-//			t.setIncome(paramIncome);
-//			t.setPaid(paramPaid);
-//			t.setValue(paramValue);
-//			t.setDate(paramDate);
-//			return t;
-//		} 
+		//int trHash = tr.hashCode();
+		//int tHash = (t != null) ? t.hashCode() : Transaction.NEW_ID;
+		//		if (tr != null && trHash != tHash) {
+		//			t.setName(paramName);
+		//			t.setIncome(paramIncome);
+		//			t.setPaid(paramPaid);
+		//			t.setValue(paramValue);
+		//			t.setDate(paramDate);
+		//			return t;
+		//		} 
 		return tr;
 
 	}

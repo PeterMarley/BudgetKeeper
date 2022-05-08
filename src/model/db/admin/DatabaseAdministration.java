@@ -28,9 +28,9 @@ public class DatabaseAdministration extends DatabaseAccessObject {
 	 * @param transaction
 	 * @param monthID
 	 */
-	public void addTransactions(Collection<Transaction> transactions, int monthID) {
+	synchronized void addTransactions(Collection<Transaction> transactions, int monthID) {
 		try (Connection c = getConnection()) {
-			SortedSet<Transaction> transactionsForMonth = queryTransactions(monthID);
+			SortedSet<Transaction> transactionsForMonth = selectTransactions(monthID);
 			for (Transaction t : transactions) {
 				if (!transactionsForMonth.contains(t)) {
 					addTransaction(t, monthID);
@@ -49,12 +49,12 @@ public class DatabaseAdministration extends DatabaseAccessObject {
 	 * @param monthID
 	 * @return
 	 */
-	public int addTransaction(Transaction t, int monthID) {
+	synchronized int addTransaction(Transaction t, int monthID) {
 		int transKey = SENTINEL_RETURN;
 		try (Connection c = getConnection();
 			PreparedStatement stmtGetTransactions = c.prepareStatement(SQLFactory.READ_TRANSACTIONS_WHERE_MONTHID)) {
 			stmtGetTransactions.setInt(1, monthID);
-			SortedSet<Transaction> transactions = queryTransactions(monthID);
+			SortedSet<Transaction> transactions = selectTransactions(monthID);
 			if (transactions.contains(t)) {
 				System.out.println("This transaction already exists in database for this month");
 			} else {
@@ -91,13 +91,13 @@ public class DatabaseAdministration extends DatabaseAccessObject {
 	 * @param m
 	 * @return the primary key of the new month in database, or {@value #SENTINEL_RETURN} if the month was not added
 	 */
-	public int addMonth(Month m) {
+	synchronized int addMonth(Month m) {
 		int generatedPrimaryKey = SENTINEL_RETURN;
 		//TODO add transactions
 		System.out.println("Attempting to add Month " + m.toString() + " to database.");
 
 		// make connection to database, and create 2 prepared statements
-		try (Connection c = super.getConnection();
+		try (Connection c = getConnection();
 			PreparedStatement stmtSearch = c.prepareStatement(SQLFactory.READ_MONTHS_WHERE_DATE);
 			PreparedStatement stmtAdd = c.prepareStatement(SQLFactory.INSERT_MONTH, Statement.RETURN_GENERATED_KEYS)) {
 
@@ -133,18 +133,18 @@ public class DatabaseAdministration extends DatabaseAccessObject {
 	/**
 	 * Create all tables pointed to by {@link Constants.Tables} enum.
 	 */
-	protected void createTables() {
+	protected synchronized void createTables() {
 		try (Connection c = DriverManager.getConnection(Files.DATABASE.toString());
 			Statement stmtCreateTables = c.createStatement();
 			Statement stmtCheckTables = c.createStatement();) {
 			for (Tables t : Tables.values()) {
 				System.out.println("Schema for table " + t.tableName() + ":");
-				System.out.println(createTable(t));
+				System.out.println(SQLFactory.SQLCreateTable(t));
 				try (ResultSet rs = stmtCheckTables.executeQuery("SELECT * FROM sqlite_schema WHERE type='table' AND name='" + t.tableName() + "'");) {
 					if (rs.next()) {
 						System.out.println("OPERATION: Table " + t.tableName() + " already exists.");
 					} else {
-						stmtCreateTables.executeUpdate(createTable(t));
+						stmtCreateTables.executeUpdate(SQLFactory.SQLCreateTable(t));
 						System.out.println("OPERATION: Table " + t.tableName() + " created.");
 					}
 				}
@@ -159,12 +159,12 @@ public class DatabaseAdministration extends DatabaseAccessObject {
 	/**
 	 * Drop all tables specified in {@link model.db.Constants.Tables Tables} enum.
 	 */
-	protected void dropTables() {
+	public synchronized void dropTables() {
 		try (Connection c = DriverManager.getConnection(Files.DATABASE.toString())) {
 			for (Tables t : Tables.values()) {
 
 				try (Statement stmtDropTables = c.createStatement();) {
-					stmtDropTables.executeUpdate(dropTable(t));
+					stmtDropTables.executeUpdate(SQLFactory.SQLDropTable(t));
 					System.out.println("OPERATION: Table " + t.tableName() + " dropped.");
 				} catch (SQLException e) {
 					System.out.println("OPERATION: Could not drop " + t.tableName());
@@ -175,58 +175,4 @@ public class DatabaseAdministration extends DatabaseAccessObject {
 			e.printStackTrace();
 		}
 	}
-
-	/**
-	 * Generate DROP TABLE SQL statements for a {@link Tables} enum.
-	 * 
-	 * @param table
-	 * @return an SQL code String that will drop a table specified by {@code table} parameter.
-	 */
-	protected synchronized String dropTable(Tables table) throws IllegalArgumentException {
-		nullCheck(table);
-		StringBuilder b = new StringBuilder();
-		b.append("DROP TABLE ");
-		b.append(table.tableName());
-		b.append(";");
-
-		return b.toString();
-
-	}
-
-	/**
-	 * Generate CREATE TABLE statements for a {@link Tables} enum.
-	 * 
-	 * @param table
-	 * @return an SQL code String that will create a table specified by {@code table} parameter. Formatted pleasingly for .schema viewing.
-	 */
-	protected synchronized String createTable(Tables table) throws IllegalArgumentException {
-		nullCheck(table);
-		StringBuilder b = new StringBuilder();
-		b.append("CREATE TABLE ");
-		b.append(table.tableName());
-		b.append(" (%n");
-		for (int i = 0; i < table.columns().length; i++) {
-			b.append("\t");
-			b.append(table.columns()[i]);
-			b.append(",%n");
-		}
-		b.append("\tPRIMARY KEY(");
-		b.append(table.primaryKey());
-		b.append(")");
-		if (table.foreignKeys() != null) {
-			b.append(",%n");
-			b.append("\tFOREIGN KEY(");
-			b.append(table.foreignKeys()[0]);
-			b.append(") REFERENCES ");
-			b.append(table.foreignKeys()[1]);
-			b.append(" (");
-			b.append(table.foreignKeys()[0]);
-			b.append(")%n");
-		} else {
-			b.append("%n");
-		}
-		b.append(");");
-		return String.format(b.toString());
-	}
-
 }

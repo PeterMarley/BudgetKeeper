@@ -1,18 +1,15 @@
 package controller;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 import javafx.application.Application;
-import log.Logger;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import model.db.DatabaseAccessObject;
 import model.domain.Month;
 import model.domain.Transaction;
-import model.domain.comparators.MonthComparatorDate;
 import view.WindowMonth;
 import view.WindowTransaction;
 import view.WindowYear;
@@ -42,12 +39,13 @@ public class Controller {
 	 */
 	private static HashMap<Integer, List<Month>> mapOfYears;
 
-	private static HashMap<Month, Boolean> mapToSave;
+	//private static HashMap<Month, Boolean> mapToSave;
 
 	/**
 	 * Main data for program
 	 */
-	private static List<Month> months;
+	//private static List<Month> months;
+	private static ObservableList<Month> obsMonths;
 
 	/**
 	 * Database access object
@@ -80,8 +78,8 @@ public class Controller {
 	 * Load data from database
 	 */
 	private static void loadData() {
-		months = dao.queryMonths();
-		generateMaps(months);
+		obsMonths = FXCollections.observableArrayList(dao.loadData());
+		generateMaps(obsMonths);
 	}
 	
 
@@ -92,13 +90,13 @@ public class Controller {
 
 	private static void generateMaps(List<Month> months) {
 		mapOfYears = new HashMap<Integer, List<Month>>();
-		mapToSave = new HashMap<Month, Boolean>();
+		//mapToSave = new HashMap<Month, Boolean>();
 		for (Month month : months) {
 			int year = month.getDate().getYear();
 			if (!mapOfYears.containsKey(month.getDate().getYear())) {
 				mapOfYears.put(year, new ArrayList<Month>(12));
 			}
-			mapToSave.put(month, false);
+			//mapToSave.put(month, false);
 			mapOfYears.get(year).add(month);
 		}
 	}
@@ -135,9 +133,9 @@ public class Controller {
 	//	}
 
 	public static void updateMonth(Month original, Month edited) {
-		months.remove(original);
-		months.add(edited);
-		mapToSave.put(edited, true);
+		obsMonths.remove(original);
+		obsMonths.add(edited);
+		//mapToSave.put(edited, true);
 	}
 
 	//**********************************\
@@ -190,8 +188,9 @@ public class Controller {
 	//									|
 	//**********************************/
 
-	public static List<Month> getData() {
-		return months;
+	public static List<Month> getObservableData() {
+		loadData();
+		return obsMonths;
 	}
 
 	/**

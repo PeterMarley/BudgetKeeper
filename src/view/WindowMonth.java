@@ -25,6 +25,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
+import javafx.scene.control.Label;
 import javafx.scene.control.SelectionMode;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
@@ -85,6 +86,8 @@ public class WindowMonth {
 	@FXML private Button opTransactionDelete;
 	@FXML private Button opSave;
 	@FXML private Button opCancel;
+	
+	@FXML private Label labelUnsavedChanges;
 
 	//**********************************\
 	//									|
@@ -222,6 +225,7 @@ public class WindowMonth {
 			@Override
 			public void handle(WindowEvent event) {
 				stage.close();
+				Controller.getWindowYear().refresh();
 				Controller.getWindowYear().show();
 			}
 		});
@@ -478,7 +482,7 @@ public class WindowMonth {
 			@Override
 			public void handle(ActionEvent event) {
 				Controller.saveData(selectedMonth);
-				unsavedChanges = false;
+				setUnsavedChanges(false);
 				refresh();
 			}
 		});
@@ -498,20 +502,34 @@ public class WindowMonth {
 		opTransactionEdit.setOnAction(new EventHandler<ActionEvent>() {
 			@Override
 			public void handle(ActionEvent event) {
-				Transaction selected = transactionsTable.getSelectionModel().getSelectedItem();
-				if (selected != null) {
+				Transaction selectedTransaction = transactionsTable.getSelectionModel().getSelectedItem();
+				if (selectedTransaction != null) {
 					try {
 
-						WindowTransaction wt = new WindowTransaction(selectedMonth, selected);
+						WindowTransaction wt = new WindowTransaction(selectedMonth, selectedTransaction);
 						wt.show();
 
 					} catch (IllegalArgumentException | IOException e) {
-						System.err.println("Failed to instantiate a WindowTransaction with Transaction :" + selected.toString());
+						System.err.println("Failed to instantiate a WindowTransaction with Transaction :" + selectedTransaction.toString());
 						e.printStackTrace();
 					}
 				}
 			}
 		});
+		opTransactionDelete.setOnAction(new EventHandler<ActionEvent>() {
+
+			@Override
+			public void handle(ActionEvent event) {
+				Transaction selectedTransaction = transactionsTable.getSelectionModel().getSelectedItem();
+				selectedMonth.removeTransaction(selectedTransaction);
+				setUnsavedChanges(true);
+				initData();
+				refresh();
+			}
+		});
+		
+		labelUnsavedChanges.setStyle("-fx-text-fill: red;");
+		setUnsavedChanges(unsavedChanges);
 
 		/*
 		 * Get Transactions from database and store as ObservableList, sorted via the defaultSortTransactions() method
@@ -580,6 +598,12 @@ public class WindowMonth {
 	//									|
 	//**********************************/
 
+	private void setUnsavedChanges(boolean unsavedChanges) {
+		labelUnsavedChanges.setVisible(unsavedChanges);
+		this.unsavedChanges = unsavedChanges;
+	}
+	
+	
 	/**
 	 * Reset this selected month, reinitialise data, and refresh.
 	 * 
@@ -588,7 +612,7 @@ public class WindowMonth {
 	 * @category GUImethods
 	 */
 	void update(Month m) {
-		unsavedChanges = true;
+		setUnsavedChanges(true);
 		setSelectedMonth(m);
 		initData();
 		refresh();
@@ -610,14 +634,14 @@ public class WindowMonth {
 		selectedMonth.getTransactions().remove(original);
 		selectedMonth.getTransactions().add(edited);
 		defaultSortTransactions();
-		unsavedChanges = true;
+		setUnsavedChanges(true);
 		refresh();
 	}
 
 	void updateTransaction(Transaction toAdd) {
 		Utility.nullCheck(toAdd);
 		selectedMonth.getTransactions().add(toAdd);
-		unsavedChanges = true;
+		setUnsavedChanges(true);
 		refresh();
 	}
 
@@ -721,9 +745,13 @@ public class WindowMonth {
 	 * @category GUImethods
 	 */
 	private void defaultSortTransactions() {
-		tActive.sort(new TransactionComparatorDate());
-		tActive.sort(new TransactionComparatorValue(Sort.DESCENDING));
-		tActive.sort(new TransactionComparatorType());
-		tActive.sort(new TransactionComparatorIncome(Sort.DESCENDING));
+		if (comparators.size() == 0) {
+			tActive.sort(new TransactionComparatorDate());
+			tActive.sort(new TransactionComparatorValue(Sort.DESCENDING));
+			tActive.sort(new TransactionComparatorType());
+			tActive.sort(new TransactionComparatorIncome(Sort.DESCENDING));
+		} else {
+			executeActiveComparators();
+		}
 	}
 }

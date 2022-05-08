@@ -5,6 +5,10 @@ import java.time.format.DateTimeFormatterBuilder;
 import java.time.temporal.ChronoField;
 import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalField;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.List;
 
 /**
  * Global constants for BudgetKeeper program.
@@ -78,8 +82,22 @@ public class Constants {
 			return this.foreignKeys;
 		}
 
-		public String[] columns() {
+		public String[] columnSchema() {
 			return this.columns;
+		}
+		
+		public String[] columns() {
+			List<String> cols = new ArrayList<String>(this.columns.length);
+			Arrays.asList(this.columns).forEach((colName) -> {
+				cols.add(colName.split(" ")[0]);
+			});
+			
+			int size = cols.size();
+			String[] colNames = new String[size];
+			for (int i = 0 ; i < size; i++) {
+				colNames[i] = cols.get(i);
+			}
+			return colNames;
 		}
 	}
 

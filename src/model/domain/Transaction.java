@@ -19,6 +19,9 @@ import model.db.Constants;
  */
 public class Transaction implements Comparable<Transaction> {
 
+	public static final int NEW_ID = -1;
+
+	
 	/**
 	 * The various types of Transaction available.
 	 * 
@@ -85,12 +88,13 @@ public class Transaction implements Comparable<Transaction> {
 	}
 
 	/**
-	 * Create a Transaction object
+	 * Create a Transaction object and set its transactionID specifically
 	 * 
 	 * @param date     the date of this transaction
 	 * @param isIncome true = income, false = outgoing
 	 * @param type
 	 * @param value    the value of this transaction
+	 * @param transID
 	 */
 
 	public Transaction(String name, boolean isPaid, LocalDate date, boolean isIncome, Type type, double value, int transID) {
@@ -101,8 +105,8 @@ public class Transaction implements Comparable<Transaction> {
 		this.setValue(value);
 		this.setIncome(isIncome);
 		this.setTransactionID(transID);
-		System.out.println(this.toString());
-		System.out.println(hashCode());
+		//System.out.println(this.toString());
+		//System.out.println(hashCode());
 
 	}
 
@@ -144,17 +148,17 @@ public class Transaction implements Comparable<Transaction> {
 	 * Update the transactionID of this object to its current hashCode.
 	 */
 	public void setTransactionID(int transID) {
-		System.out.println("========================");
-		System.out.println("Setting tID in updateTransactionID " + transID);
+		//System.out.println("========================");
+		//System.out.println("Setting tID in updateTransactionID " + transID);
 		this.transactionID = transID;
 
-		System.out.println(this.toString());
-		System.out.println("========================");
+		//System.out.println(this.toString());
+		//System.out.println("========================");
 
 	}
 
 	public void updateTransactionID() {
-		setTransactionID(hashCode());
+		setTransactionID(hashCode()); // TODO implement a tID seed generator in DAO (or somewhere else)
 	}
 
 	/**

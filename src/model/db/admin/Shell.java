@@ -91,9 +91,20 @@ public class Shell {
 		},
 		ADD_TEST_DATA("Add Test Data") {
 			public boolean menuAction() {
-				for (Month m : testMonths) {
-					DAO.addMonth(m);
-				}
+				System.out.println("Adding Test Data...");
+				addTestMonths();
+				return true;
+			}
+		},
+		REDBUILD_TABLES_AND_TEST_DATA("Rebuild Tables and Test Data") {
+			@Override
+			public boolean menuAction() {
+				System.out.println("Dropping Tables...");
+				DAO.dropTables();
+				System.out.println("Creating Tables...");
+				DAO.createTables();
+				System.out.println("Adding Test Data...");
+				addTestMonths();
 				return true;
 			}
 		},
@@ -116,12 +127,18 @@ public class Shell {
 			return (this.ordinal() + 1) + ". " + this.menuText;
 		}
 
-		public boolean menuAction() {
-			System.out.println("Not implemented");
-			return true;
-		}
+		public abstract boolean menuAction();
 	}
 
+	/**
+	 * Add all test data to database
+	 */
+	private static void addTestMonths() {
+		for (Month m : testMonths) {
+			DAO.addMonth(m);
+		}
+	}
+	
 	/**
 	 * Display menu, get user selection, and begin appropriate menu action
 	 */
