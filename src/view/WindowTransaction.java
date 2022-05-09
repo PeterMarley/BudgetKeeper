@@ -88,6 +88,12 @@ public class WindowTransaction {
 	private Month m;
 	private Operation operation;
 
+	/**
+	 * <pre>
+	 * KEY:   Type.toString()
+	 * VALUE: Type.name()
+	 * </pre>
+	 */
 	private HashMap<String, String> typeMap;
 	private HashMap<String, Boolean> incomeMap;
 
@@ -141,58 +147,76 @@ public class WindowTransaction {
 		this.m = m;
 		this.operation = op;
 
-		typeMap = new HashMap<String, String>();
-		for (Type type : Type.values()) {
-			typeMap.put(type.toString(), type.name());
-		}
-
-		setRoot();
-		setScene();
-		setStage();
+		//		setRoot();
+		//		setScene();
+		//		setStage();
 
 		initialize();
 
 		Controller.setWindowTransaction(this);
 	}
+	//
+	//	/**
+	//	 * Set the Root of this scene-graph.
+	//	 * 
+	//	 * @throws IOException if error occurs during FXML loading.
+	//	 */
+	//	private void setRoot() throws IOException {
+	//		
+	//	}
+	//
+	//	/**
+	//	 * Set the Scene of this scene-graph.
+	//	 */
+	//	private void setScene() {
+	//		
+	//
+	//	}
+	//
+	//	/**
+	//	 * Sets the Stage of this scene-graph.
+	//	 */
+	//	private void setStage() {
+	//
+	//
+	//	}
 
-	/**
-	 * Set the Root of this scene-graph.
-	 * 
-	 * @throws IOException if error occurs during FXML loading.
-	 */
-	private void setRoot() throws IOException {
+	//**********************************\
+	//									|
+	//	Initialisations					|
+	//									|
+	//**********************************/
+
+	private void initialize() throws IOException {
+
+		/**
+		 * Scene-graph components
+		 */
+
+		// Generate map for Transaction Types
+		typeMap = new HashMap<String, String>();
+		for (Type type : Type.values()) {
+			typeMap.put(type.toString(), type.name());
+		}
+
+		// Set root
 		this.loader = new FXMLLoader(getClass().getResource(FXML));
 		this.loader.setController(this);
 		this.root = loader.load();
-	}
 
-	/**
-	 * Set the Scene of this scene-graph.
-	 */
-	private void setScene() {
+		// Set Scene
 		this.scene = new Scene(this.root);
 		this.scene.getStylesheets().add(getClass().getResource(CSS).toExternalForm());
 
-	}
-
-	/**
-	 * Sets the Stage of this scene-graph.
-	 */
-	private void setStage() {
+		// Set Stage
 		this.stage = new Stage();
 		this.stage.getIcons().add(new Image(getClass().getResource(ICON).toExternalForm()));
 		this.stage.setTitle(operation.toString());
 		this.stage.setScene(scene);
 		this.stage.setResizable(false);
 		this.stage.setOnCloseRequest(event -> {
-			// collect trans from jfx controls
-			// if collTrans is null, close without prompting
-			// if collTrans == originTrans, close without prompting and do not update
-			// if collTrans != originTrans, close with prompting and update
 
 			Transaction collectedTransaction = collectTransaction();
-			boolean showAlert = false;
-			boolean closeWindow = false;
 
 			if (collectedTransaction == null || collectedTransaction.equals(t)) {
 				close();
@@ -211,86 +235,43 @@ public class WindowTransaction {
 				}
 			}
 
-			//		boolean toClose = false;
-			//		boolean toUpdate = false;
-			//		//new Transaction(name, isPaid, date, isIncome, type, value)
-			//		Transaction collected = null;
-			//
-			//		try {
-			//			collected = collectTransaction();
-			//			toUpdate = true;
-			//		} catch (IllegalArgumentException e) {
-			//			toClose = true;
-			//		}
-			//
-			//		if (!toClose && !collected.equals(t)) {
-			//			if (toAlert) {
-			//				Alert alert = new Alert(AlertType.CONFIRMATION);
-			//				alert.setContentText("Are you sure you want to cancel " +
-			//						((operation == Operation.ADD) ? "Adding" : "Editing") +
-			//						" this Transaction?");
-			//				alert.setHeaderText("You are about to abandon this transaction!");
-			//				alert.setTitle("Please confirm cancellation.");
-			//				Optional<ButtonType> result = alert.showAndWait();
-			//				if (result.isPresent() && result.get() == ButtonType.OK) {
-			//					toClose = true;
-			//				} else if (result.isPresent() && result.get() == ButtonType.CANCEL) {
-			//					event.consume();
-			//				}
-			//			} else {
-			//				toClose = true;
-			//			}
-			//		} else {
-			//			toClose = true;
-			//		}
 		});
 		this.stage.initModality(Modality.APPLICATION_MODAL);
 
-	}
-
-	//**********************************\
-	//									|
-	//	Initialisations					|
-	//									|
-	//**********************************/
-
-	private void initialize() {
+		/**
+		 * Nodes and controls
+		 */
 
 		// name
 		name.setText((t != null) ? t.getName() : "");
 
 		// date
 		date.setValue((t != null) ? t.getDate() : (m != null) ? m.getDate() : LocalDate.now());
-		date.setOnAction(new EventHandler<ActionEvent>() {
-			@Override
-			public void handle(ActionEvent event) {
-				if (event.getSource() instanceof DatePicker) {
-					DatePicker dp = (DatePicker) event.getSource();
-					boolean accepted = true;
+		date.setOnAction((event) -> {
 
-					if (dp.getValue().getMonthValue() != m.getDate().getMonthValue()
-						|| dp.getValue().getYear() != m.getDate().getYear()) {
-						accepted = false;
-					}
+			boolean accepted = true;
 
-					if (!accepted && m != null) {
-						Alert alert = new Alert(AlertType.INFORMATION);
-						alert.setContentText("You must select a day in " + m.getDate().getMonth().getDisplayName(TextStyle.FULL, Locale.UK) + " " + m.getDate().getYear());
-						alert.setTitle("Bad date selection...");
-						LocalDate dpValue = dp.getValue();
-						alert.setHeaderText("You selected a date in " + dpValue.getMonth().getDisplayName(TextStyle.FULL_STANDALONE, Locale.UK) + " " + dpValue.getYear());
-						alert.show();
-						//dp.setValue(LocalDate.of(t.getDate().getYear(), t.getDate().getMonthValue(), t.getDate().getDayOfMonth()));
-						dp.setValue(m.getDate());
-					}
-				}
+			if (date.getValue().getMonthValue() != m.getDate().getMonthValue()
+				|| date.getValue().getYear() != m.getDate().getYear()) {
+				accepted = false;
 			}
+
+			if (!accepted) {
+				Alert alert = new Alert(AlertType.INFORMATION);
+				alert.setContentText("You must select a day in " + m.getDate().getMonth().getDisplayName(TextStyle.FULL, Locale.UK) + " " + m.getDate().getYear());
+				alert.setTitle("Bad date selection...");
+				LocalDate dpValue = date.getValue();
+				alert.setHeaderText("You selected a date in " + dpValue.getMonth().getDisplayName(TextStyle.FULL_STANDALONE, Locale.UK) + " " + dpValue.getYear());
+				alert.show();
+				//dp.setValue(LocalDate.of(t.getDate().getYear(), t.getDate().getMonthValue(), t.getDate().getDayOfMonth()));
+				date.setValue(m.getDate());
+			}
+
 		});
 
 		// type
-		Type[] types = Type.values();
-		List<String> typeNames = new ArrayList<String>(types.length);
-		for (Type t : types) {
+		List<String> typeNames = new ArrayList<String>();
+		for (Type t : Type.values()) {
 			typeNames.add(t.toString());
 		}
 		SortedSet<String> keys = new TreeSet<String>(typeMap.keySet());
