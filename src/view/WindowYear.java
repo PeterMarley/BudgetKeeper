@@ -134,62 +134,78 @@ public class WindowYear extends Application {
 	@Override
 	public void start(Stage generatedStage) throws IOException {
 		stage = generatedStage;
-		initialise();
+		// configure root
+		this.loader = new FXMLLoader(getClass().getResource(FXML));
+		this.loader.setController(this);
+		this.root = loader.load();
+
+		// configure scene
+		this.scene = new Scene(root);
+		this.scene.getStylesheets().add(getClass().getResource(CSS).toExternalForm());
+
+		// configure stage
+		this.stage.setScene(scene);
+		this.stage.setResizable(false);
+		this.stage.setTitle("Months for " + lastSelectedYear);
+		this.stage.getIcons().add(new Image(getClass().getResource(ICON).toExternalForm()));
+		this.stage.setOnCloseRequest(new EventHandler<WindowEvent>() {
+			@Override
+			public void handle(WindowEvent event) {
+				stage.close();
+				Platform.exit();
+				System.exit(0);
+			}
+		});
+		//initialise();
 	}
 
 	/**
 	 * Initialise JavaFX Nodes.
 	 */
-	private void initialise() {
-		try {
+	@FXML
+	private void initialize() {
 
-			// configure root
-			this.loader = new FXMLLoader(getClass().getResource(FXML));
-			this.loader.setController(this);
-			this.root = loader.load();
+		// set lastSelectedYear
+		lastSelectedYear = DEFAULT_YEAR;
 
-			// configure scene
-			this.scene = new Scene(root);
-			this.scene.getStylesheets().add(getClass().getResource(CSS).toExternalForm());
+//		// get data from Controller
+//		List<Month> obsData = Controller.getObservableData();
+//
+//		// build mapOfSingleYear and list of years
+//		mapOfSingleYear = new HashMap<Integer, Month>();
+//		List<Integer> years = new LinkedList<Integer>();
+//
+//		for (Month month : obsData) {
+//			int yearVal = month.getDate().getYear();
+//			int monthVal = month.getDate().getMonthValue() - 1;
+//			if (!years.contains(yearVal)) {
+//				years.add(yearVal);
+//			}
+//			if (yearVal == lastSelectedYear) {
+//				if (!mapOfSingleYear.containsKey(monthVal)) {
+//					mapOfSingleYear.put(monthVal, month);
+//				}
+//			}
+//		}
+//
+//		// Get all years that have Month objects stored in database
+//		ObservableList<Integer> yearsList = FXCollections.observableArrayList(years);
+//		Collections.sort(yearsList);
+//
+//		// set ComboBox drop down menu to hold values of all years from database.
+//		yearComboBox.setItems(yearsList);
 
-			// configure stage
-			this.stage.setScene(scene);
-			this.stage.setResizable(false);
-			this.stage.setTitle("Months for " + lastSelectedYear);
-			this.stage.getIcons().add(new Image(getClass().getResource(ICON).toExternalForm()));
-			this.stage.setOnCloseRequest(new EventHandler<WindowEvent>() {
-				@Override
-				public void handle(WindowEvent event) {
-					stage.close();
-					Platform.exit();
-					System.exit(0);
-				}
-			});
+		// refresh data
+		refresh();
 
-			// set lastSelectedYear
-			lastSelectedYear = DEFAULT_YEAR;
+		// pass this to Controller
+		Controller.setWindowYear(this);
 
-			// refresh data
-			refresh();
+		configured = true;
 
-			// pass this to Controller
-			Controller.setWindowYear(this);
-
-			configured = true;
-
-			// show stage
-			stage.show();
-		} catch (IOException e) {
-			System.err.println("FXMLLoader.load IOException:");
-			e.printStackTrace();
-		}
+		// show stage
+		stage.show();
 	}
-
-	//**********************************\
-	//									|
-	//	Getters							|
-	//									|
-	//**********************************/
 
 	//**********************************\
 	//									|
@@ -201,40 +217,12 @@ public class WindowYear extends Application {
 	 * Refresh the Nodes in this scene-graph
 	 */
 	public void refresh() {
-		// get data from Controller
-		List<Month> obsData = Controller.getObservableData();
-
-		// build mapOfSingleYear and list of years
-		mapOfSingleYear = new HashMap<Integer, Month>();
-		List<Integer> years = new LinkedList<Integer>();
-
-		for (Month month : obsData) {
-			int yearVal = month.getDate().getYear();
-			int monthVal = month.getDate().getMonthValue() - 1;
-			if (!years.contains(yearVal)) {
-				years.add(yearVal);
-			}
-			if (yearVal == lastSelectedYear) {
-				if (!mapOfSingleYear.containsKey(monthVal)) {
-					mapOfSingleYear.put(monthVal, month);
-				}
-			}
-		}
-
-		// Get all years that have Month objects stored in database
-		ObservableList<Integer> yearsList = FXCollections.observableArrayList(years);
-		Collections.sort(yearsList);
-
-		if (!configured) {
-			// set ComboBox drop down menu to hold values of all years from database.
-			yearComboBox.setItems(yearsList);
-
-			// set the currently selected year of the ComboBox control to the lastSelectedYear field
-			yearComboBox.setValue(lastSelectedYear);
-		}
 		// set new title for stage depending on the year selected
 		this.stage.setTitle("Months for " + lastSelectedYear);
 
+		// set the currently selected year of the ComboBox control to the lastSelectedYear field
+		yearComboBox.setValue(lastSelectedYear);
+		
 		configMonthButtons();
 		configYearSelection();
 	}
@@ -254,11 +242,41 @@ public class WindowYear extends Application {
 		this.stage.hide();
 	}
 
+	public void addNewMonth(Month m) {
+		mapOfSingleYear.put(m.getDate().getMonthValue()-1, m);
+	}
+	
 	/**
 	 * Configure the 12 buttons that open the {@link view.WindowMonth WindowMonth} for a particular {@link model.domain.Month Month}.
 	 */
 	private void configMonthButtons() {
 
+		// get data from Controller
+				List<Month> obsData = Controller.getObservableData();
+
+				// build mapOfSingleYear and list of years
+				mapOfSingleYear = new HashMap<Integer, Month>();
+				List<Integer> years = new LinkedList<Integer>();
+
+				for (Month month : obsData) {
+					int yearVal = month.getDate().getYear();
+					int monthVal = month.getDate().getMonthValue() - 1;
+					if (!years.contains(yearVal)) {
+						years.add(yearVal);
+					}
+					if (yearVal == lastSelectedYear) {
+						if (!mapOfSingleYear.containsKey(monthVal)) {
+							mapOfSingleYear.put(monthVal, month);
+						}
+					}
+				}
+
+				// Get all years that have Month objects stored in database
+				ObservableList<Integer> yearsList = FXCollections.observableArrayList(years);
+				Collections.sort(yearsList);
+
+				// set ComboBox drop down menu to hold values of all years from database.
+				yearComboBox.setItems(yearsList);
 		// get Months data for this year from Controller
 
 		Button[] buttons = new Button[] { monthJan, monthFeb, monthMar, monthApr, monthMay, monthJun, monthJul, monthAug, monthSep, monthOct, monthNov, monthDec };
@@ -303,7 +321,7 @@ public class WindowYear extends Application {
 						try {
 							Month m = new Month(LocalDate.parse(String.format("%4d/%02d", lastSelectedYear, monthIndex + 1), Constants.FORMAT_YYYYMM));
 							mapOfSingleYear.put(monthIndex, m);
-							WindowMonth wm = new WindowMonth(m);
+							WindowMonth wm = new WindowMonth(m, true);
 							hide();
 							wm.show();
 						} catch (IllegalArgumentException | IOException wmInstantiationFailureEx) {
@@ -323,7 +341,7 @@ public class WindowYear extends Application {
 			@Override
 			public void handle(ActionEvent event) {
 				lastSelectedYear = yearComboBox.getValue() != null ? yearComboBox.getValue() : LocalDate.now().getYear();
-				refresh();
+				//refresh();
 			}
 		};
 
@@ -336,7 +354,7 @@ public class WindowYear extends Application {
 				selectYearButton.fire();
 		});
 
-		//yearComboBox.setOnAction(selectYearEvent);
+		yearComboBox.setOnAction(selectYearEvent);
 
 		//		yearComboBox.setOnAction(key -> {
 		//				selectYearButton.fire() ;
@@ -350,18 +368,18 @@ public class WindowYear extends Application {
 		//				
 		//			}
 		//		});
-		yearComboBox.valueProperty().addListener(new ChangeListener<Integer>() {
-
-			@Override
-			public void changed(ObservableValue<? extends Integer> observable, Integer oldValue, Integer newValue) {
-				int value = newValue == null ? oldValue : newValue;
-
-				lastSelectedYear = value;
-				if (newValue != null) {
-					refresh();
-				}
-
-			}
-		});
+		//		yearComboBox.valueProperty().addListener(new ChangeListener<Integer>() {
+		//
+		//			@Override
+		//			public void changed(ObservableValue<? extends Integer> observable, Integer oldValue, Integer newValue) {
+		//				int value = newValue == null ? oldValue : newValue;
+		//
+		//				lastSelectedYear = value;
+		//				if (newValue != null) {
+		//					refresh();
+		//				}
+		//
+		//			}
+		//		});
 	}
 }

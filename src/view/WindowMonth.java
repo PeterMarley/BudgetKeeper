@@ -86,7 +86,7 @@ public class WindowMonth {
 	@FXML private Button opTransactionDelete;
 	@FXML private Button opSave;
 	@FXML private Button opCancel;
-	
+
 	@FXML private Label labelUnsavedChanges;
 
 	//**********************************\
@@ -124,6 +124,7 @@ public class WindowMonth {
 
 	private boolean unsavedChanges = false;
 	private List<Comparator<Transaction>> comparators;
+	private final boolean NEW_MONTH;
 
 	//**********************************\
 	//									|
@@ -162,60 +163,18 @@ public class WindowMonth {
 	 * @throws IOException              if FXMLLoader fails to load the FXML file.
 	 * @throws IllegalArgumentException if month is null or monthID is negative.
 	 */
-	public WindowMonth(Month month) throws IOException, IllegalArgumentException {
+	public WindowMonth(Month month, boolean isNewMonth) throws IOException, IllegalArgumentException {
 		comparators = new LinkedList<Comparator<Transaction>>();
-		setSelectedMonth(month);
-		setRoot();
-		setScene();
-		setStage();
-		initialise();
-		Controller.setWindowMonth(this);
-	}
 
-	/**
-	 * Set the {@code selectedMonth} and {@code monthID} fields.
-	 * 
-	 * @category Construction *
-	 * @param month
-	 * @param monthID
-	 */
-	void setSelectedMonth(Month month) {
 		this.selectedMonth = month;
-		Month copy = new Month(month.getDate());
-		copy.addTransactions(month.getTransactions());
-		this.originalMonth = copy;
-	}
 
-	/**
-	 * Set the {@code FXMLLoader}, and load the FXML. Additionally, set the controller for this scene-graph.
-	 * 
-	 * @category Construction
-	 * @throws IOException if an error occurs during FXML loading during {@link FXMLLoader#load() loading}.
-	 */
-	private void setRoot() throws IOException {
 		this.loader = new FXMLLoader(getClass().getResource(FXML));
 		this.loader.setController(this);
 		this.root = loader.load();
 
-	}
-
-	/**
-	 * Set the {@code Scene} of this scene-graph, and apply CSS style sheets to the scene.
-	 * 
-	 * @category Construction
-	 */
-	private void setScene() {
 		this.scene = new Scene(this.root);
 		this.scene.getStylesheets().add(getClass().getResource(CSS).toExternalForm());
 
-	}
-
-	/**
-	 * Set the {@code Stage} of this scene-graph. Title, icon and various configurations are applied here.
-	 * 
-	 * @category Construction
-	 */
-	private void setStage() {
 		this.stage = new Stage();
 		this.stage.getIcons().add(new Image(getClass().getResource(ICON).toExternalForm()));
 		this.stage.setTitle(selectedMonth.getDate().getMonth().getDisplayName(TextStyle.FULL, Locale.UK) + " " + selectedMonth.getDate().getYear());
@@ -225,10 +184,21 @@ public class WindowMonth {
 			@Override
 			public void handle(WindowEvent event) {
 				stage.close();
+				if (NEW_MONTH) {
+					Controller.getWindowYear().addNewMonth(selectedMonth);
+				}
 				Controller.getWindowYear().refresh();
 				Controller.getWindowYear().show();
 			}
 		});
+
+		NEW_MONTH = isNewMonth;
+		//initialise();
+		Controller.setWindowMonth(this);
+	}
+
+	public WindowMonth(Month month) throws IOException, IllegalArgumentException {
+		this(month, false);
 	}
 
 	//**********************************\
@@ -242,7 +212,8 @@ public class WindowMonth {
 	 * 
 	 * @category Initialisation
 	 */
-	void initialise() {
+	@FXML
+	void initialize() {
 		initTableView();
 		initTotals();
 		initFilters();
@@ -264,7 +235,7 @@ public class WindowMonth {
 		tFiltered = new LinkedList<Transaction>();
 
 		// apply default sort
-		defaultSortTransactions();
+		sortTransactions();
 
 	}
 
@@ -437,17 +408,50 @@ public class WindowMonth {
 		 */
 
 		sortButtonInOut.setText(SORT_BUTTON_DEFAULT_IN_OUT);
-		sortButtonInOut.setOnAction(event -> sortByInOut());
+		sortButtonInOut.setOnAction(event -> {
+			sortLatchInOut = (sortLatchInOut == null) ? Sort.DESCENDING : ((sortLatchInOut == Sort.ASCENDING) ? Sort.DESCENDING : Sort.ASCENDING);
+			sortButtonInOut.setText(SORT_BUTTON_DEFAULT_IN_OUT + " " + sortLatchInOut.toString());
+			Comparator<Transaction> c = new TransactionComparatorIncome(sortLatchInOut);
+			tActive.sort(c);
+			comparators.add(c);
+			//executeActiveComparators();
+			transactionsTable.refresh();
+		});
 
 		sortButtonType.setText(SORT_BUTTON_DEFAULT_TYPE);
-		sortButtonType.setOnAction(event -> sortByType());
+		sortButtonType.setOnAction(event -> {
+			sortLatchType = (sortLatchType == null) ? Sort.DESCENDING : ((sortLatchType == Sort.ASCENDING) ? Sort.DESCENDING : Sort.ASCENDING);
+			sortButtonType.setText(SORT_BUTTON_DEFAULT_TYPE + " " + sortLatchType.toString());
+			Comparator<Transaction> c = new TransactionComparatorType(sortLatchType);
+			tActive.sort(c);
+			comparators.add(c);
+			//executeActiveComparators();
+			transactionsTable.refresh();
+		});
 
 		sortButtonDate.setText(SORT_BUTTON_DEFAULT_DATE);
-		sortButtonDate.setOnAction(event -> sortByDate());
+		sortButtonDate.setOnAction(event -> {
+			sortLatchDate = (sortLatchDate == null) ? Sort.ASCENDING : ((sortLatchDate == Sort.ASCENDING) ? Sort.DESCENDING : Sort.ASCENDING);
+			sortButtonDate.setText(SORT_BUTTON_DEFAULT_DATE + " " + sortLatchDate.toString());
+			Comparator<Transaction> c = new TransactionComparatorDate(sortLatchDate);
+			tActive.sort(c);
+			comparators.add(c);
+			//executeActiveComparators();
+			transactionsTable.refresh();
+		});
 
 		sortButtonValue.setText(SORT_BUTTON_DEFAULT_VALUE);
-		sortButtonValue.setOnAction(event -> sortByValue());
+		sortButtonValue.setOnAction(event -> {
+			sortLatchValue = (sortLatchValue == null) ? Sort.DESCENDING : ((sortLatchValue == Sort.ASCENDING) ? Sort.DESCENDING : Sort.ASCENDING);
+			sortButtonValue.setText(SORT_BUTTON_DEFAULT_VALUE + " " + sortLatchValue.toString());
+			Comparator<Transaction> c = new TransactionComparatorValue(sortLatchValue);
+			tActive.sort(c);
+			comparators.add(c);
+			//executeActiveComparators();
+			transactionsTable.refresh();
+		});
 
+		sortButtonClear.setText(SORT_BUTTON_DEFAULT_CLEAR);
 		sortButtonClear.setOnAction(new EventHandler<ActionEvent>() {
 			@Override
 			public void handle(ActionEvent event) {
@@ -460,7 +464,7 @@ public class WindowMonth {
 				sortButtonType.setText(SORT_BUTTON_DEFAULT_TYPE);
 				sortButtonValue.setText(SORT_BUTTON_DEFAULT_VALUE);
 				comparators.clear();
-				defaultSortTransactions();
+				sortTransactions();
 				transactionsTable.refresh();
 			}
 		});
@@ -527,69 +531,13 @@ public class WindowMonth {
 				refresh();
 			}
 		});
-		
+
 		labelUnsavedChanges.setStyle("-fx-text-fill: red;");
 		setUnsavedChanges(unsavedChanges);
 
 		/*
 		 * Get Transactions from database and store as ObservableList, sorted via the defaultSortTransactions() method
 		 */
-	}
-
-	//**********************************\
-	//									|
-	//	Sort Methods					|
-	//									|
-	//**********************************/
-
-	private void sortByInOut() {
-		sortLatchInOut = (sortLatchInOut == null) ? Sort.DESCENDING : ((sortLatchInOut == Sort.ASCENDING) ? Sort.DESCENDING : Sort.ASCENDING);
-		sortButtonInOut.setText(SORT_BUTTON_DEFAULT_IN_OUT + " " + sortLatchInOut.toString());
-		Comparator<Transaction> c = new TransactionComparatorIncome(sortLatchInOut);
-		tActive.sort(c);
-		comparators.add(c);
-		//executeActiveComparators();
-		transactionsTable.refresh();
-	}
-
-	private void sortByType() {
-		sortLatchType = (sortLatchType == null) ? Sort.DESCENDING : ((sortLatchType == Sort.ASCENDING) ? Sort.DESCENDING : Sort.ASCENDING);
-		sortButtonType.setText(SORT_BUTTON_DEFAULT_TYPE + " " + sortLatchType.toString());
-		Comparator<Transaction> c = new TransactionComparatorType(sortLatchType);
-		tActive.sort(c);
-		comparators.add(c);
-		//executeActiveComparators();
-		transactionsTable.refresh();
-	}
-
-	private void sortByDate() {
-		sortLatchDate = (sortLatchDate == null) ? Sort.ASCENDING : ((sortLatchDate == Sort.ASCENDING) ? Sort.DESCENDING : Sort.ASCENDING);
-		sortButtonDate.setText(SORT_BUTTON_DEFAULT_DATE + " " + sortLatchDate.toString());
-		Comparator<Transaction> c = new TransactionComparatorDate(sortLatchDate);
-		tActive.sort(c);
-		comparators.add(c);
-		//executeActiveComparators();
-		transactionsTable.refresh();
-	}
-
-	private void sortByValue() {
-		sortLatchValue = (sortLatchValue == null) ? Sort.DESCENDING : ((sortLatchValue == Sort.ASCENDING) ? Sort.DESCENDING : Sort.ASCENDING);
-		sortButtonValue.setText(SORT_BUTTON_DEFAULT_VALUE + " " + sortLatchValue.toString());
-		Comparator<Transaction> c = new TransactionComparatorValue(sortLatchValue);
-		tActive.sort(c);
-		comparators.add(c);
-		//executeActiveComparators();
-		transactionsTable.refresh();
-	}
-
-	private void executeActiveComparators() {
-		if (comparators.size() > 0) {
-			for (Comparator<Transaction> c : comparators) {
-				tActive.sort(c);
-			}
-		} else {
-			defaultSortTransactions();
-		}
 	}
 
 	//**********************************\
@@ -602,8 +550,7 @@ public class WindowMonth {
 		labelUnsavedChanges.setVisible(unsavedChanges);
 		this.unsavedChanges = unsavedChanges;
 	}
-	
-	
+
 	/**
 	 * Reset this selected month, reinitialise data, and refresh.
 	 * 
@@ -613,7 +560,7 @@ public class WindowMonth {
 	 */
 	void update(Month m) {
 		setUnsavedChanges(true);
-		setSelectedMonth(m);
+		this.selectedMonth = m;
 		initData();
 		refresh();
 	}
@@ -628,22 +575,22 @@ public class WindowMonth {
 	 * 
 	 * @category GUImethods
 	 */
-	void updateTransaction(Transaction original, Transaction edited) throws IllegalArgumentException {
-		Utility.nullCheck(original);
-		Utility.nullCheck(edited);
-		selectedMonth.getTransactions().remove(original);
-		selectedMonth.getTransactions().add(edited);
-		defaultSortTransactions();
-		setUnsavedChanges(true);
-		refresh();
-	}
-
-	void updateTransaction(Transaction toAdd) {
-		Utility.nullCheck(toAdd);
-		selectedMonth.getTransactions().add(toAdd);
-		setUnsavedChanges(true);
-		refresh();
-	}
+//	void updateTransaction(Transaction original, Transaction edited) throws IllegalArgumentException {
+//		Utility.nullCheck(original);
+//		Utility.nullCheck(edited);
+//		selectedMonth.getTransactions().remove(original);
+//		selectedMonth.getTransactions().add(edited);
+//		sortTransactions();
+//		setUnsavedChanges(true);
+//		refresh();
+//	}
+//
+//	void updateTransaction(Transaction toAdd) {
+//		Utility.nullCheck(toAdd);
+//		selectedMonth.getTransactions().add(toAdd);
+//		setUnsavedChanges(true);
+//		refresh();
+//	}
 
 	/**
 	 * Refresh the data in the scene-graph and show stage.
@@ -736,7 +683,7 @@ public class WindowMonth {
 		}
 		tActive.removeAll(toRemove);
 		tFiltered.addAll(toRemove);
-		executeActiveComparators();
+		sortTransactions();
 	}
 
 	/**
@@ -744,14 +691,18 @@ public class WindowMonth {
 	 * 
 	 * @category GUImethods
 	 */
-	private void defaultSortTransactions() {
+	private void sortTransactions() {
 		if (comparators.size() == 0) {
+			// default sort
 			tActive.sort(new TransactionComparatorDate());
 			tActive.sort(new TransactionComparatorValue(Sort.DESCENDING));
 			tActive.sort(new TransactionComparatorType());
 			tActive.sort(new TransactionComparatorIncome(Sort.DESCENDING));
 		} else {
-			executeActiveComparators();
+			// sort sequentially with each active comparator
+			for (Comparator<Transaction> c : comparators) {
+				tActive.sort(c);
+			}
 		}
 	}
 }
