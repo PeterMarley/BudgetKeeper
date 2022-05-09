@@ -15,6 +15,8 @@ import java.util.TreeSet;
 import controller.Controller;
 import javafx.application.Application;
 import javafx.application.Platform;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -66,8 +68,6 @@ public class WindowYear extends Application {
 	//									|
 	//**********************************/
 
-
-
 	/**
 	 * This HashMap is used to associate month values (0-11) with Month objects, so the GUI can select, for example, December, in a year,
 	 * attempting to get from the HashMap using the month value 11.<br>
@@ -77,6 +77,7 @@ public class WindowYear extends Application {
 	 */
 	private HashMap<Integer, Month> mapOfSingleYear;
 	private int lastSelectedYear = DEFAULT_YEAR;
+	private boolean configured = false;
 
 	//**********************************\
 	//									|
@@ -117,7 +118,7 @@ public class WindowYear extends Application {
 	// year selection nodes
 	@FXML private Button selectYearButton;
 	@FXML private ComboBox<Integer> yearComboBox;
-	
+
 	// operations nodes
 	@FXML private Button addMonth;
 
@@ -174,6 +175,8 @@ public class WindowYear extends Application {
 			// pass this to Controller
 			Controller.setWindowYear(this);
 
+			configured = true;
+
 			// show stage
 			stage.show();
 		} catch (IOException e) {
@@ -222,12 +225,13 @@ public class WindowYear extends Application {
 		ObservableList<Integer> yearsList = FXCollections.observableArrayList(years);
 		Collections.sort(yearsList);
 
-		// set ComboBox drop down menu to hold values of all years from database.
-		yearComboBox.setItems(yearsList);
+		if (!configured) {
+			// set ComboBox drop down menu to hold values of all years from database.
+			yearComboBox.setItems(yearsList);
 
-		// set the currently selected year of the ComboBox control to the lastSelectedYear field
-		yearComboBox.setValue(lastSelectedYear);
-
+			// set the currently selected year of the ComboBox control to the lastSelectedYear field
+			yearComboBox.setValue(lastSelectedYear);
+		}
 		// set new title for stage depending on the year selected
 		this.stage.setTitle("Months for " + lastSelectedYear);
 
@@ -239,6 +243,7 @@ public class WindowYear extends Application {
 	 * Show the WindowYear Stage.
 	 */
 	public void show() {
+		refresh();
 		this.stage.show();
 	}
 
@@ -253,7 +258,7 @@ public class WindowYear extends Application {
 	 * Configure the 12 buttons that open the {@link view.WindowMonth WindowMonth} for a particular {@link model.domain.Month Month}.
 	 */
 	private void configMonthButtons() {
-		
+
 		// get Months data for this year from Controller
 
 		Button[] buttons = new Button[] { monthJan, monthFeb, monthMar, monthApr, monthMay, monthJun, monthJul, monthAug, monthSep, monthOct, monthNov, monthDec };
@@ -296,7 +301,7 @@ public class WindowYear extends Application {
 					@Override
 					public void handle(ActionEvent e) {
 						try {
-							Month m = new Month(LocalDate.parse(String.format("%4d/%02d", lastSelectedYear, monthIndex + 1), Constants.FORMAT_YYYYMM) );
+							Month m = new Month(LocalDate.parse(String.format("%4d/%02d", lastSelectedYear, monthIndex + 1), Constants.FORMAT_YYYYMM));
 							mapOfSingleYear.put(monthIndex, m);
 							WindowMonth wm = new WindowMonth(m);
 							hide();
@@ -314,20 +319,49 @@ public class WindowYear extends Application {
 	 * Configure the {@link #selectYearButton year selection button} and the {@link #yearComboBox year choice combo box}.
 	 */
 	private void configYearSelection() {
-		// set action handle for yearSelect Button control
-		selectYearButton.setOnAction(new EventHandler<ActionEvent>() {
+		EventHandler<ActionEvent> selectYearEvent = new EventHandler<ActionEvent>() {
 			@Override
 			public void handle(ActionEvent event) {
-				lastSelectedYear = yearComboBox.getValue();
+				lastSelectedYear = yearComboBox.getValue() != null ? yearComboBox.getValue() : LocalDate.now().getYear();
 				refresh();
 			}
-		});
+		};
+
+		// set action handle for yearSelect Button control
+		selectYearButton.setOnAction(selectYearEvent);
 
 		// set the yearComboBox to fire selectYearButton if Enter key is pressed when focus is on ComboBox.
 		yearComboBox.setOnKeyPressed(key -> {
 			if (key.getCode() == KeyCode.ENTER)
 				selectYearButton.fire();
 		});
-		
+
+		//yearComboBox.setOnAction(selectYearEvent);
+
+		//		yearComboBox.setOnAction(key -> {
+		//				selectYearButton.fire() ;
+		//				});
+		//		yearComboBox.setOnMouseClicked(new EventHandler<Event>() {
+		//
+		//			@Override
+		//			public void handle(Event event) {
+		//				selectYearButton.fire();
+		//				
+		//				
+		//			}
+		//		});
+		yearComboBox.valueProperty().addListener(new ChangeListener<Integer>() {
+
+			@Override
+			public void changed(ObservableValue<? extends Integer> observable, Integer oldValue, Integer newValue) {
+				int value = newValue == null ? oldValue : newValue;
+
+				lastSelectedYear = value;
+				if (newValue != null) {
+					refresh();
+				}
+
+			}
+		});
 	}
 }

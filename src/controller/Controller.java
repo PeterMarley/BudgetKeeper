@@ -10,6 +10,7 @@ import javafx.collections.ObservableList;
 import model.db.DatabaseAccessObject;
 import model.domain.Month;
 import model.domain.Transaction;
+import model.domain.Utility;
 import view.WindowMonth;
 import view.WindowTransaction;
 import view.WindowYear;
@@ -74,24 +75,38 @@ public class Controller {
 		}
 	}
 
+	//**********************************\
+	//									|
+	//	Data Manipulation				|
+	//									|
+	//**********************************/
+
 	/**
-	 * Load data from database
+	 * Load data from database, and maps each Month to the year value. Each year key is associated with a value of a List of Months.
 	 */
 	private static void loadData() {
 		obsMonths = FXCollections.observableArrayList(dao.loadData());
 		generateMaps(obsMonths);
 	}
-	
 
-	
+	/**
+	 * Save a month to database
+	 * 
+	 * @param m
+	 */
 	public static void saveData(Month m) {
 		dao.saveData(m);
 	}
 
+	/**
+	 * Generate a {@code HashMap<Integer, List<Month>>} of year values to {@code List} of {@link model.domain.Month Months} for that year
+	 * 
+	 * @param months
+	 */
 	private static void generateMaps(List<Month> months) {
 		mapOfYears = new HashMap<Integer, List<Month>>();
 		//mapToSave = new HashMap<Month, Boolean>();
-		for (Month month : months) {
+		for (Month month : Utility.nullCheck(months)) {
 			int year = month.getDate().getYear();
 			if (!mapOfYears.containsKey(month.getDate().getYear())) {
 				mapOfYears.put(year, new ArrayList<Month>(12));
@@ -102,51 +117,15 @@ public class Controller {
 	}
 
 	/**
-	 * // * Get all Months for a specific year.
-	 * // *
-	 * // * @param year
-	 * // * @return
-	 * //
+	 * Update a month in the observable list, from which the JavaFX GUI draws its data. 
+	 * @param original
+	 * @param edited
 	 */
-	//	public static List<Month> getMonths(int year) {
-	//		List<Month> returnList = new ArrayList<Month>(12);
-	//		for (Month month : mapOfAllMonths.keySet()) {
-	//			if (month.getDate().getYear() == year) {
-	//				returnList.add(month);
-	//			}
-	//		}
-	//		Collections.sort(returnList, new MonthComparatorDate());
-	//		return returnList;
-	//	}
-
-	/**
-	 * Get the {@link controller.Controller#mapOfYears mapOfYears}
-	 * 
-	 * @return
-	 */
-	//	public static HashMap<Integer, List<Month>> getMapOfYears() {
-	//		return mapOfYears;
-	//	}
-
-	//	public static List<Month> getMonths() {
-	//		return new ArrayList<Month>(mapOfAllMonths.keySet());
-	//	}
-
 	public static void updateMonth(Month original, Month edited) {
 		obsMonths.remove(original);
 		obsMonths.add(edited);
 		//mapToSave.put(edited, true);
 	}
-
-	//**********************************\
-	//									|
-	//	Data Manipulation				|
-	//									|
-	//**********************************/
-
-	//	private static void saveData() {
-	//		dao.saveData(mapOfAllMonths);
-	//	}
 
 	//**********************************\
 	//									|
