@@ -97,6 +97,10 @@ public class Controller {
 	public static void saveData(Month m) {
 		dao.saveData(m);
 	}
+	
+	public static void removeUnusedMonth(Month m) {
+		dao.deleteMonth(m);
+	}
 
 	/**
 	 * Generate a {@code HashMap<Integer, List<Month>>} of year values to {@code List} of {@link model.domain.Month Months} for that year
@@ -167,7 +171,7 @@ public class Controller {
 	//									|
 	//**********************************/
 
-	public static List<Month> getObservableData() {
+	public static List<Month> getData() {
 		loadData();
 		return obsMonths;
 	}

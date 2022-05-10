@@ -344,7 +344,7 @@ public class Transaction implements Comparable<Transaction> {
 	@Override
 	public String toString() {
 		return "Transaction [name=" + getName() + ", income=" + isIncome() + ", date=" + getDate() + ", type=" + getType() + ", value=" + getValue() + ", transID=" + getTransactionID() + ", hashCode="
-			+ hashCode() + ", hasChanged=" + hasChanged() + "]";
+			+ hashCode() + ", hasChanged=" + hasChanged() + "]\n";
 	}
 
 }

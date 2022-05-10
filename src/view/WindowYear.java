@@ -5,9 +5,12 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.InputMismatchException;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -28,8 +31,10 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
+import javafx.scene.control.Dialog;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TextField;
+import javafx.scene.control.TextInputDialog;
 import javafx.scene.image.Image;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
@@ -77,7 +82,8 @@ public class WindowYear extends Application {
 	 */
 	private HashMap<Integer, Month> mapOfSingleYear;
 	private int lastSelectedYear = DEFAULT_YEAR;
-	private boolean configured = false;
+	//private ObservableList<Integer> years;
+	private Integer yearToAdd;
 
 	//**********************************\
 	//									|
@@ -89,9 +95,9 @@ public class WindowYear extends Application {
 	private static final String CSS = "./css/WindowYear.css";
 	private static final int DEFAULT_YEAR = LocalDate.now().getYear();
 	private static final String ENABLED_MONTH_BUTTON_CSS = "-fx-background-color: #3446eb;" +
-			"-fx-opacity: 1.0;" +
-			"-fx-text-fill:white;" +
-			"-fx-font-weight:bold;";
+		"-fx-opacity: 1.0;" +
+		"-fx-text-fill:white;" +
+		"-fx-font-weight:bold;";
 	private static final String DISABLED_MONTH_BUTTON_CSS = "";//"-fx-background-color: white;-fx-opacity: 0.5;";
 	private static final String ICON = "./img/icons/calendar.png";
 
@@ -116,11 +122,11 @@ public class WindowYear extends Application {
 	@FXML private Button monthDec;
 
 	// year selection nodes
-	@FXML private Button selectYearButton;
+	@FXML private Button newYearButton;
 	@FXML private ComboBox<Integer> yearComboBox;
 
 	// operations nodes
-	@FXML private Button addMonth;
+	//@FXML private Button addMonth;
 
 	//**********************************\
 	//									|
@@ -128,12 +134,20 @@ public class WindowYear extends Application {
 	//									|
 	//**********************************/
 
+	public WindowYear() throws IOException {
+		//start(new Stage());
+	}
+
+	public WindowYear(Boolean notInitLaunch) throws IOException {
+		start(null);
+	}
+
 	/**
 	 * Initialise and configure this {@code WindowYear} object, then show.
 	 */
 	@Override
 	public void start(Stage generatedStage) throws IOException {
-		stage = generatedStage;
+		stage = generatedStage != null ? generatedStage : new Stage();
 		// configure root
 		this.loader = new FXMLLoader(getClass().getResource(FXML));
 		this.loader.setController(this);
@@ -156,7 +170,6 @@ public class WindowYear extends Application {
 				System.exit(0);
 			}
 		});
-		//initialise();
 	}
 
 	/**
@@ -167,119 +180,54 @@ public class WindowYear extends Application {
 
 		// set lastSelectedYear
 		lastSelectedYear = DEFAULT_YEAR;
-
-//		// get data from Controller
-//		List<Month> obsData = Controller.getObservableData();
-//
-//		// build mapOfSingleYear and list of years
-//		mapOfSingleYear = new HashMap<Integer, Month>();
-//		List<Integer> years = new LinkedList<Integer>();
-//
-//		for (Month month : obsData) {
-//			int yearVal = month.getDate().getYear();
-//			int monthVal = month.getDate().getMonthValue() - 1;
-//			if (!years.contains(yearVal)) {
-//				years.add(yearVal);
-//			}
-//			if (yearVal == lastSelectedYear) {
-//				if (!mapOfSingleYear.containsKey(monthVal)) {
-//					mapOfSingleYear.put(monthVal, month);
-//				}
-//			}
-//		}
-//
-//		// Get all years that have Month objects stored in database
-//		ObservableList<Integer> yearsList = FXCollections.observableArrayList(years);
-//		Collections.sort(yearsList);
-//
-//		// set ComboBox drop down menu to hold values of all years from database.
-//		yearComboBox.setItems(yearsList);
-
+		//years = buildData();
 		// refresh data
 		refresh();
 
 		// pass this to Controller
 		Controller.setWindowYear(this);
 
-		configured = true;
-
 		// show stage
 		stage.show();
 	}
 
-	//**********************************\
-	//									|
-	//	JavaFX Application Methods		|
-	//									|
-	//**********************************/
-
 	/**
-	 * Refresh the Nodes in this scene-graph
+	 * Fills mapOfSingle year with data from controller, and returns the list of years as an
+	 * {@link FXCollections#observableArrayList(java.util.Collection) ObservableList}.
+	 * 
+	 * @return an ObservableList of Integers, representing each year found in the data
 	 */
-	public void refresh() {
-		// set new title for stage depending on the year selected
-		this.stage.setTitle("Months for " + lastSelectedYear);
+	private ObservableList<Integer> buildData() {
+		// get data from Controller
+		List<Month> obsData = Controller.getData();
 
-		// set the currently selected year of the ComboBox control to the lastSelectedYear field
-		yearComboBox.setValue(lastSelectedYear);
-		
-		configMonthButtons();
-		configYearSelection();
+		// build mapOfSingleYear and list of years
+		mapOfSingleYear = new HashMap<Integer, Month>();
+		Set<Integer> years = new HashSet<Integer>();
+		for (Month month : obsData) {
+			int monthVal = month.getDate().getMonthValue() - 1;
+			if (month.getDate().getYear() == lastSelectedYear && !mapOfSingleYear.containsKey(monthVal)) {
+				mapOfSingleYear.put(monthVal, month);
+			}
+			years.add(month.getDate().getYear());
+		}
+
+		// Get all years that have Month objects stored in database
+		ObservableList<Integer> yearsList = FXCollections.observableArrayList(years);
+		Collections.sort(yearsList);
+
+		// set ComboBox drop down menu to hold values of all years from database.
+		return yearsList;
 	}
 
-	/**
-	 * Show the WindowYear Stage.
-	 */
-	public void show() {
-		refresh();
-		this.stage.show();
-	}
-
-	/**
-	 * Hide the WindowYear Stage.
-	 */
-	public void hide() {
-		this.stage.hide();
-	}
-
-	public void addNewMonth(Month m) {
-		mapOfSingleYear.put(m.getDate().getMonthValue()-1, m);
-	}
-	
 	/**
 	 * Configure the 12 buttons that open the {@link view.WindowMonth WindowMonth} for a particular {@link model.domain.Month Month}.
 	 */
 	private void configMonthButtons() {
 
-		// get data from Controller
-				List<Month> obsData = Controller.getObservableData();
-
-				// build mapOfSingleYear and list of years
-				mapOfSingleYear = new HashMap<Integer, Month>();
-				List<Integer> years = new LinkedList<Integer>();
-
-				for (Month month : obsData) {
-					int yearVal = month.getDate().getYear();
-					int monthVal = month.getDate().getMonthValue() - 1;
-					if (!years.contains(yearVal)) {
-						years.add(yearVal);
-					}
-					if (yearVal == lastSelectedYear) {
-						if (!mapOfSingleYear.containsKey(monthVal)) {
-							mapOfSingleYear.put(monthVal, month);
-						}
-					}
-				}
-
-				// Get all years that have Month objects stored in database
-				ObservableList<Integer> yearsList = FXCollections.observableArrayList(years);
-				Collections.sort(yearsList);
-
-				// set ComboBox drop down menu to hold values of all years from database.
-				yearComboBox.setItems(yearsList);
 		// get Months data for this year from Controller
-
-		Button[] buttons = new Button[] { monthJan, monthFeb, monthMar, monthApr, monthMay, monthJun, monthJul, monthAug, monthSep, monthOct, monthNov, monthDec };
+		Button[] buttons = new Button[] { monthJan, monthFeb, monthMar, monthApr, monthMay, monthJun, monthJul, monthAug, monthSep, monthOct, monthNov, monthDec
+		};
 		for (int month = 0; month < buttons.length; month++) {
 			String styleToApply = null;
 			// set button style and enable/ disable depending on whether monthMap had that specific month
@@ -337,49 +285,107 @@ public class WindowYear extends Application {
 	 * Configure the {@link #selectYearButton year selection button} and the {@link #yearComboBox year choice combo box}.
 	 */
 	private void configYearSelection() {
-		EventHandler<ActionEvent> selectYearEvent = new EventHandler<ActionEvent>() {
-			@Override
-			public void handle(ActionEvent event) {
-				lastSelectedYear = yearComboBox.getValue() != null ? yearComboBox.getValue() : LocalDate.now().getYear();
-				//refresh();
-			}
-		};
 
-		// set action handle for yearSelect Button control
-		selectYearButton.setOnAction(selectYearEvent);
+		// set event handler for yearSelect Button control
+		//selectYearButton.setOnAction((actionEvent) -> changeYearAction());
+
+		// set event handler for selecting a new year in the yearComboBox control
+		yearComboBox.setOnAction((actionEvent) -> changeYearAction());
 
 		// set the yearComboBox to fire selectYearButton if Enter key is pressed when focus is on ComboBox.
-		yearComboBox.setOnKeyPressed(key -> {
-			if (key.getCode() == KeyCode.ENTER)
-				selectYearButton.fire();
-		});
+		yearComboBox.setOnKeyPressed((keyEvent) -> changeYearAction());
 
-		yearComboBox.setOnAction(selectYearEvent);
-
-		//		yearComboBox.setOnAction(key -> {
-		//				selectYearButton.fire() ;
-		//				});
-		//		yearComboBox.setOnMouseClicked(new EventHandler<Event>() {
-		//
-		//			@Override
-		//			public void handle(Event event) {
-		//				selectYearButton.fire();
-		//				
-		//				
-		//			}
-		//		});
-		//		yearComboBox.valueProperty().addListener(new ChangeListener<Integer>() {
-		//
-		//			@Override
-		//			public void changed(ObservableValue<? extends Integer> observable, Integer oldValue, Integer newValue) {
-		//				int value = newValue == null ? oldValue : newValue;
-		//
-		//				lastSelectedYear = value;
-		//				if (newValue != null) {
-		//					refresh();
-		//				}
-		//
-		//			}
-		//		});
+		newYearButton.setOnAction((actionEvent) -> newYearAction(false));
 	}
+
+	private void newYearAction(boolean retry) {
+		TextInputDialog requestYearDialog = new TextInputDialog();
+		String header;
+		if (retry) {
+			header = "Please try again";
+		} else {
+			header = "A new year yeaaaassss?";
+
+		}
+		requestYearDialog.setContentText("New Year:");
+		requestYearDialog.setHeaderText(header);
+		requestYearDialog.setGraphic(null);
+		Optional<String> result = requestYearDialog.showAndWait();
+		if (result.isPresent() && !result.get().isBlank()) {
+			try {
+				int y = Integer.valueOf(result.get());
+				ObservableList<Integer> updatedYears = yearComboBox.getItems();
+				updatedYears.add(y);
+				Collections.sort(updatedYears);
+				lastSelectedYear = y;
+				yearToAdd = y;
+				refresh();
+			} catch (NumberFormatException e) {
+				newYearAction(true);
+			}
+
+		}
+	}
+
+	/**
+	 * This is invoked when an action is intended to change the selected year in the WindowYear View
+	 */
+	private void changeYearAction() {
+		lastSelectedYear = yearComboBox.getValue() != null ? yearComboBox.getValue() : LocalDate.now().getYear();
+		stage.setTitle("Months for " + lastSelectedYear);
+		buildData();
+		configMonthButtons();
+	}
+
+	//**********************************\
+	//									|
+	//	JavaFX Application Methods		|
+	//									|
+	//**********************************/
+
+	/**
+	 * Refresh the Nodes in this scene-graph
+	 */
+	public void refresh() {
+		// set new title for stage depending on the year selected
+
+		// set the currently selected year of the ComboBox control to the lastSelectedYear field
+		yearComboBox.setValue(lastSelectedYear);
+
+		ObservableList<Integer> years = buildData();
+		if (yearToAdd != null) {
+			years.add(yearToAdd);
+			Collections.sort(years);
+			yearToAdd = null;
+		}
+		yearComboBox.setItems(years);
+
+		configMonthButtons();
+		configYearSelection();
+	}
+
+	/**
+	 * Show the WindowYear Stage.
+	 */
+	public void show() {
+		refresh();
+		this.stage.show();
+	}
+
+	/**
+	 * Hide the WindowYear Stage.
+	 */
+	public void hide() {
+		this.stage.hide();
+	}
+
+	public void addNewMonth(Month m) {
+		mapOfSingleYear.put(m.getDate().getMonthValue() - 1, m);
+	}
+
+	public void removeMonth(Month m) {
+		mapOfSingleYear.remove(m.getDate().getMonthValue() - 1);
+
+	}
+
 }

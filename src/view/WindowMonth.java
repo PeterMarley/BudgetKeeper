@@ -152,6 +152,8 @@ public class WindowMonth {
 	 * Create a WindowMonth JavaFX scene-graph. This scene-graph is used to render the {@link model.domain.Transaction Transaction}s held in a specific
 	 * {@link model.domain.Month Month} object.<br>
 	 * <br>
+	 * This constructor is for use whenever the choice to create a new month or edit an existing one is explicit.
+	 * <br>
 	 * <b>FXML</b><br>
 	 * The FXML file containing mark-up located at {@value #FXML}.<br>
 	 * <br>
@@ -164,7 +166,9 @@ public class WindowMonth {
 	 * @throws IllegalArgumentException if month is null or monthID is negative.
 	 */
 	public WindowMonth(Month month, boolean isNewMonth) throws IOException, IllegalArgumentException {
-		comparators = new LinkedList<Comparator<Transaction>>();
+		NEW_MONTH = isNewMonth;
+		
+		this.comparators = new LinkedList<Comparator<Transaction>>();
 
 		this.selectedMonth = month;
 
@@ -184,15 +188,16 @@ public class WindowMonth {
 			@Override
 			public void handle(WindowEvent event) {
 				stage.close();
-				if (NEW_MONTH) {
+				if (NEW_MONTH && selectedMonth.getTransactions().size() > 0) {
 					Controller.getWindowYear().addNewMonth(selectedMonth);
+				} else if (selectedMonth.getTransactions().size() == 0) {
+					Controller.removeUnusedMonth(selectedMonth);
 				}
 				Controller.getWindowYear().refresh();
 				Controller.getWindowYear().show();
 			}
 		});
 
-		NEW_MONTH = isNewMonth;
 		//initialise();
 		Controller.setWindowMonth(this);
 	}
@@ -564,33 +569,6 @@ public class WindowMonth {
 		initData();
 		refresh();
 	}
-
-	/**
-	 * Update a Transaction for this Month.
-	 * 
-	 * @param transactionID
-	 * @param original
-	 * @param edited
-	 * @throws IllegalArgumentException if transactionID is negative, either Transaction argument is null, or if tActive or tFiltered fields are null.
-	 * 
-	 * @category GUImethods
-	 */
-//	void updateTransaction(Transaction original, Transaction edited) throws IllegalArgumentException {
-//		Utility.nullCheck(original);
-//		Utility.nullCheck(edited);
-//		selectedMonth.getTransactions().remove(original);
-//		selectedMonth.getTransactions().add(edited);
-//		sortTransactions();
-//		setUnsavedChanges(true);
-//		refresh();
-//	}
-//
-//	void updateTransaction(Transaction toAdd) {
-//		Utility.nullCheck(toAdd);
-//		selectedMonth.getTransactions().add(toAdd);
-//		setUnsavedChanges(true);
-//		refresh();
-//	}
 
 	/**
 	 * Refresh the data in the scene-graph and show stage.

@@ -444,6 +444,28 @@ public class DatabaseAccessObject {
 		}
 
 	}
+	
+	private void deleteMonth(Connection c, Integer mID) {
+		final String sql = "DELETE FROM months WHERE monthID=?;";
+		
+		try (PreparedStatement semtDelMonth = c.prepareStatement(sql)) {
+			semtDelMonth.setInt(1, mID);
+			semtDelMonth.executeUpdate();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public void deleteMonth(Month m) {
+		try {
+			int mID = selectMonthID(m);
+			try (Connection c = getConnection()) {
+				deleteMonth(c, mID);
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+	}
 
 	//**********************************\
 	//									|
