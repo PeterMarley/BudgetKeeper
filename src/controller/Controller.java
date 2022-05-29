@@ -40,12 +40,10 @@ public class Controller {
 	 */
 	private static HashMap<Integer, List<Month>> mapOfYears;
 
-	//private static HashMap<Month, Boolean> mapToSave;
 
 	/**
 	 * Main data for program
 	 */
-	//private static List<Month> months;
 	private static ObservableList<Month> obsMonths;
 
 	/**
