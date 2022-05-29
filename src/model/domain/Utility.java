@@ -3,6 +3,7 @@ package model.domain;
 import static model.domain.Utility.nullCheck;
 
 import java.time.LocalDate;
+import java.util.List;
 
 /**
  * A class containing static utility methods.<br>
@@ -119,6 +120,21 @@ public class Utility {
 		return toValidate.trim();
 	}
 
+	/**
+	 * Checks a list of objects and ensures it is not empty.
+	 * @param <T> any reference type
+	 * @param list
+	 * @return
+	 * @throws IllegalArgumentException if list is empty (size is 0), or if list is null.
+	 */
+	public static <T> List<T> validateNotEmpty(List<T> list) throws IllegalArgumentException {
+		nullCheck(list);
+		if (list.size() == 0) {
+			throw new IllegalArgumentException("List parameter was empty.");
+		}
+		return list;
+	}
+	
 	/**
 	 * gets the calling method at index 3 in the current Threads stack trace. This method is to be use exclusively in this class, and may
 	 * give inconsistent results if used otherwise.

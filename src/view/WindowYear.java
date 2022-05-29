@@ -124,6 +124,11 @@ public class WindowYear extends Application {
 	// year selection nodes
 	@FXML private Button newYearButton;
 	@FXML private ComboBox<Integer> yearComboBox;
+	
+	// import/ export buttons
+	@FXML private Button importButton;
+	@FXML private Button exportButton;
+	
 
 	// operations nodes
 	//@FXML private Button addMonth;
@@ -156,6 +161,7 @@ public class WindowYear extends Application {
 		// configure scene
 		this.scene = new Scene(root);
 		this.scene.getStylesheets().add(getClass().getResource(CSS).toExternalForm());
+		this.yearComboBox.requestFocus();
 
 		// configure stage
 		this.stage.setScene(scene);
@@ -186,6 +192,7 @@ public class WindowYear extends Application {
 
 		// pass this to Controller
 		Controller.setWindowYear(this);
+
 
 		// show stage
 		stage.show();
@@ -220,6 +227,15 @@ public class WindowYear extends Application {
 		return yearsList;
 	}
 
+	private void configExportImport() {
+		exportButton.setOnAction((event) -> {
+			Controller.export();
+		});
+		importButton.setOnAction(event -> {
+			System.out.println("NOT YET IMPLEMENTED");
+		});
+	}
+	
 	/**
 	 * Configure the 12 buttons that open the {@link view.WindowMonth WindowMonth} for a particular {@link model.domain.Month Month}.
 	 */
@@ -360,6 +376,7 @@ public class WindowYear extends Application {
 		}
 		yearComboBox.setItems(years);
 
+		configExportImport();
 		configMonthButtons();
 		configYearSelection();
 	}

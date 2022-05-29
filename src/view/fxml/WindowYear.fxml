@@ -8,6 +8,7 @@
 <?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.FlowPane?>
 <?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.RowConstraints?>
 
 <BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1">
@@ -17,9 +18,23 @@
             <Insets bottom="5.0" />
          </padding>
          <children>
-            <Label text="Year:" />
-            <ComboBox fx:id="yearComboBox" prefWidth="150.0" />
-            <Button fx:id="newYearButton" mnemonicParsing="false" text="New Year" />
+            <HBox prefHeight="23.0" prefWidth="799.0">
+               <children>
+                  <HBox alignment="CENTER_LEFT" prefHeight="28.0" prefWidth="403.0" spacing="5.0">
+                     <children>
+                        <Button mnemonicParsing="false" text="Export Data" fx:id="exportButton" />
+                        <Button mnemonicParsing="false" text="Import Data" fx:id="importButton" />
+                     </children>
+                  </HBox>
+                  <HBox alignment="CENTER_RIGHT" prefHeight="46.0" prefWidth="395.0">
+                     <children>
+                        <Label text="Year:" />
+                        <ComboBox fx:id="yearComboBox" prefWidth="150.0" />
+                        <Button fx:id="newYearButton" mnemonicParsing="false" text="New Year" />
+                     </children>
+                  </HBox>
+               </children>
+            </HBox>
          </children>
       </FlowPane>
    </top> 

@@ -50,6 +50,7 @@ public class Controller {
 	 * Database access object
 	 */
 	private static DatabaseAccessObject dao;
+	private static ImportExport save;
 
 	//**********************************\
 	//									|
@@ -66,6 +67,7 @@ public class Controller {
 		try {
 			setDAO();
 			loadData();
+			save = new ImportExport();
 			Application.launch(WindowYear.class);
 		} catch (Exception e) {
 			System.err.println("EXCEPTION CAUGHT BY Controller.main()!");
@@ -129,6 +131,11 @@ public class Controller {
 		//mapToSave.put(edited, true);
 	}
 
+	
+	public static String export() {
+		return save.export(obsMonths);
+	}
+	
 	//**********************************\
 	//									|
 	//	Setters							|
