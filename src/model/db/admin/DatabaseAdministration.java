@@ -21,7 +21,7 @@ import model.db.SQLFactory;
 public class DatabaseAdministration extends DatabaseAccessObject {
 
 	/**
-	 * Adds a Collection of {@code Transaction} objects to the {@code transaction} table in database, with column {@code monthID} set to parameter
+	 * Adds a Collection of {@code Transaction} objects to the {@code transaction} 7 in database, with column {@code monthID} set to parameter
 	 * {@code monthID}. The {@code Transaction}s are only added if they are not already part of the data for the {@code Month} pointed to by
 	 * {@code monthID}.
 	 * 

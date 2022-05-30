@@ -49,9 +49,11 @@ public class SQLFactory {
 			b.append(table.columnSchema()[i]);
 			b.append(",%n");
 		}
-		b.append("\tPRIMARY KEY(");
-		b.append(table.primaryKey());
-		b.append(")");
+		if (table.primaryKey() != null) {
+			b.append("\tPRIMARY KEY(");
+			b.append(table.primaryKey());
+			b.append(")");
+		}
 		if (table.foreignKeys() != null) {
 			b.append(",%n");
 			b.append("\tFOREIGN KEY(");

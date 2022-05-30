@@ -56,7 +56,8 @@ public class Constants {
 		 * );
 		 * </pre>
 		 */
-		MONTH("months", "monthID", null, new String[] { "monthID INTEGER NOT NULL", "date TEXT" });
+		MONTH("months", "monthID", null, new String[] { "monthID INTEGER NOT NULL", "date TEXT" }),
+		ID_SEED("ids");
 
 		private String tableName;
 		private String primaryKey;
