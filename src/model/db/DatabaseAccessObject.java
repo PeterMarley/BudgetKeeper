@@ -79,6 +79,12 @@ public class DatabaseAccessObject {
 	 */
 	private static final String[] COLUMNS_TRANSACTIONS = new String[] { "name", "paid", "date", "income", "type", "value", "transactionID" };
 
+	private int currentSeed;
+	
+	public DatabaseAccessObject() {
+		currentSeed = selectSeed();
+	}
+	
 	//**********************************\
 	//									|
 	//	API								|
@@ -139,104 +145,61 @@ public class DatabaseAccessObject {
 			HashMap<Transaction, Integer> toDelete = new HashMap<Transaction, Integer>();
 			List<Transaction> filtered = new LinkedList<Transaction>();
 
-			// preparing SQL code Strings
+			// Sorting transactions into [to be added], [to be updated], and [to be deleted]
 			List<Transaction> removeFromtObj = new LinkedList<Transaction>();
 			for (int i = 0; i < tFromObj.size(); i++) {
 
 				Transaction t = tFromObj.get(i);
 
-				//				System.out.println(t);
-				//				System.out.println(t.hasChanged());
-				//				System.out.println(t.getTransactionID());
-				//				System.out.println(t.hashCode());
-
 				int originalTID = t.getTransactionID();
-				boolean hasChanged = t.hasChanged();
+				boolean hasChanged = t.isUpdated();
 
 				// sort Transactions into collections for processing
 				if (transactionIDsFromDB.contains(originalTID)) {			// db has tid
-
 					if (hasChanged) {									// but t has changed: update list
 						toUpdate.put(originalTID, t);
 					}
-
 				} else if (originalTID == Transaction.NEW_ID) { 								// new transaction
-
-					//filtered.add(t);
+;
 					toAdd.add(t);
-
 				} else if (!transactionIDsFromDB.contains(originalTID) && hasChanged) {
-
 					toDelete.put(t, originalTID);
-					// transactions to delete
 				}
-
-				//tFromObj.remove(t);
-				//filtered.add(t);
 				removeFromtObj.add(t);
 
 			}
 			transactionsFromDB.removeAll(removeFromtObj);
-			//			for (Map.Entry<Transaction, Integer> entry : tMapFromDB.entrySet()) {
-			//				Transaction key = entry.getKey();
-			//				Integer val = entry.getValue();
-			//				if (removeFromtObj.contains(key)) {
-			//					
-			//				}
-			//				
-			//			}
+
 
 			// Database Operations
-			try (Connection c = getConnection()) {
+			try (Connection con = getConnection()) {
 
 				// create new transactions
 				for (Transaction tToAdd : toAdd) {
-					tToAdd.updateTransactionID();
-					createTransaction(c, monthID, tToAdd);
-					tToAdd.updateTransactionID();
+					tToAdd.setUpdated(false);
+					createTransaction(con, monthID, tToAdd);
+					tToAdd.setUpdated(false);
 				}
 
 				// update edited transactions
-				//for (Map.Entry<Integer, Transaction> entry : toUpdate.entrySet()) {
 				for (Integer TID : toUpdate.keySet()) {
 					Transaction t = toUpdate.get(TID);
-					updateTransaction(c, monthID, t, TID);
-					t.updateTransactionID();
+					updateTransaction(con, monthID, t, TID);
+					t.setUpdated(false);
 				}
 
 				// delete removed transaction
-				//				List<Transaction> deleteList = new LinkedList<Transaction>(tFromObj);
-				//				deleteList.removeAll(filtered);
 				tMapFromDB.forEach((t, i) -> {
 					if (!tFromObj.contains(t))
 						toDelete.put(t, i);
 				});
-				//				for (Transaction t : tFromObj) {
-				//					toDelete.put(t, tMapFromDB.get(t));
-				//				}
 
 				for (Transaction t : toDelete.keySet()) {
-					deleteTransaction(c, toDelete.get(t));
+					deleteTransaction(con, toDelete.get(t));
 				}
 			}
 
-			//			// Database operation:
-			//			try (Connection c = getConnection()) {
-			//				for (String add : addSQLs) {
-			//					try (Statement addStmt = c.createStatement()) {
-			//						addStmt.executeUpdate(add);
-			//					} catch (SQLException e) {
-			//						System.err.println("Failed to add the following transaction from addSQLs:");
-			//						System.err.println(add);
-			//					}
-			//				}
-			//
-			//				for (String update : updSQLs) {
-			//					try (Statement uptStmt = c.createStatement()) {
-			//						uptStmt.executeUpdate(update);
-			//					}
-			//				}
-			//			}
+
 
 		} catch (
 
@@ -301,6 +264,25 @@ public class DatabaseAccessObject {
 	//									|
 	//**********************************/
 
+	private int selectSeed() {
+		try (Connection c = getConnection();
+				PreparedStatement stmtGetSeed = c.prepareStatement("SELECT * FROM ids;", Statement.RETURN_GENERATED_KEYS)) {
+			stmtGetSeed.execute();
+			ResultSet rs = stmtGetSeed.getGeneratedKeys();
+			int seed = 0;
+			if (rs.next()) {
+				seed = rs.getInt(1);
+			} else {
+				seed = 1;
+			}
+			currentSeed = seed;
+			System.out.println(seed);
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return 0;
+	}
+	
 	/**
 	 * Retrieves all {@code Month} objects from the {@code months} and {@code transaction} tables.
 	 * 
@@ -404,6 +386,10 @@ public class DatabaseAccessObject {
 	//									|
 	//**********************************/
 
+	private void updateSeed(int newSeed) {
+		
+	}
+	
 	private void updateTransaction(Connection c, int monthID, Transaction t, Integer oldTID) {
 
 		final String sql = "UPDATE transactions SET name=?, transactionID=?, date=?, type=?, value=?, income=?, paid=? WHERE monthID=? AND transactionID=?;";

@@ -388,13 +388,23 @@ public class WindowTransaction {
 			double paramValue = Math.abs(Double.valueOf(value.getText()));
 			LocalDate paramDate = date.getValue();
 			int paramOldTID = (t != null) ? t.getTransactionID() : Transaction.NEW_ID;
-			tr = new Transaction(paramName,
-				paramPaid,
-				paramDate,
-				paramIncome,
-				paramType,
-				paramValue,
-				paramOldTID);
+			if (t != null) {
+				tr = new Transaction(paramName,
+						paramPaid,
+						paramDate,
+						paramIncome,
+						paramType,
+						paramValue,
+						paramOldTID);
+			} else {
+				tr = new Transaction(paramName,
+						paramPaid,
+						paramDate,
+						paramIncome,
+						paramType,
+						paramValue);
+			}
+			
 		} catch (IllegalArgumentException instantiationFailEx) {
 		}
 		//int trHash = tr.hashCode();
