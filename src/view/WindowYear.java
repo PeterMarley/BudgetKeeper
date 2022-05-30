@@ -229,10 +229,13 @@ public class WindowYear extends Application {
 
 	private void configExportImport() {
 		exportButton.setOnAction((event) -> {
-			Controller.export();
+			Controller.exportData();
 		});
 		importButton.setOnAction(event -> {
-			System.out.println("NOT YET IMPLEMENTED");
+			System.out.println(Controller.getData().size());
+			Controller.importData("BudgetKeeperExport_2022-05-30_13-33-21.bke");
+			System.out.println(Controller.getData().size());
+			refresh();
 		});
 	}
 	

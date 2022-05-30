@@ -1,5 +1,6 @@
 package controller;
 
+import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -39,7 +40,6 @@ public class Controller {
 	 * <b>VALUE:</b> list of Months for that year
 	 */
 	private static HashMap<Integer, List<Month>> mapOfYears;
-
 
 	/**
 	 * Main data for program
@@ -97,7 +97,7 @@ public class Controller {
 	public static void saveData(Month m) {
 		dao.saveData(m);
 	}
-	
+
 	public static void removeUnusedMonth(Month m) {
 		dao.deleteMonth(m);
 	}
@@ -121,7 +121,8 @@ public class Controller {
 	}
 
 	/**
-	 * Update a month in the observable list, from which the JavaFX GUI draws its data. 
+	 * Update a month in the observable list, from which the JavaFX GUI draws its data.
+	 * 
 	 * @param original
 	 * @param edited
 	 */
@@ -131,11 +132,21 @@ public class Controller {
 		//mapToSave.put(edited, true);
 	}
 
-	
-	public static String export() {
-		return save.export(obsMonths);
+	public static String exportData() {
+		return save.exportData(obsMonths);
 	}
-	
+
+	public static void importData(String filename) {
+		try {
+			List<Month> data = save.importData(filename);
+			obsMonths.clear();
+			obsMonths.addAll(data);
+		} catch (FileNotFoundException | IllegalArgumentException e) {
+			System.err.println("import failed! " + filename);
+			e.printStackTrace();
+		}
+	}
+
 	//**********************************\
 	//									|
 	//	Setters							|
