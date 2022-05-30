@@ -29,15 +29,20 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonBar.ButtonData;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Dialog;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TextInputDialog;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.image.Image;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
+import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
 import model.db.Constants;
@@ -228,14 +233,30 @@ public class WindowYear extends Application {
 	}
 
 	private void configExportImport() {
-		exportButton.setOnAction((event) -> {
+		exportButton.setOnAction(event -> {
 			Controller.exportData();
 		});
 		importButton.setOnAction(event -> {
-			System.out.println(Controller.getData().size());
-			Controller.importData("BudgetKeeperExport_2022-05-30_13-33-21.bke");
-			System.out.println(Controller.getData().size());
-			refresh();
+			Alert alert = new Alert(AlertType.CONFIRMATION);
+			alert.initModality(Modality.APPLICATION_MODAL);
+			alert.setHeaderText("Confirm deletion of current data?");
+			alert.setContentText("Would you like to replace the current data with imported data, or keep both?");
+			ButtonType buttonReplace = new ButtonType("Replace");
+			ButtonType buttonKeep = new ButtonType("Keep");
+			ButtonType buttonCancel = new ButtonType("Cancel", ButtonData.CANCEL_CLOSE);
+			alert.getButtonTypes().clear();
+			alert.getButtonTypes().addAll(buttonKeep, buttonReplace, buttonCancel);
+			Optional<ButtonType> choice = alert.showAndWait();
+			if (choice.isPresent()) {
+				Boolean keep = null;
+				if (choice.get() == buttonKeep) keep = true;
+				if (choice.get() == buttonReplace) keep = false;
+				if (keep != null) {
+					Controller.importData("BudgetKeeperExport_2022-05-30_13-33-21.bke", keep);
+					refresh();
+				}
+				System.out.println("cancelled: " + choice.get());
+			}
 		});
 	}
 	

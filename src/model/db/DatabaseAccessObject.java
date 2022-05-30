@@ -466,6 +466,16 @@ public class DatabaseAccessObject {
 			e.printStackTrace();
 		}
 	}
+	
+	public void deleteAll() {
+		try (Connection c = getConnection();
+				Statement stmtDeleteAll = c.createStatement()) {
+			stmtDeleteAll.executeUpdate("DELETE FROM transactions;");
+			stmtDeleteAll.executeUpdate("DELETE FROM months;");
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+	}
 
 	//**********************************\
 	//									|

@@ -51,6 +51,7 @@ public class Controller {
 	 */
 	private static DatabaseAccessObject dao;
 	private static ImportExport save;
+	private static boolean dataImported = false;
 
 	//**********************************\
 	//									|
@@ -85,7 +86,11 @@ public class Controller {
 	 * Load data from database, and maps each Month to the year value. Each year key is associated with a value of a List of Months.
 	 */
 	private static void loadData() {
-		obsMonths = FXCollections.observableArrayList(dao.loadData());
+		if (!dataImported) {
+			obsMonths = FXCollections.observableArrayList(dao.loadData());
+		} else {
+			dataImported = false;
+		}
 		generateMaps(obsMonths);
 	}
 
@@ -136,11 +141,19 @@ public class Controller {
 		return save.exportData(obsMonths);
 	}
 
-	public static void importData(String filename) {
+	public static void importData(String filename, boolean keep) {
 		try {
 			List<Month> data = save.importData(filename);
 			obsMonths.clear();
 			obsMonths.addAll(data);
+			if (!keep) {
+				dao.deleteAll();
+			} else {
+				for (Month m : data) {
+					saveData(m);
+				}
+			}
+			dataImported = true;
 		} catch (FileNotFoundException | IllegalArgumentException e) {
 			System.err.println("import failed! " + filename);
 			e.printStackTrace();
@@ -191,6 +204,7 @@ public class Controller {
 		loadData();
 		return obsMonths;
 	}
+	
 
 	/**
 	 * @return the windowYear
