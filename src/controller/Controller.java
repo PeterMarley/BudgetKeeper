@@ -1,5 +1,6 @@
 package controller;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -141,21 +142,20 @@ public class Controller {
 		return save.exportData(obsMonths);
 	}
 
-	public static void importData(String filename, boolean keep) {
+	public static void importData(File bkeFile, boolean keep) {
 		try {
-			List<Month> data = save.importData(filename);
+			List<Month> data = save.importData(bkeFile);
 			obsMonths.clear();
 			obsMonths.addAll(data);
 			if (!keep) {
 				dao.deleteAll();
-			} else {
-				for (Month m : data) {
-					saveData(m);
-				}
+			}
+			for (Month m : data) {
+				saveData(m);
 			}
 			dataImported = true;
 		} catch (FileNotFoundException | IllegalArgumentException e) {
-			System.err.println("import failed! " + filename);
+			System.err.println("import failed! " + bkeFile.getName());
 			e.printStackTrace();
 		}
 	}
@@ -204,7 +204,6 @@ public class Controller {
 		loadData();
 		return obsMonths;
 	}
-	
 
 	/**
 	 * @return the windowYear

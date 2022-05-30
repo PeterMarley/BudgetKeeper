@@ -1,5 +1,6 @@
 package view;
 
+import java.io.File;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -42,6 +43,8 @@ import javafx.scene.control.Alert.AlertType;
 import javafx.scene.image.Image;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
+import javafx.stage.FileChooser;
+import javafx.stage.FileChooser.ExtensionFilter;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
@@ -252,10 +255,13 @@ public class WindowYear extends Application {
 				if (choice.get() == buttonKeep) keep = true;
 				if (choice.get() == buttonReplace) keep = false;
 				if (keep != null) {
-					Controller.importData("BudgetKeeperExport_2022-05-30_13-33-21.bke", keep);
+					FileChooser fx = new FileChooser();
+					fx.setInitialDirectory(new File("./"));
+					fx.getExtensionFilters().add(new ExtensionFilter("Budget Keeper Export", "*.bke"));
+					File selectedFile = fx.showOpenDialog(this.stage);
+					Controller.importData(selectedFile, keep);
 					refresh();
 				}
-				System.out.println("cancelled: " + choice.get());
 			}
 		});
 	}

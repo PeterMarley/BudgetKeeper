@@ -17,6 +17,8 @@ import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
+import javafx.stage.FileChooser;
+import javafx.stage.FileChooser.ExtensionFilter;
 import model.db.Constants;
 import model.domain.Month;
 import model.domain.Transaction;
@@ -75,19 +77,15 @@ public class ImportExport {
 		return filename;
 	}
 
-	public static List<Month> importData(String filename) throws FileNotFoundException, IllegalArgumentException {
+	public List<Month> importData(File bkeFile) throws FileNotFoundException, IllegalArgumentException {
+		FileChooser fx = new FileChooser();
+		fx.setInitialDirectory(new File("./"));
+		fx.setSelectedExtensionFilter(new ExtensionFilter("BudgetKeeper Export", ".bke"));
 		List<Month> monthsFromFile = new LinkedList<Month>();
-		File file = new File(filename);
-		if (!file.exists()) {
-			throw new FileNotFoundException("Specified file does not exist. (" + filename + ")");
-		}
-		if (!filename.endsWith(FILE_EXTENSION)) {
-			throw new IllegalArgumentException("Specified file is not a .bke file. (" + filename + ")");
-		}
-		try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
+		try (BufferedReader reader = new BufferedReader(new FileReader(bkeFile))) {
 			String line = reader.readLine();
 			int lineCounter = 1;
-			while (line != null) {
+			while (line != null && !line.equals("")) {
 				try {
 					// construct Month
 					int markerMonthEndIndex = MARKER_MONTH.length();
@@ -115,7 +113,7 @@ public class ImportExport {
 									(tTokens[0] == "1") ? true : false,
 									Type.valueOf(tTokens[2]),
 									Double.valueOf(tTokens[3]),
-									Integer.valueOf(tTokens[6]));
+									Transaction.NEW_ID);
 							transactions.add(t);
 							line = reader.readLine();
 						} catch (IllegalArgumentException e) {
