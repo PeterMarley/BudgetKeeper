@@ -20,6 +20,8 @@ import model.db.SQLFactory;
 
 public class DatabaseAdministration extends DatabaseAccessObject {
 
+	private static int SEED = 0;
+
 	/**
 	 * Adds a Collection of {@code Transaction} objects to the {@code transaction} 7 in database, with column {@code monthID} set to parameter
 	 * {@code monthID}. The {@code Transaction}s are only added if they are not already part of the data for the {@code Month} pointed to by
@@ -33,7 +35,7 @@ public class DatabaseAdministration extends DatabaseAccessObject {
 			SortedSet<Transaction> transactionsForMonth = selectTransactions(monthID);
 			for (Transaction t : transactions) {
 				if (!transactionsForMonth.contains(t)) {
-					addTransaction(t, monthID);
+					addTransaction(t, monthID, ++SEED);
 				}
 			}
 		} catch (SQLException e) {
@@ -42,17 +44,18 @@ public class DatabaseAdministration extends DatabaseAccessObject {
 	}
 
 	/**
-	 * Writes a transaction to the database IF the database does not already contain an {@link model.domain.Transaction#equals(Object) equal} transaction
-	 * for this month.
+	 * Writes a transaction to the database IF the database does not already contain an {@link model.domain.Transaction#equals(Object) equal}
+	 * transaction for this month.
 	 * 
 	 * @param t
 	 * @param monthID
 	 * @return
 	 */
-	synchronized int addTransaction(Transaction t, int monthID) {
+	synchronized int addTransaction(Transaction t, int monthID, int transactionID) {
 		int transKey = SENTINEL_RETURN;
+		int seed = monthID;
 		try (Connection c = getConnection();
-			PreparedStatement stmtGetTransactions = c.prepareStatement(SQLFactory.READ_TRANSACTIONS_WHERE_MONTHID)) {
+				PreparedStatement stmtGetTransactions = c.prepareStatement(SQLFactory.READ_TRANSACTIONS_WHERE_MONTHID)) {
 			stmtGetTransactions.setInt(1, monthID);
 			SortedSet<Transaction> transactions = selectTransactions(monthID);
 			if (transactions.contains(t)) {
@@ -61,7 +64,7 @@ public class DatabaseAdministration extends DatabaseAccessObject {
 				try (PreparedStatement stmtAddTrans = c.prepareStatement(SQLFactory.INSERT_TRANSACTION, Statement.RETURN_GENERATED_KEYS)) {
 					//"INSERT INTO transactions (monthID, name, paid, income, date, type, value) VALUES (?,?,?,?,?);";
 
-					stmtAddTrans.setInt(1, t.getTransactionID());
+					stmtAddTrans.setInt(1, transactionID);
 					stmtAddTrans.setInt(2, monthID);
 					stmtAddTrans.setString(3, t.getName());
 					stmtAddTrans.setInt(4, t.isPaid() ? 1 : 0);
@@ -80,13 +83,27 @@ public class DatabaseAdministration extends DatabaseAccessObject {
 		return transKey;
 	}
 
+	synchronized void addSeed() {
+		try (Connection c = getConnection();
+				Statement stmtRemoveSeed = c.createStatement();
+				PreparedStatement stmtAddSeed = c.prepareStatement("INSERT INTO ids (seed) VALUES (?);")) {
+			stmtRemoveSeed.executeUpdate("DELETE FROM ids;");
+			stmtAddSeed.setInt(1, SEED++);
+			stmtAddSeed.execute();
+			System.out.println("Seed " + SEED + " added to seeds");
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+
 	/**
 	 * Adds a month to database {@code months} table, if it is not already present (decided by {@link model.domain.Transaction#equals(Object)
 	 * equals}).<br>
 	 * <br>
 	 * 
-	 * If a {@link model.domain.Month Month} is added, all it's {@link model.domain.Transaction transactions} are also added to the {@code transactions}
-	 * table.
+	 * If a {@link model.domain.Month Month} is added, all it's {@link model.domain.Transaction transactions} are also added to the
+	 * {@code transactions} table.
 	 * 
 	 * @param m
 	 * @return the primary key of the new month in database, or {@value #SENTINEL_RETURN} if the month was not added
@@ -98,8 +115,8 @@ public class DatabaseAdministration extends DatabaseAccessObject {
 
 		// make connection to database, and create 2 prepared statements
 		try (Connection c = getConnection();
-			PreparedStatement stmtSearch = c.prepareStatement(SQLFactory.READ_MONTHS_WHERE_DATE);
-			PreparedStatement stmtAdd = c.prepareStatement(SQLFactory.INSERT_MONTH, Statement.RETURN_GENERATED_KEYS)) {
+				PreparedStatement stmtSearch = c.prepareStatement(SQLFactory.READ_MONTHS_WHERE_DATE);
+				PreparedStatement stmtAdd = c.prepareStatement(SQLFactory.INSERT_MONTH_ADMIN, Statement.RETURN_GENERATED_KEYS)) {
 
 			// search for month, to see if it already exists
 			stmtSearch.setString(1, m.getDate().format(Constants.FORMAT_YYYYMM));
@@ -111,12 +128,13 @@ public class DatabaseAdministration extends DatabaseAccessObject {
 
 				// if no results, then add month
 				if (notInDB) {
-					stmtAdd.setString(1, m.getDate().format(Constants.FORMAT_YYYYMM));
+					stmtAdd.setInt(1, ++SEED);
+					stmtAdd.setString(2, m.getDate().format(Constants.FORMAT_YYYYMM));
 					stmtAdd.executeUpdate();
 					try (ResultSet keys = stmtAdd.getGeneratedKeys();) { // capture primary key of new month
 						generatedPrimaryKey = keys.getInt(1);
 						if (generatedPrimaryKey != SENTINEL_RETURN) { // if adding the month was successful add transactions for the month
-							addTransactions(m.getTransactions(), generatedPrimaryKey);
+							addTransactions(m.getTransactions(), SEED);
 							System.out.println("Month " + m.toString() + " successfully added!");
 						}
 					}
@@ -135,12 +153,13 @@ public class DatabaseAdministration extends DatabaseAccessObject {
 	 */
 	protected synchronized void createTables() {
 		try (Connection c = DriverManager.getConnection(Files.DATABASE.toString());
-			Statement stmtCreateTables = c.createStatement();
-			Statement stmtCheckTables = c.createStatement();) {
+				Statement stmtCreateTables = c.createStatement();
+				Statement stmtCheckTables = c.createStatement();) {
 			for (Tables t : Tables.values()) {
 				System.out.println("Schema for table " + t.tableName() + ":");
 				System.out.println(SQLFactory.SQLCreateTable(t));
-				try (ResultSet rs = stmtCheckTables.executeQuery("SELECT * FROM sqlite_schema WHERE type='table' AND name='" + t.tableName() + "'");) {
+				try (ResultSet rs = stmtCheckTables
+						.executeQuery("SELECT * FROM sqlite_schema WHERE type='table' AND name='" + t.tableName() + "'");) {
 					if (rs.next()) {
 						System.out.println("OPERATION: Table " + t.tableName() + " already exists.");
 					} else {

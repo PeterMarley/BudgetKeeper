@@ -92,7 +92,7 @@ public class Shell {
 		ADD_TEST_DATA("Add Test Data") {
 			public boolean menuAction() {
 				System.out.println("Adding Test Data...");
-				addTestMonths();
+				addTestData();
 				return true;
 			}
 		},
@@ -104,7 +104,7 @@ public class Shell {
 				System.out.println("Creating Tables...");
 				DAO.createTables();
 				System.out.println("Adding Test Data...");
-				addTestMonths();
+				addTestData();
 				return true;
 			}
 		},
@@ -133,10 +133,11 @@ public class Shell {
 	/**
 	 * Add all test data to database
 	 */
-	private static void addTestMonths() {
+	private static void addTestData() {
 		for (Month m : testMonths) {
 			DAO.addMonth(m);
 		}
+		DAO.addSeed();
 	}
 	
 	/**

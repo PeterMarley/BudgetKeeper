@@ -77,7 +77,7 @@ public class DatabaseAccessObject {
 	 * 4 "type"<br>
 	 * 5 "value"<br>
 	 */
-	private static final String[] COLUMNS_TRANSACTIONS = new String[] { "name", "paid", "date", "income", "type", "value" };
+	private static final String[] COLUMNS_TRANSACTIONS = new String[] { "name", "paid", "date", "income", "type", "value", "transactionID" };
 
 	//**********************************\
 	//									|
@@ -497,7 +497,8 @@ public class DatabaseAccessObject {
 				LocalDate.parse(rs.getString(COLUMNS_TRANSACTIONS[2]), Constants.FORMAT_YYYYMMDD),
 				(rs.getInt(COLUMNS_TRANSACTIONS[3]) == 1) ? true : false,
 				Type.valueOf(rs.getString(COLUMNS_TRANSACTIONS[4])),
-				rs.getDouble(COLUMNS_TRANSACTIONS[5]));
+				rs.getDouble(COLUMNS_TRANSACTIONS[5]),
+				rs.getInt(COLUMNS_TRANSACTIONS[6]));
 		} catch (SQLException | IllegalArgumentException | InputMismatchException e) {
 			System.err.println("Transaction generation from ResultSet failed!");
 			e.printStackTrace();

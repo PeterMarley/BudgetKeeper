@@ -57,7 +57,14 @@ public class Constants {
 		 * </pre>
 		 */
 		MONTH("months", "monthID", null, new String[] { "monthID INTEGER NOT NULL", "date TEXT" }),
-		ID_SEED("ids");
+		/**
+		 * <pre>
+		 * CREATE TABLE ids (
+		 * 	seed INTEGER NOT NULL
+		 * );
+		 * </pre>
+		 */
+		ID_SEED("ids", null, null, new String[] {"seed INTEGER NOT NULL"});
 
 		private String tableName;
 		private String primaryKey;

@@ -47,9 +47,12 @@ public class SQLFactory {
 		for (int i = 0; i < table.columnSchema().length; i++) {
 			b.append("\t");
 			b.append(table.columnSchema()[i]);
-			b.append(",%n");
+			if (i != table.columnSchema().length -1) {
+				b.append(",%n");
+			}
 		}
 		if (table.primaryKey() != null) {
+			b.append(",%n");
 			b.append("\tPRIMARY KEY(");
 			b.append(table.primaryKey());
 			b.append(")");
@@ -74,6 +77,8 @@ public class SQLFactory {
 	 * <code>{@value}</code>
 	 */
 	public static final String INSERT_MONTH = "INSERT INTO months (date) VALUES (?);";
+	
+	public static final String INSERT_MONTH_ADMIN = "INSERT INTO months (monthID, date) VALUES (?,?);";
 
 	/**
 	 * <code>{@value}</code>
