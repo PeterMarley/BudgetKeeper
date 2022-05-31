@@ -51,7 +51,7 @@ public class Controller {
 	 * Database access object
 	 */
 	private static DatabaseAccessObject dao;
-	private static ImportExport save;
+	private static ImportExport importExport;
 	private static boolean dataImported = false;
 
 	//**********************************\
@@ -69,7 +69,7 @@ public class Controller {
 		try {
 			setDAO();
 			loadData();
-			save = new ImportExport();
+			importExport = new ImportExport();
 			Application.launch(WindowYear.class);
 		} catch (Exception e) {
 			System.err.println("EXCEPTION CAUGHT BY Controller.main()!");
@@ -139,12 +139,12 @@ public class Controller {
 	}
 
 	public static String exportData() {
-		return save.exportData(obsMonths);
+		return importExport.exportData(obsMonths);
 	}
 
 	public static void importData(File bkeFile, boolean keep) {
 		try {
-			List<Month> data = save.importData(bkeFile);
+			List<Month> data = importExport.importData(bkeFile);
 			obsMonths.clear();
 			obsMonths.addAll(data);
 			if (!keep) {
@@ -224,6 +224,10 @@ public class Controller {
 	 */
 	public static WindowTransaction getWindowTransaction() {
 		return windowTransaction;
+	}
+	
+	public static int getSeed(boolean increment) {
+		return dao.getSeed(increment);
 	}
 
 	//**********************************\

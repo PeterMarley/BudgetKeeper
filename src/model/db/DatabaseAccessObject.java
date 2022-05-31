@@ -30,9 +30,10 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.function.Consumer;
 
+import controller.Controller;
+
 /**
- * This class provides methods needed to interact with the BudgetKeeper programs database ({@link})
- * <br>
+ * This class provides methods needed to interact with the BudgetKeeper programs database ({@link}) <br>
  * <hr>
  * <h1>SCHEMA</h1>
  * 
@@ -80,21 +81,20 @@ public class DatabaseAccessObject {
 	private static final String[] COLUMNS_TRANSACTIONS = new String[] { "name", "paid", "date", "income", "type", "value", "transactionID" };
 
 	private int currentSeed;
-	
+
 	public DatabaseAccessObject() {
-		currentSeed = selectSeed();
+		setSeed(selectSeed());
 	}
-	
+
 	//**********************************\
 	//									|
 	//	API								|
 	//									|
 	//**********************************/
+
 	/**
 	 * Retrieves all {@link model.domain.Month Month} data from the {@code months} table in database, and adds all relevant
-	 * {@link model.domain.Transaction Transactions} to each {@code Month} from
-	 * {@code transactions}
-	 * table.
+	 * {@link model.domain.Transaction Transactions} to each {@code Month} from {@code transactions} table.
 	 * 
 	 * @return list of all Months (including their transactions).
 	 */
@@ -114,6 +114,8 @@ public class DatabaseAccessObject {
 		System.out.println("*********************************");
 		System.out.println("saving data");
 		System.out.println("*********************************");
+
+		int currentSeed = Controller.getSeed(false);
 
 		// Discern if this a new Month
 		int monthID = 0;
@@ -152,17 +154,15 @@ public class DatabaseAccessObject {
 				Transaction t = tFromObj.get(i);
 
 				int originalTID = t.getTransactionID();
-				boolean hasChanged = t.isUpdated();
+				boolean isUnsaved = t.isUnsaved();
 
 				// sort Transactions into collections for processing
-				if (transactionIDsFromDB.contains(originalTID)) {			// db has tid
-					if (hasChanged) {									// but t has changed: update list
-						toUpdate.put(originalTID, t);
-					}
+				if (isUnsaved && originalTID != -1) {			// db has tid && isUnsaved
+					toUpdate.put(originalTID, t);
 				} else if (originalTID == Transaction.NEW_ID) { 								// new transaction
-;
+					t.setTransactionID(Controller.getSeed(true));
 					toAdd.add(t);
-				} else if (!transactionIDsFromDB.contains(originalTID) && hasChanged) {
+				} else if (!transactionIDsFromDB.contains(originalTID) && isUnsaved) {
 					toDelete.put(t, originalTID);
 				}
 				removeFromtObj.add(t);
@@ -176,29 +176,30 @@ public class DatabaseAccessObject {
 
 				// create new transactions
 				for (Transaction tToAdd : toAdd) {
-					tToAdd.setUpdated(false);
+					tToAdd.setUnsaved(false);
 					createTransaction(con, monthID, tToAdd);
-					tToAdd.setUpdated(false);
 				}
 
 				// update edited transactions
 				for (Integer TID : toUpdate.keySet()) {
 					Transaction t = toUpdate.get(TID);
 					updateTransaction(con, monthID, t, TID);
-					t.setUpdated(false);
+					t.setUnsaved(false);
 				}
 
 				// delete removed transaction
-				tMapFromDB.forEach((t, i) -> {
-					if (!tFromObj.contains(t))
-						toDelete.put(t, i);
-				});
+								tMapFromDB.forEach((t, i) -> {
+									if (!tFromObj.contains(t))
+										toDelete.put(t, i);
+								});
 
 				for (Transaction t : toDelete.keySet()) {
 					deleteTransaction(con, toDelete.get(t));
 				}
 			}
-
+			if (currentSeed != Controller.getSeed(false)) {
+				updateSeed();
+			}
 
 
 		} catch (
@@ -222,9 +223,9 @@ public class DatabaseAccessObject {
 
 	private void createTransaction(Connection c, int monthID, Transaction t) {
 		final String sql = "INSERT INTO transactions " +
-			"(transactionID, monthID, name, paid, income, date, type, value) " +
-			"VALUES " +
-			"(?,?,?,?,?,?,?,?);";
+				"(transactionID, monthID, name, paid, income, date, type, value) " +
+				"VALUES " +
+				"(?,?,?,?,?,?,?,?);";
 
 		try (PreparedStatement stmtCreateTrans = c.prepareStatement(sql)) {
 			stmtCreateTrans.setInt(1, t.getTransactionID());
@@ -246,7 +247,7 @@ public class DatabaseAccessObject {
 		final String sql = "INSERT INTO months (date) VALUES (?);";
 		int keyVal = -1;
 		try (Connection c = getConnection();
-			PreparedStatement stmtAddMonth = c.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+				PreparedStatement stmtAddMonth = c.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
 			stmtAddMonth.setString(1, toSave.getDate().format(Constants.FORMAT_YYYYMM));
 			stmtAddMonth.executeUpdate();
 			try (ResultSet key = stmtAddMonth.getGeneratedKeys()) {
@@ -265,24 +266,21 @@ public class DatabaseAccessObject {
 	//**********************************/
 
 	private int selectSeed() {
+		int seed = 1; // default seed if no data
 		try (Connection c = getConnection();
-				PreparedStatement stmtGetSeed = c.prepareStatement("SELECT * FROM ids;", Statement.RETURN_GENERATED_KEYS)) {
-			stmtGetSeed.execute();
-			ResultSet rs = stmtGetSeed.getGeneratedKeys();
-			int seed = 0;
+				PreparedStatement stmtGetSeed = c.prepareStatement("SELECT * FROM ids;");
+				ResultSet rs = stmtGetSeed.executeQuery()) {
 			if (rs.next()) {
 				seed = rs.getInt(1);
-			} else {
-				seed = 1;
 			}
-			currentSeed = seed;
 			System.out.println(seed);
+
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
-		return 0;
+		return seed;
 	}
-	
+
 	/**
 	 * Retrieves all {@code Month} objects from the {@code months} and {@code transaction} tables.
 	 * 
@@ -296,7 +294,7 @@ public class DatabaseAccessObject {
 
 		// get connection to database and create read months query
 		try (Connection c = getConnection();
-			Statement stmtGetAllMonths = c.createStatement()) {
+				Statement stmtGetAllMonths = c.createStatement()) {
 
 			// execute query
 			try (ResultSet rs = stmtGetAllMonths.executeQuery(sql)) {
@@ -316,8 +314,8 @@ public class DatabaseAccessObject {
 	}
 
 	/**
-	 * Retrieves all {@code Transaction} data from the {@code transactions} table in database, for months with {@code monthID} column equal to parameter
-	 * {@code monthID}.
+	 * Retrieves all {@code Transaction} data from the {@code transactions} table in database, for months with {@code monthID} column equal to
+	 * parameter {@code monthID}.
 	 * 
 	 * @param monthID the monthID to search for.
 	 * @return a {@code List} of {@link model.domain.Transaction Transaction} objects.
@@ -328,7 +326,7 @@ public class DatabaseAccessObject {
 
 		SortedSet<Transaction> trans = new TreeSet<Transaction>();
 		try (Connection c = getConnection();
-			PreparedStatement stmtGetTransactionsForMonth = c.prepareStatement(sql)) {
+				PreparedStatement stmtGetTransactionsForMonth = c.prepareStatement(sql)) {
 			stmtGetTransactionsForMonth.setInt(1, monthID);
 			try (ResultSet rs = stmtGetTransactionsForMonth.executeQuery()) {
 				while (rs.next()) {
@@ -352,7 +350,7 @@ public class DatabaseAccessObject {
 		Integer monthID = null;
 
 		try (Connection c = getConnection();
-			PreparedStatement state = c.prepareStatement(sql)) {
+				PreparedStatement state = c.prepareStatement(sql)) {
 			state.setString(1, toSave.getDate().format(Constants.FORMAT_YYYYMM));
 			try (ResultSet rs = state.executeQuery()) {
 				monthID = rs.getInt("monthID");
@@ -367,7 +365,7 @@ public class DatabaseAccessObject {
 
 		HashMap<Transaction, Integer> map = new HashMap<Transaction, Integer>();
 		try (Connection c = getConnection();
-			PreparedStatement statement = c.prepareStatement(sql)) {
+				PreparedStatement statement = c.prepareStatement(sql)) {
 			statement.setInt(1, monthID);
 			try (ResultSet rs = statement.executeQuery();) {
 				while (rs.next()) {
@@ -386,10 +384,18 @@ public class DatabaseAccessObject {
 	//									|
 	//**********************************/
 
-	private void updateSeed(int newSeed) {
-		
+	private void updateSeed() {
+		try (Connection con = getConnection();
+				Statement stmtDelete = con.createStatement();
+				PreparedStatement stmtUpdate = con.prepareStatement("INSERT INTO ids (seed) VALUES (?)")) {
+			stmtDelete.executeUpdate("DELETE FROM ids;");
+			stmtUpdate.setInt(1, getSeed(true));
+			stmtUpdate.executeUpdate();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
 	}
-	
+
 	private void updateTransaction(Connection c, int monthID, Transaction t, Integer oldTID) {
 
 		final String sql = "UPDATE transactions SET name=?, transactionID=?, date=?, type=?, value=?, income=?, paid=? WHERE monthID=? AND transactionID=?;";
@@ -430,10 +436,10 @@ public class DatabaseAccessObject {
 		}
 
 	}
-	
+
 	private void deleteMonth(Connection c, Integer mID) {
 		final String sql = "DELETE FROM months WHERE monthID=?;";
-		
+
 		try (PreparedStatement semtDelMonth = c.prepareStatement(sql)) {
 			semtDelMonth.setInt(1, mID);
 			semtDelMonth.executeUpdate();
@@ -441,7 +447,7 @@ public class DatabaseAccessObject {
 			e.printStackTrace();
 		}
 	}
-	
+
 	public void deleteMonth(Month m) {
 		try {
 			int mID = selectMonthID(m);
@@ -452,7 +458,7 @@ public class DatabaseAccessObject {
 			e.printStackTrace();
 		}
 	}
-	
+
 	public void deleteAll() {
 		try (Connection c = getConnection();
 				Statement stmtDeleteAll = c.createStatement()) {
@@ -461,6 +467,29 @@ public class DatabaseAccessObject {
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
+	}
+
+	//**********************************\
+	//									|
+	//	Getters							|
+	//									|
+	//**********************************/
+
+	public int getSeed(boolean increment) {
+		if (increment) {
+			currentSeed++;
+		}
+		return currentSeed;
+	}
+
+	//**********************************\
+	//									|
+	//	Setters							|
+	//									|
+	//**********************************/
+
+	public void setSeed(int newSeed) {
+		currentSeed = newSeed;
 	}
 
 	//**********************************\
@@ -479,12 +508,12 @@ public class DatabaseAccessObject {
 		Transaction t = null;
 		try {
 			t = new Transaction(rs.getString(COLUMNS_TRANSACTIONS[0]),
-				(rs.getInt(COLUMNS_TRANSACTIONS[1]) == 1) ? true : false,
-				LocalDate.parse(rs.getString(COLUMNS_TRANSACTIONS[2]), Constants.FORMAT_YYYYMMDD),
-				(rs.getInt(COLUMNS_TRANSACTIONS[3]) == 1) ? true : false,
-				Type.valueOf(rs.getString(COLUMNS_TRANSACTIONS[4])),
-				rs.getDouble(COLUMNS_TRANSACTIONS[5]),
-				rs.getInt(COLUMNS_TRANSACTIONS[6]));
+					(rs.getInt(COLUMNS_TRANSACTIONS[1]) == 1) ? true : false,
+					LocalDate.parse(rs.getString(COLUMNS_TRANSACTIONS[2]), Constants.FORMAT_YYYYMMDD),
+					(rs.getInt(COLUMNS_TRANSACTIONS[3]) == 1) ? true : false,
+					Type.valueOf(rs.getString(COLUMNS_TRANSACTIONS[4])),
+					rs.getDouble(COLUMNS_TRANSACTIONS[5]),
+					rs.getInt(COLUMNS_TRANSACTIONS[6]));
 		} catch (SQLException | IllegalArgumentException | InputMismatchException e) {
 			System.err.println("Transaction generation from ResultSet failed!");
 			e.printStackTrace();

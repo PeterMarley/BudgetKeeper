@@ -88,7 +88,7 @@ public class DatabaseAdministration extends DatabaseAccessObject {
 				Statement stmtRemoveSeed = c.createStatement();
 				PreparedStatement stmtAddSeed = c.prepareStatement("INSERT INTO ids (seed) VALUES (?);")) {
 			stmtRemoveSeed.executeUpdate("DELETE FROM ids;");
-			stmtAddSeed.setInt(1, SEED++);
+			stmtAddSeed.setInt(1, ++SEED);
 			stmtAddSeed.execute();
 			System.out.println("Seed " + SEED + " added to seeds");
 		} catch (SQLException e) {

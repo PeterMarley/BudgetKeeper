@@ -21,7 +21,7 @@ public class Transaction implements Comparable<Transaction> {
 
 	public static final int NEW_ID = -1;
 
-	
+
 	/**
 	 * The various types of Transaction available.
 	 * 
@@ -63,19 +63,19 @@ public class Transaction implements Comparable<Transaction> {
 	private SimpleBooleanProperty isPaid;
 
 	private int transactionID;
-	private boolean updated;
+	private boolean unsaved;
 
 	//------------------------------\
 	//	Construction				|
 	//------------------------------/
 
 	/**
-	 * Create a Transaction object
+	 * Create a 'new' Transaction object, with its transaction id set to {@value Transaction#NEW_ID}
 	 * 
-	 * @param date     the date of this transaction
+	 * @param date the date of this transaction
 	 * @param isIncome true = income, false = outgoing
-	 * @param type
-	 * @param value    the value of this transaction
+	 * @param type {@link Type}
+	 * @param value the value of this transaction
 	 */
 
 	public Transaction(String name, boolean isPaid, LocalDate date, boolean isIncome, Type type, double value) {
@@ -86,17 +86,17 @@ public class Transaction implements Comparable<Transaction> {
 		this.setValue(value);
 		this.setIncome(isIncome);
 		this.setTransactionID(Transaction.NEW_ID);
-		this.updated = true;
+		this.unsaved = true;
 	}
 
 	/**
 	 * Create a Transaction object and set its transactionID specifically
 	 * 
-	 * @param date     the date of this transaction
+	 * @param date the date of this transaction
 	 * @param isIncome true = income, false = outgoing
-	 * @param type
-	 * @param value    the value of this transaction
-	 * @param transID
+	 * @param type {@link Type}
+	 * @param value the value of this transaction
+	 * @param transID the transactionID is set to this value
 	 */
 
 	public Transaction(String name, boolean isPaid, LocalDate date, boolean isIncome, Type type, double value, int transID) {
@@ -107,9 +107,6 @@ public class Transaction implements Comparable<Transaction> {
 		this.setValue(value);
 		this.setIncome(isIncome);
 		this.setTransactionID(transID);
-		//System.out.println(this.toString());
-		//System.out.println(hashCode());
-
 	}
 
 	//------------------------------\
@@ -173,10 +170,10 @@ public class Transaction implements Comparable<Transaction> {
 	/**
 	 * @param updated the updated to set
 	 */
-	public void setUpdated(boolean updated) {
-		this.updated = updated;
+	public void setUnsaved(boolean updated) {
+		this.unsaved = updated;
 	}
-	
+
 	/**
 	 * @param value the value to set
 	 */
@@ -190,7 +187,7 @@ public class Transaction implements Comparable<Transaction> {
 
 
 
-	
+
 	/**
 	 * @return the income
 	 */
@@ -224,10 +221,10 @@ public class Transaction implements Comparable<Transaction> {
 	 * 
 	 * @return
 	 */
-	public boolean isUpdated() {
-		return updated;
+	public boolean isUnsaved() {
+		return unsaved;
 	}
-	
+
 	/**
 	 * @return the type
 	 */
@@ -266,8 +263,8 @@ public class Transaction implements Comparable<Transaction> {
 	//------------------------------/
 
 	/**
-	 * A {@code Transaction} object's total ordering is chronologically by difference in months. If months are chronologically equal, then all fields are
-	 * compared, if they are equal the value is compared? (is this working as intended?)
+	 * A {@code Transaction} object's total ordering is chronologically by difference in months. If months are chronologically equal, then all fields
+	 * are compared, if they are equal the value is compared? (is this working as intended?)
 	 */
 	@Override
 	public int compareTo(Transaction t) {
@@ -341,9 +338,9 @@ public class Transaction implements Comparable<Transaction> {
 		// OTHERWISE EQUAL
 
 		if (this.getName().equals(other.getName())
-			&& this.getDate().equals(other.getDate())
-			&& this.getType().equals(other.getType())
-			&& this.getAbsoluteValue() == other.getAbsoluteValue()) {
+				&& this.getDate().equals(other.getDate())
+				&& this.getType().equals(other.getType())
+				&& this.getAbsoluteValue() == other.getAbsoluteValue()) {
 			return true;
 		} else {
 			return false;
@@ -353,8 +350,9 @@ public class Transaction implements Comparable<Transaction> {
 
 	@Override
 	public String toString() {
-		return "Transaction [name=" + getName() + ", income=" + isIncome() + ", date=" + getDate() + ", type=" + getType() + ", value=" + getValue() + ", transID=" + getTransactionID() + ", hashCode="
-			+ hashCode() + ", isUpdated=" + isUpdated() + "]\n";
+		return "Transaction [name=" + getName() + ", income=" + isIncome() + ", date=" + getDate() + ", type=" + getType() + ", value=" + getValue()
+				+ ", transID=" + getTransactionID() + ", hashCode="
+				+ hashCode() + ", isUpdated=" + isUnsaved() + "]\n";
 	}
 
 

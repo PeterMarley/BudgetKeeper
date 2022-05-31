@@ -146,40 +146,9 @@ public class WindowTransaction {
 		this.t = t;
 		this.m = m;
 		this.operation = op;
-
-		//		setRoot();
-		//		setScene();
-		//		setStage();
-
 		initialize();
-
 		Controller.setWindowTransaction(this);
 	}
-	//
-	//	/**
-	//	 * Set the Root of this scene-graph.
-	//	 * 
-	//	 * @throws IOException if error occurs during FXML loading.
-	//	 */
-	//	private void setRoot() throws IOException {
-	//		
-	//	}
-	//
-	//	/**
-	//	 * Set the Scene of this scene-graph.
-	//	 */
-	//	private void setScene() {
-	//		
-	//
-	//	}
-	//
-	//	/**
-	//	 * Sets the Stage of this scene-graph.
-	//	 */
-	//	private void setStage() {
-	//
-	//
-	//	}
 
 	//**********************************\
 	//									|
@@ -247,7 +216,7 @@ public class WindowTransaction {
 
 		// date
 		date.setValue((t != null) ? t.getDate() : (m != null) ? m.getDate() : LocalDate.now());
-		date.setOnAction((event) -> {
+		date.setOnAction(event -> {
 
 			boolean accepted = true;
 
@@ -351,20 +320,13 @@ public class WindowTransaction {
 	 */
 	private void save() {
 		Transaction collectedTransaction = collectTransaction();
-		if (collectedTransaction != null && (t != null && !t.equals(collectedTransaction))) {
+		if (collectedTransaction != null && (t != null && !t.equals(collectedTransaction))) { //update trans
+			collectedTransaction.setUnsaved(true);
 			m.getTransactions().remove(t);
 			m.getTransactions().add(collectedTransaction);
 			Controller.getWindowMonth().update(m);
 			close();
-			//			try {
-			//				//WindowTransaction wt = new WindowTransaction(m, collectedTransaction);
-			//				close();
-			//				//wt.show();
-			//			} catch (IllegalArgumentException | IOException e) {
-			//				e.printStackTrace();
-			//			}
-
-		} else if (collectedTransaction != null && t == null) {
+		} else if (collectedTransaction != null && t == null) { // new trans
 			m.getTransactions().add(collectedTransaction);
 			Controller.getWindowMonth().update(m);
 			close();
@@ -387,16 +349,18 @@ public class WindowTransaction {
 			Type paramType = Type.valueOf(typeMap.get(type.getValue()));
 			double paramValue = Math.abs(Double.valueOf(value.getText()));
 			LocalDate paramDate = date.getValue();
-			int paramOldTID = (t != null) ? t.getTransactionID() : Transaction.NEW_ID;
 			if (t != null) {
+				// update transaction
 				tr = new Transaction(paramName,
 						paramPaid,
 						paramDate,
 						paramIncome,
 						paramType,
 						paramValue,
-						paramOldTID);
+						t.getTransactionID());
+				tr.setUnsaved(true);
 			} else {
+				// create transaction
 				tr = new Transaction(paramName,
 						paramPaid,
 						paramDate,
