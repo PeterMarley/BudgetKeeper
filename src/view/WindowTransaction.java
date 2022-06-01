@@ -320,7 +320,7 @@ public class WindowTransaction {
 	 */
 	private void save() {
 		Transaction collectedTransaction = collectTransaction();
-		if (collectedTransaction != null && (t != null && !t.equals(collectedTransaction))) { //update trans
+		if (collectedTransaction != null && (t != null && collectedTransaction.isUnsaved())) { //update trans
 			collectedTransaction.setUnsaved(true);
 			m.getTransactions().remove(t);
 			m.getTransactions().add(collectedTransaction);

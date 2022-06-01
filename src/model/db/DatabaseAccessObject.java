@@ -157,19 +157,18 @@ public class DatabaseAccessObject {
 				boolean isUnsaved = t.isUnsaved();
 
 				// sort Transactions into collections for processing
-				if (isUnsaved && originalTID != -1) {			// db has tid && isUnsaved
+				if (isUnsaved && originalTID != -1 && !t.isDelete()) {			// db has tid && isUnsaved
 					toUpdate.put(originalTID, t);
 				} else if (originalTID == Transaction.NEW_ID) { 								// new transaction
 					t.setTransactionID(Controller.getSeed(true));
 					toAdd.add(t);
-				} else if (!transactionIDsFromDB.contains(originalTID) && isUnsaved) {
+				} else if (!transactionIDsFromDB.contains(originalTID) && isUnsaved || t.isDelete()) { // old logic needs readded i think
 					toDelete.put(t, originalTID);
 				}
 				removeFromtObj.add(t);
 
 			}
 			transactionsFromDB.removeAll(removeFromtObj);
-
 
 			// Database Operations
 			try (Connection con = getConnection()) {
@@ -188,11 +187,11 @@ public class DatabaseAccessObject {
 				}
 
 				// delete removed transaction
-								tMapFromDB.forEach((t, i) -> {
-									if (!tFromObj.contains(t))
-										toDelete.put(t, i);
-								});
-
+//				tMapFromDB.forEach((t, i) -> {
+//					if (!tFromObj.contains(t))
+//						toDelete.put(t, i);
+//				});
+				transactionsFromDB.forEach(t -> toDelete.put(t, t.getTransactionID()));
 				for (Transaction t : toDelete.keySet()) {
 					deleteTransaction(con, toDelete.get(t));
 				}
@@ -200,7 +199,6 @@ public class DatabaseAccessObject {
 			if (currentSeed != Controller.getSeed(false)) {
 				updateSeed();
 			}
-
 
 		} catch (
 

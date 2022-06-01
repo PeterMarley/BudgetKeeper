@@ -64,6 +64,7 @@ public class Transaction implements Comparable<Transaction> {
 
 	private int transactionID;
 	private boolean unsaved;
+	private boolean delete;
 
 	//------------------------------\
 	//	Construction				|
@@ -136,6 +137,10 @@ public class Transaction implements Comparable<Transaction> {
 		this.date = new SimpleStringProperty(nullCheck(date).format(Constants.FORMAT_YYYYMMDD));
 	}
 
+	public void setDelete(boolean deleteFlag) {
+		this.delete = true;
+	}
+	
 	/**
 	 * @param name the name to set
 	 */
@@ -195,6 +200,10 @@ public class Transaction implements Comparable<Transaction> {
 		return income.get();
 	}
 
+	public boolean isDelete() {
+		return delete;
+	}
+	
 	/**
 	 * @return the date
 	 */
@@ -316,35 +325,36 @@ public class Transaction implements Comparable<Transaction> {
 
 		Transaction other = (Transaction) obj;
 		// UNEQUAL if this date is null, and other date is not null
-		if (date == null) {
-			if (other.date != null)
-				return false;
-
-			// UNEQUAL if date fields are not equal
-			//} else if (!date.equals(other.date))
-		} else if (getDate().getYear() != other.getDate().getYear() && getDate().getMonth() != other.getDate().getMonth())
-			return false;
-		// UNEQUAL if income fields are not equal
-		if (isIncome() != other.isIncome())
-			return false;
-		// UNEQUAL if type fields are not equal
-		if (getType() != other.getType())
-			return false;
-		// UNEQUAL if value fields are not equal
-		if (Double.doubleToLongBits(getValue()) != Double.doubleToLongBits(other.getValue()))
-			return false;
-		if (!this.getName().equals(other.getName()))
-			return false;
-		// OTHERWISE EQUAL
-
-		if (this.getName().equals(other.getName())
-				&& this.getDate().equals(other.getDate())
-				&& this.getType().equals(other.getType())
-				&& this.getAbsoluteValue() == other.getAbsoluteValue()) {
-			return true;
-		} else {
-			return false;
-		}
+//		if (date == null) {
+//			if (other.date != null)
+//				return false;
+//
+//			// UNEQUAL if date fields are not equal
+//			//} else if (!date.equals(other.date))
+//		} else if (getDate().getYear() != other.getDate().getYear() && getDate().getMonth() != other.getDate().getMonth())
+//			return false;
+//		// UNEQUAL if income fields are not equal
+//		if (isIncome() != other.isIncome())
+//			return false;
+//		// UNEQUAL if type fields are not equal
+//		if (getType() != other.getType())
+//			return false;
+//		// UNEQUAL if value fields are not equal
+//		if (Double.doubleToLongBits(getValue()) != Double.doubleToLongBits(other.getValue()))
+//			return false;
+//		if (!this.getName().equals(other.getName()))
+//			return false;
+//		// OTHERWISE EQUAL
+//
+//		if (this.getName().equals(other.getName())
+//				&& this.getDate().equals(other.getDate())
+//				&& this.getType().equals(other.getType())
+//				&& this.getAbsoluteValue() == other.getAbsoluteValue()) {
+//			return true;
+//		} else {
+//			return false;
+//		}
+		return this.getTransactionID() == other.getTransactionID();
 
 	}
 
@@ -352,7 +362,7 @@ public class Transaction implements Comparable<Transaction> {
 	public String toString() {
 		return "Transaction [name=" + getName() + ", income=" + isIncome() + ", date=" + getDate() + ", type=" + getType() + ", value=" + getValue()
 				+ ", transID=" + getTransactionID() + ", hashCode="
-				+ hashCode() + ", isUpdated=" + isUnsaved() + "]\n";
+				+ hashCode() + ", isUnsaved=" + isUnsaved() + ", delete="+isDelete()+"]\n";
 	}
 
 

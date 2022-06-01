@@ -530,6 +530,7 @@ public class WindowMonth {
 			@Override
 			public void handle(ActionEvent event) {
 				Transaction selectedTransaction = transactionsTable.getSelectionModel().getSelectedItem();
+				selectedTransaction.setDelete(true);
 				selectedMonth.removeTransaction(selectedTransaction);
 				setUnsavedChanges(true);
 				initData();
