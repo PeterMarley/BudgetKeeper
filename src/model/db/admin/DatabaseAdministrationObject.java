@@ -33,7 +33,7 @@ public class DatabaseAdministrationObject extends DatabaseAccessObject {
 			SortedSet<Transaction> transactionsForMonth = selectTransactions(monthID);
 			for (Transaction t : transactions) {
 				if (!transactionsForMonth.contains(t)) {
-					addTransaction(t, monthID, getSeed(true));
+					addTransaction(t, monthID, t.getTransactionID());
 				}
 			}
 		} catch (SQLException e) {
@@ -58,7 +58,7 @@ public class DatabaseAdministrationObject extends DatabaseAccessObject {
 			SortedSet<Transaction> transactions = selectTransactions(monthID);
 			//TODO someone going wrong here
 			if (transactions.contains(t)) {
-				System.out.println("This transaction already exists in database for this month");
+				System.out.println("This transaction already exists in database for this month. " + t.toString());
 			} else {
 				try (PreparedStatement stmtAddTrans = c.prepareStatement(SQLFactory.INSERT_TRANSACTION, Statement.RETURN_GENERATED_KEYS)) {
 					//"INSERT INTO transactions (monthID, name, paid, income, date, type, value) VALUES (?,?,?,?,?);";
@@ -77,7 +77,7 @@ public class DatabaseAdministrationObject extends DatabaseAccessObject {
 						transKey = rs.getInt(1);
 					}
 							
-					System.out.println("Transaction Successfully added.");
+					System.out.println("Transaction Successfully added." + t.toString());
 				}
 
 			}
@@ -87,12 +87,12 @@ public class DatabaseAdministrationObject extends DatabaseAccessObject {
 		return transKey;
 	}
 
-	synchronized void addSeed() {
+	synchronized void insertSeed() {
 		try (Connection c = getConnection();
 				Statement stmtRemoveSeed = c.createStatement();
 				PreparedStatement stmtAddSeed = c.prepareStatement("INSERT INTO ids (seed) VALUES (?);")) {
 			stmtRemoveSeed.executeUpdate("DELETE FROM ids;");
-			stmtAddSeed.setInt(1, getSeed(true));
+			stmtAddSeed.setInt(1, getSeed(false));
 			stmtAddSeed.execute();
 			System.out.println("Seed " + getSeed(false) + " added to seeds");
 		} catch (SQLException e) {
@@ -193,6 +193,7 @@ public class DatabaseAdministrationObject extends DatabaseAccessObject {
 				}
 
 			}
+			setSeed(START_SEED); // reset seed
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}

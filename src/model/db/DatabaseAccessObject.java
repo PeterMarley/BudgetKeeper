@@ -69,6 +69,7 @@ public class DatabaseAccessObject {
 	 * Default return sentinel value for queries.
 	 */
 	public static final int SENTINEL_RETURN = -1;
+	public static final int START_SEED = 1;
 
 	/**
 	 * 0 "name"<br>
@@ -157,7 +158,7 @@ public class DatabaseAccessObject {
 				boolean isUnsaved = t.isUnsaved();
 
 				// sort Transactions into collections for processing
-				if (isUnsaved && originalTID != -1 && !t.isDelete()) {			// db has tid && isUnsaved
+				if (isUnsaved && originalTID != Transaction.NEW_ID && !t.isDelete()) {			// db has tid && isUnsaved
 					toUpdate.put(originalTID, t);
 				} else if (originalTID == Transaction.NEW_ID) { 								// new transaction
 					t.setTransactionID(Controller.getSeed(true));
@@ -243,7 +244,7 @@ public class DatabaseAccessObject {
 
 	private int insertMonth(Month toSave) throws SQLException {
 		final String sql = "INSERT INTO months (date) VALUES (?);";
-		int keyVal = -1;
+		int keyVal = SENTINEL_RETURN;
 		try (Connection c = getConnection();
 				PreparedStatement stmtAddMonth = c.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
 			stmtAddMonth.setString(1, toSave.getDate().format(Constants.FORMAT_YYYYMM));
@@ -264,7 +265,7 @@ public class DatabaseAccessObject {
 	//**********************************/
 
 	private int selectSeed() {
-		int seed = 1; // default seed if no data
+		int seed = START_SEED; // default seed if no data
 		try (Connection c = getConnection();
 				PreparedStatement stmtGetSeed = c.prepareStatement("SELECT * FROM ids;");
 				ResultSet rs = stmtGetSeed.executeQuery()) {
