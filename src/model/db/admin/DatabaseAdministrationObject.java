@@ -18,9 +18,7 @@ import model.domain.Transaction;
 import model.db.DatabaseAccessObject;
 import model.db.SQLFactory;
 
-public class DatabaseAdministration extends DatabaseAccessObject {
-
-	private static int SEED = 0;
+public class DatabaseAdministrationObject extends DatabaseAccessObject {
 
 	/**
 	 * Adds a Collection of {@code Transaction} objects to the {@code transaction} 7 in database, with column {@code monthID} set to parameter
@@ -35,7 +33,7 @@ public class DatabaseAdministration extends DatabaseAccessObject {
 			SortedSet<Transaction> transactionsForMonth = selectTransactions(monthID);
 			for (Transaction t : transactions) {
 				if (!transactionsForMonth.contains(t)) {
-					addTransaction(t, monthID, ++SEED);
+					addTransaction(t, monthID, getSeed(true));
 				}
 			}
 		} catch (SQLException e) {
@@ -58,6 +56,7 @@ public class DatabaseAdministration extends DatabaseAccessObject {
 				PreparedStatement stmtGetTransactions = c.prepareStatement(SQLFactory.READ_TRANSACTIONS_WHERE_MONTHID)) {
 			stmtGetTransactions.setInt(1, monthID);
 			SortedSet<Transaction> transactions = selectTransactions(monthID);
+			//TODO someone going wrong here
 			if (transactions.contains(t)) {
 				System.out.println("This transaction already exists in database for this month");
 			} else {
@@ -72,7 +71,12 @@ public class DatabaseAdministration extends DatabaseAccessObject {
 					stmtAddTrans.setString(6, t.getDate().format(Constants.FORMAT_YYYYMMDD));
 					stmtAddTrans.setString(7, t.getType().name());
 					stmtAddTrans.setDouble(8, t.getAbsoluteValue());
-					transKey = stmtAddTrans.executeUpdate();
+					stmtAddTrans.executeUpdate();
+					
+					try (ResultSet rs = stmtAddTrans.getGeneratedKeys()) {
+						transKey = rs.getInt(1);
+					}
+							
 					System.out.println("Transaction Successfully added.");
 				}
 
@@ -88,9 +92,9 @@ public class DatabaseAdministration extends DatabaseAccessObject {
 				Statement stmtRemoveSeed = c.createStatement();
 				PreparedStatement stmtAddSeed = c.prepareStatement("INSERT INTO ids (seed) VALUES (?);")) {
 			stmtRemoveSeed.executeUpdate("DELETE FROM ids;");
-			stmtAddSeed.setInt(1, ++SEED);
+			stmtAddSeed.setInt(1, getSeed(true));
 			stmtAddSeed.execute();
-			System.out.println("Seed " + SEED + " added to seeds");
+			System.out.println("Seed " + getSeed(false) + " added to seeds");
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -128,13 +132,13 @@ public class DatabaseAdministration extends DatabaseAccessObject {
 
 				// if no results, then add month
 				if (notInDB) {
-					stmtAdd.setInt(1, ++SEED);
+					stmtAdd.setInt(1, getSeed(true));
 					stmtAdd.setString(2, m.getDate().format(Constants.FORMAT_YYYYMM));
 					stmtAdd.executeUpdate();
 					try (ResultSet keys = stmtAdd.getGeneratedKeys();) { // capture primary key of new month
 						generatedPrimaryKey = keys.getInt(1);
 						if (generatedPrimaryKey != SENTINEL_RETURN) { // if adding the month was successful add transactions for the month
-							addTransactions(m.getTransactions(), SEED);
+							addTransactions(m.getTransactions(), generatedPrimaryKey);
 							System.out.println("Month " + m.toString() + " successfully added!");
 						}
 					}
@@ -181,7 +185,6 @@ public class DatabaseAdministration extends DatabaseAccessObject {
 	public synchronized void dropTables() {
 		try (Connection c = DriverManager.getConnection(Files.DATABASE.toString())) {
 			for (Tables t : Tables.values()) {
-
 				try (Statement stmtDropTables = c.createStatement();) {
 					stmtDropTables.executeUpdate(SQLFactory.SQLDropTable(t));
 					System.out.println("OPERATION: Table " + t.tableName() + " dropped.");
