@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -25,14 +26,39 @@ import model.domain.Transaction;
 import model.domain.Transaction.Type;
 import model.domain.Utility;
 
+/**
+ * This class is part of the Budget Keeper program and allows the importing and exporting of data into {@value #FILE_EXTENSION} format text files.<br>
+ * <br>
+ * 
+ * Example {@value #FILE_EXTENSION} file:
+ * 
+ * <pre>
+ * 
+ * </pre>
+ * 
+ * @author Peter Marley
+ * @StudentNum 13404067
+ * @email pmarley03@qub.ac.uk
+ * @GitHub BigJeffTheChef
+ *
+ */
 public class ImportExport {
 
-	private static final String FILE_EXTENSION = ".bke";
+	public static final String FILE_EXTENSION = ".bke";
 	private static final String DELIMITER = ",";
 	private static final String MARKER_MONTH = ":M:-";
 	private static final String MARKER_TRANSACTION = ":T:-";
 
-	public String exportData(List<Month> months) {
+	/**
+	 * Each {@link model.domain.Month Month} object field is written to a line prefixed with {@value #MARKER_MONTH}.<br>
+	 * Each {@link model.domain.Transaction Transaction} object belonging to a Month is written directly after that month, and is prefixed with
+	 * {@value #MARKER_TRANSACTION}.<br>
+	 * Fields for all objects are delimited with {@value #DELIMITER}.<br>
+	 * @param months
+	 * @return the filename of the exported file.
+	 * @throws IllegalArgumentException if months argument is empty (size is 0).
+	 */
+	public String exportData(Collection<Month> months) throws IllegalArgumentException {
 		Utility.validateNotEmpty(months);
 		LocalDateTime dt = LocalDateTime.now();
 		String filename = String.format("BudgetKeeperExport_%s_%02d-%02d-%02d%s",
@@ -54,7 +80,7 @@ public class ImportExport {
 				for (Transaction t : m.getTransactions()) {
 					StringBuilder sbt = new StringBuilder();
 					sbt.append(MARKER_TRANSACTION);
-					sbt.append(t.isIncome()); 									//0
+					sbt.append(t.isIncome()); 									//0 (indices)
 					sbt.append(DELIMITER);
 					sbt.append(t.getDate().format(Constants.FORMAT_YYYYMMDD));	//1
 					sbt.append(DELIMITER);
@@ -65,8 +91,6 @@ public class ImportExport {
 					sbt.append(t.getName());									//4
 					sbt.append(DELIMITER);
 					sbt.append(t.isPaid());										//5
-					sbt.append(DELIMITER);
-					sbt.append(t.getTransactionID());							//6
 					writer.write(sbt.toString());
 					writer.newLine();
 				}
@@ -77,10 +101,13 @@ public class ImportExport {
 		return filename;
 	}
 
-	public List<Month> importData(File bkeFile) throws FileNotFoundException, IllegalArgumentException {
-		FileChooser fx = new FileChooser();
-		fx.setInitialDirectory(new File("./"));
-		fx.setSelectedExtensionFilter(new ExtensionFilter("BudgetKeeper Export", ".bke"));
+	/**
+	 * Import a List of {@link model.domain.Month Month} objects from a specified {@value #FILE_EXTENSION} file.<br>
+	 * If the import fails an empty list is returned
+	 * @param bkeFile
+	 * @return {@code List<Month>}
+	 */
+	public List<Month> importData(File bkeFile) throws FileNotFoundException {
 		List<Month> monthsFromFile = new LinkedList<Month>();
 		try (BufferedReader reader = new BufferedReader(new FileReader(bkeFile))) {
 			String line = reader.readLine();
@@ -88,18 +115,17 @@ public class ImportExport {
 			while (line != null && !line.equals("")) {
 				try {
 					// construct Month
-					int markerMonthEndIndex = MARKER_MONTH.length();
-					LocalDate date = LocalDate.parse(line.substring(markerMonthEndIndex),Constants.FORMAT_YYYYMM);
+					LocalDate date = LocalDate.parse(line.substring(MARKER_MONTH.length()), Constants.FORMAT_YYYYMM);
 					line = reader.readLine();
 					lineCounter++;
 					Month m = new Month(date);
 
-					// if Month has no Transaction - continue
-					if (line.startsWith(MARKER_MONTH)) {
+					// if next line (a Month) has no Transactions - add month to list and continue
+					if (line != null && line.startsWith(MARKER_MONTH)) {
 						monthsFromFile.add(m);
 						continue;
 					}
-					
+
 					// construct transactions
 					SortedSet<Transaction> transactions = new TreeSet<Transaction>();
 					while (line != null && line.startsWith(MARKER_TRANSACTION)) {
@@ -107,23 +133,20 @@ public class ImportExport {
 						lineCounter++;
 						String[] tTokens = line.split(DELIMITER);
 						try {
-							Transaction t = new Transaction(tTokens[4],
-									(tTokens[5] == "1") ? true : false,
-									LocalDate.parse(tTokens[1], Constants.FORMAT_YYYYMMDD),
-									(tTokens[0] == "1") ? true : false,
-									Type.valueOf(tTokens[2]),
-									Double.valueOf(tTokens[3]),
-									Transaction.NEW_ID);
-							transactions.add(t);
-							line = reader.readLine();
+							transactions.add(parseTransaction(tTokens));
 						} catch (IllegalArgumentException e) {
-							System.err.println("Transaction from file parse failed on line " +lineCounter);
+							System.err.println("Transaction from file parse failed on line " + lineCounter);
 							System.err.println(line);
 						}
+						line = reader.readLine();
 					}
+
+					// add Transactions to Month
 					if (transactions.size() > 0) {
 						m.addTransactions(transactions);
 					}
+
+					// add Month to List
 					monthsFromFile.add(m);
 
 				} catch (DateTimeParseException dateErroneousEx) {
@@ -136,5 +159,15 @@ public class ImportExport {
 			e.printStackTrace();
 		}
 		return monthsFromFile;
+	}
+
+	private Transaction parseTransaction(String[] tTokens) throws IllegalArgumentException {
+		return new Transaction(tTokens[4],
+				Boolean.valueOf(tTokens[5]),
+				LocalDate.parse(tTokens[1], Constants.FORMAT_YYYYMMDD),
+				Boolean.valueOf(tTokens[0]),
+				Type.valueOf(tTokens[2]),
+				Double.valueOf(tTokens[3]),
+				Transaction.NEW_ID);
 	}
 }

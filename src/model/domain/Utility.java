@@ -3,6 +3,7 @@ package model.domain;
 import static model.domain.Utility.nullCheck;
 
 import java.time.LocalDate;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -121,18 +122,18 @@ public class Utility {
 	}
 
 	/**
-	 * Checks a list of objects and ensures it is not empty.
+	 * Checks a list of objects and ensures it is not empty, nor null.
 	 * @param <T> any reference type
-	 * @param list
-	 * @return
+	 * @param months
+	 * @return the months argument
 	 * @throws IllegalArgumentException if list is empty (size is 0), or if list is null.
 	 */
-	public static <T> List<T> validateNotEmpty(List<T> list) throws IllegalArgumentException {
-		nullCheck(list);
-		if (list.size() == 0) {
+	public static <T> Collection<T> validateNotEmpty(Collection<T> months) throws IllegalArgumentException {
+		nullCheck(months);
+		if (months.size() == 0) {
 			throw new IllegalArgumentException("List parameter was empty.");
 		}
-		return list;
+		return months;
 	}
 	
 	/**

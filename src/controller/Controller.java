@@ -138,7 +138,12 @@ public class Controller {
 		//mapToSave.put(edited, true);
 	}
 
-	public static String exportData() {
+	/**
+	 * Export all data to a {@value controller.ImportExport#FILE_EXTENSION} file.
+	 * @return the filename of the exported file
+	 * @throws IllegalArgumentException if the {@link #obsMonths obsMonths} static observable list is empty.
+	 */
+	public static String exportData() throws IllegalArgumentException {
 		return importExport.exportData(obsMonths);
 	}
 

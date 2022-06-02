@@ -82,8 +82,8 @@ public class WindowYear extends Application {
 	//**********************************/
 
 	/**
-	 * This HashMap is used to associate month values (0-11) with Month objects, so the GUI can select, for example, December, in a year,
-	 * attempting to get from the HashMap using the month value 11.<br>
+	 * This HashMap is used to associate month values (0-11) with Month objects, so the GUI can select, for example, December, in a year, attempting
+	 * to get from the HashMap using the month value 11.<br>
 	 * <hr>
 	 * Key: month of year (0 to 11).<br>
 	 * Value: Month object.
@@ -102,10 +102,7 @@ public class WindowYear extends Application {
 	private static final String FXML = "./fxml/WindowYear.fxml";
 	private static final String CSS = "./css/WindowYear.css";
 	private static final int DEFAULT_YEAR = LocalDate.now().getYear();
-	private static final String ENABLED_MONTH_BUTTON_CSS = "-fx-background-color: #3446eb;" +
-		"-fx-opacity: 1.0;" +
-		"-fx-text-fill:white;" +
-		"-fx-font-weight:bold;";
+	private static final String ENABLED_MONTH_BUTTON_CSS = "-fx-background-color: #3446eb; -fx-opacity: 1.0; -fx-text-fill:white; -fx-font-weight:bold;";
 	private static final String DISABLED_MONTH_BUTTON_CSS = "";//"-fx-background-color: white;-fx-opacity: 0.5;";
 	private static final String ICON = "./img/icons/calendar.png";
 
@@ -132,11 +129,11 @@ public class WindowYear extends Application {
 	// year selection nodes
 	@FXML private Button newYearButton;
 	@FXML private ComboBox<Integer> yearComboBox;
-	
+
 	// import/ export buttons
 	@FXML private Button importButton;
 	@FXML private Button exportButton;
-	
+
 
 	// operations nodes
 	//@FXML private Button addMonth;
@@ -237,7 +234,20 @@ public class WindowYear extends Application {
 
 	private void configExportImport() {
 		exportButton.setOnAction(event -> {
-			Controller.exportData();
+			String contentMsg;
+			boolean success;
+			try {
+				String exportedFilename = Controller.exportData();
+				success = true;
+				contentMsg = "You can find your file @ \n" + exportedFilename;
+			} catch (IllegalArgumentException exportFailedEx) {
+				success = false;
+				contentMsg = "You cannot export if there is no data!";
+			}
+			Alert exportConfirmed = new Alert(AlertType.INFORMATION);
+			exportConfirmed.setHeaderText("Your Budget data was " + ((!success) ? "not" : "") + " exported.");
+			exportConfirmed.setContentText(contentMsg);
+			exportConfirmed.show();
 		});
 		importButton.setOnAction(event -> {
 			Alert alert = new Alert(AlertType.CONFIRMATION);
@@ -252,8 +262,10 @@ public class WindowYear extends Application {
 			Optional<ButtonType> choice = alert.showAndWait();
 			if (choice.isPresent()) {
 				Boolean keep = null;
-				if (choice.get() == buttonKeep) keep = true;
-				if (choice.get() == buttonReplace) keep = false;
+				if (choice.get() == buttonKeep)
+					keep = true;
+				if (choice.get() == buttonReplace)
+					keep = false;
 				if (keep != null) {
 					FileChooser fx = new FileChooser();
 					fx.setInitialDirectory(new File("./"));
@@ -265,14 +277,15 @@ public class WindowYear extends Application {
 			}
 		});
 	}
-	
+
 	/**
 	 * Configure the 12 buttons that open the {@link view.WindowMonth WindowMonth} for a particular {@link model.domain.Month Month}.
 	 */
 	private void configMonthButtons() {
 
 		// get Months data for this year from Controller
-		Button[] buttons = new Button[] { monthJan, monthFeb, monthMar, monthApr, monthMay, monthJun, monthJul, monthAug, monthSep, monthOct, monthNov, monthDec
+		Button[] buttons = new Button[] { monthJan, monthFeb, monthMar, monthApr, monthMay, monthJun, monthJul, monthAug, monthSep, monthOct,
+				monthNov, monthDec
 		};
 		for (int month = 0; month < buttons.length; month++) {
 			String styleToApply = null;
@@ -291,8 +304,8 @@ public class WindowYear extends Application {
 			/**
 			 * set action handler for button
 			 * 
-			 * When Button for a particular Month is fired, a Runnable created as an anonymouse inner class and run on a new Thread,
-			 * which displays the WindowMonth JavaFX scene-graph/
+			 * When Button for a particular Month is fired, a Runnable created as an anonymouse inner class and run on a new Thread, which displays
+			 * the WindowMonth JavaFX scene-graph/
 			 */
 			final int monthIndex = month;
 			if (monthExists) {
@@ -313,7 +326,8 @@ public class WindowYear extends Application {
 					@Override
 					public void handle(ActionEvent e) {
 						try {
-							Month m = new Month(LocalDate.parse(String.format("%4d/%02d", lastSelectedYear, monthIndex + 1), Constants.FORMAT_YYYYMM));
+							Month m = new Month(
+									LocalDate.parse(String.format("%4d/%02d", lastSelectedYear, monthIndex + 1), Constants.FORMAT_YYYYMM));
 							mapOfSingleYear.put(monthIndex, m);
 							WindowMonth wm = new WindowMonth(m, true);
 							hide();

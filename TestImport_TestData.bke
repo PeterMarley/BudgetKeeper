@@ -1,0 +1,9 @@
+:M:-2022/04
+:T:-false,2022/04/03,CASH,40.59,Dog Fud,true,6
+:M:-2022/05
+:T:-false,2022/05/04,STANDINGORDER,500.1,Loan Repayment,false,11
+:T:-false,2022/05/05,BANKTRANSFER,230.55,Rent and Owed,false,12
+:T:-false,2022/05/03,STANDINGORDER,30.3,Laptop Finance,true,10
+:T:-false,2022/05/02,DIRECTDEBIT,20.2,Spotify,false,9
+:T:-false,2022/05/01,CASH,15.0,Shopping,true,8
+:T:-true,2022/05/06,BANKTRANSFER,1450.99,Salary,true,13
