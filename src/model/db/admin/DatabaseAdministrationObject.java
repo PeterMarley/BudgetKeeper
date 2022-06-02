@@ -87,12 +87,12 @@ public class DatabaseAdministrationObject extends DatabaseAccessObject {
 		return transKey;
 	}
 
-	synchronized void insertSeed() {
+	synchronized void insertSeed(int seed) {
 		try (Connection c = getConnection();
 				Statement stmtRemoveSeed = c.createStatement();
 				PreparedStatement stmtAddSeed = c.prepareStatement("INSERT INTO ids (seed) VALUES (?);")) {
 			stmtRemoveSeed.executeUpdate("DELETE FROM ids;");
-			stmtAddSeed.setInt(1, getSeed(false));
+			stmtAddSeed.setInt(1, seed);
 			stmtAddSeed.execute();
 			System.out.println("Seed " + getSeed(false) + " added to seeds");
 		} catch (SQLException e) {

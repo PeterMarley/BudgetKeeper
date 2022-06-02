@@ -149,7 +149,7 @@ int seed = DatabaseAdministrationObject.START_SEED;
 		testMonths.add(month2021Dec);
 		testMonths.add(month2022Apr);
 		testMonths.add(month2022May);
-		DAO.insertSeed();
+		DAO.insertSeed(seed);
 		for (Month m : testMonths) {
 			DAO.addMonth(m);
 		}

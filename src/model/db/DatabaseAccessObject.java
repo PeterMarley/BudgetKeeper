@@ -454,6 +454,7 @@ public class DatabaseAccessObject {
 				deleteMonth(c, mID);
 			}
 		} catch (SQLException e) {
+			System.err.println("Failed to delete Month from database:");
 			e.printStackTrace();
 		}
 	}
